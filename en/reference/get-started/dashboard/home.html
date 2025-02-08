@@ -5,13 +5,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> - DataCap</title>
+    <title>仪表盘 - DataCap</title>
     <!-- 基础 SEO meta 标签 -->
 <meta name="description" content="DataCap is integrated software for data transformation, integration, and visualization. Support a variety of data sources, file types, big data related database, relational database, NoSQL database, etc. Through the software can realize the management of multiple data sources, the data under the source of various operations conversion ...">
 <meta name="keywords" content="datacap,database,mysql,postgresql,clickhouse,oracle,sqlserver,sqlserver2008,sqlserver2012,sqlserver2014,sqlserver2016,sqlserver2017,sqlserver2019,sqlserver2022,hive,spark,mysql,postgresql,clickhouse,oracle,sqlserver,sqlserver2008,sqlserver2012,sqlserver2014,sqlserver2016,sqlserver2017,sqlserver2019,sqlserver2022,hive,spark">
 <meta name="author" content="PageForge">
 
-    <title> - DataCap</title>
+    <title>仪表盘 - DataCap</title>
     <link rel="icon" href="../../../../assets/logo.png" type="image/x-icon">
 
     <!-- 基础样式文件 -->
@@ -96,7 +96,7 @@
     <div class="w-full bg-blue-50 " data-banner>
         <div class="max-w-screen-xl px-6 py-3 mx-auto flex items-center justify-between">
             <div class="text-blue-700 ">
-                💗 <a href="https://afdian.com/a/devlive-community" target="_blank">DataCap 2024.4.1 is released, 如果喜欢我们的软件，请点击这里支持我们</a> ❤️
+                💗 <a href="https://afdian.com/a/devlive-community" target="_blank">DataCap 2024.4.1 is released, 如果喜欢我们的软件，请点击这里支持我们</a> ❤️  <span class="text-red-500">文档重构中，可能有偏差，会实时更新</span>
             </div>
             <button class="text-blue-500 hover:text-blue-700 "
                     data-banner-close>
@@ -747,7 +747,7 @@
                             
 
                             <span class="flex flex-grow items-center space-x-4 text-sm sm:text-base whitespace-nowrap">
-                                <span></span>
+                                <span>仪表盘</span>
                                 
 
 
@@ -757,6 +757,75 @@
                         </div>
                         
                     </a>
+                
+            </li>
+        
+            <li class="relative">
+                
+                <button type="button"
+                        class="group block w-full text-left"
+                        onclick="toggleSubmenu(this)">
+                    
+                        <div class="relative flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2
+                                hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/40
+                               rounded-md transition-all duration-200 ease-in-out">
+
+                            
+
+                            <span class="flex flex-grow items-center space-x-4 text-sm sm:text-base whitespace-nowrap">
+                                <span>Dataset</span>
+                                
+
+
+                            </span>
+
+                            
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2 text-gray-400 transform transition-transform duration-200 ease-in-out
+                                        group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                                     viewBox="0 0 20 20"
+                                     fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                          clip-rule="evenodd"/>
+                                </svg>
+                            
+                        </div>
+                        
+                </button>
+                <div class="overflow-hidden transition-all duration-200 ease-in-out
+                               max-h-0 opacity-0">
+                    
+    <ul class="mt-1 mb-2 ml-2 sm:ml-3 md:ml-4 pl-2 sm:pl-3 md:pl-4 border-l border-gray-200 dark:border-gray-700 space-y-1.5">
+        
+            <li class="relative">
+                
+                    <a href="/en/reference/get-started/dataset/create/home.html"
+                       class="group block">
+                        
+                        <div class="relative flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2
+                                hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/40
+                               rounded-md transition-all duration-200 ease-in-out">
+
+                            
+
+                            <span class="flex flex-grow items-center space-x-4 text-xs sm:text-sm md:text-base whitespace-nowrap">
+                                <span>新建 &amp; 编辑</span>
+                                
+
+
+                            </span>
+
+                            
+                        </div>
+                        
+                    </a>
+                
+            </li>
+        
+    </ul>
+
+                </div>
                 
             </li>
         
@@ -800,11 +869,670 @@
         <!-- 页面标题部分 -->
         <div class="mb-8">
             
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl lg:text-3xl">
+            仪表盘
+        </h1>
+
+        <div class="flex items-center gap-4">
+            <!-- 字体大小控制按钮 -->
+            
+    <div class="flex items-center gap-2 p-0.5 bg-white dark:bg-gray-800 rounded-lg dark:border-gray-700 not-prose">
+        <button id="decrease-font" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="减小字体">
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+        <button id="reset-font" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm" title="重置字体">A</button>
+        <button id="increase-font" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="增大字体">
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+    </div>
+
+
+            <!-- 分享按钮 -->
+            
+    <button type="button" id="share-btn" class="text-gray-400 hover:text-blue-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" class="w-4 h-4">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+    </button>
+
+    <div id="share-popup" class="hidden fixed inset-0 z-50" onclick="handleClickOutside(event)">
+        <div class="absolute inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"></div>
+        <div class="relative z-10 flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+            <div class="relative transform overflow-visible rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 w-fit">
+                <div class="social-share text-center"
+                     data-sites="qq,wechat,weibo"
+                     data-mobile-sites="qq,wechat,weibo"
+                     data-wechat-qrcode-title="微信扫一扫：分享"
+                     data-wechat-qrcode-helper="微信扫一扫后点击右上角分享">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+
+    <style>
+        /* 修复微信二维码显示被遮挡的问题 */
+        .social-share .wechat-qrcode {
+            z-index: 9999;
+            width: fit-content;
+        }
+    </style>
+
+    <script>
+        document.getElementById('share-btn')?.addEventListener('click', function () {
+            document.getElementById('share-popup')?.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+
+        function handleClickOutside(event) {
+            const sharePopup = document.getElementById('share-popup');
+            const shareContent = sharePopup?.querySelector('.transform');
+
+            // 如果点击的是弹窗内容之外的区域
+            if (event.target === sharePopup || !shareContent?.contains(event.target)) {
+                hideSharePopup();
+            }
+        }
+
+        function hideSharePopup() {
+            document.getElementById('share-popup')?.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // 处理 ESC 键关闭
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideSharePopup();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化 social share
+            socialShare('.social-share', {
+                wechatQrcodeTitle: '微信扫一扫：分享',
+                wechatQrcodeHelper: '微信扫一扫后点击右上角分享',
+                url: window.location.href,
+                source: document.title,
+                wechat: function (elem, data) {
+                    // 自定义微信点击行为
+                    if (elem.classList.contains('icon-wechat')) {
+                        return false;  // 阻止默认跳转
+                    }
+                }
+            });
+
+            // 防止微信图标点击跳转
+            document.querySelector('.icon-wechat')?.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, true);
+        });
+    </script>
+
+
+            <!-- 编辑源码 -->
+            
+    <a href="https://github.com/devlive-community/datacap/edit/dev/docs/content//reference/get-started/dashboard/home.md"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="text-gray-400 hover:text-blue-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit w-4 h-4">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+    </a>
+
+
+            <!-- 查看源码 -->
+            
+    <a href="https://github.com/devlive-community/datacap/blob/dev/docs/content//reference/get-started/dashboard/home.md"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="text-gray-400 hover:text-blue-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code w-4 h-4">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+        </svg>
+    </a>
+
+        </div>
+    </div>
+    
+
         </div>
 
         <!-- 主要内容部分 -->
         <div class="prose prose-gray dark:prose-invert max-w-none text-base">
             
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">软件安装完成后点击顶部的 </span>
+    
+        <code class="bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded text-sm font-mono mx-1 inline-block max-w-full break-all whitespace-pre-wrap overflow-wrap-anywhere">仪表盘</code>
+    
+        <span class="text-base text-gray-700 leading-7 my-2"> 菜单，进入仪表盘页面。</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img.png" 
+                 alt="img.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white my-3 [&_span]:!font-inherit [&_span]:!text-inherit [&_code]:!text-inherit [&_span]:!text-xl [&_span]:sm:!text-2xl">
+            <div id="tian-jia-yi-biao-pan" class="inline-flex items-center">
+        <span class="text-base text-gray-700 leading-7 my-2">添加仪表盘</span>
+    </div>
+        </div>
+    
+        <hr class="my-4 h-0.5 border-0 bg-gray-200 dark:bg-gray-700"/>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">点击页面左侧的 </span>
+    
+        <span class="inline-flex items-center justify-center relative top-[3px]" style="width: px; height: px;">
+            <span class="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></span>
+            <i data-lucide="circle-plus"
+                class="relative"
+                style="width: px; height: px; color: currentColor;">
+            </i>
+        </span>
+    
+        <span class="text-base text-gray-700 leading-7 my-2"> 按钮弹出如下窗口</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_1.png" 
+                 alt="img_1.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">点击</span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white border">
+                <span class="inline-flex items-center">
+                    添加图表
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2">按钮，弹出数据报表窗口</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_2.png" 
+                 alt="img_2.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">选择需要添加的图表后点击 </span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-500 text-white">
+                <span class="inline-flex items-center">
+                    保存
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2"> 按钮，出现类似如下页面</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_3.png" 
+                 alt="img_3.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">可以调整报表的位置大小等，然后点击右侧的 </span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-500 text-white">
+                <span class="inline-flex items-center">
+                    保存
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2"> 按钮，弹出保存配置窗口</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_4.png" 
+                 alt="img_4.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">配置相关信息后，点击 </span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-500 text-white">
+                <span class="inline-flex items-center">
+                    保存
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2"> 按钮，保存成功后将跳转到仪表盘预览页面。</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_5.png" 
+                 alt="img_5.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">这里会显示当前仪表盘的报表数据。</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white my-3 [&_span]:!font-inherit [&_span]:!text-inherit [&_code]:!text-inherit [&_span]:!text-xl [&_span]:sm:!text-2xl">
+            <div id="yu-lan-yi-biao-pan" class="inline-flex items-center">
+        <span class="text-base text-gray-700 leading-7 my-2">预览仪表盘</span>
+    </div>
+        </div>
+    
+        <hr class="my-4 h-0.5 border-0 bg-gray-200 dark:bg-gray-700"/>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">在仪表盘列表页面，点击仪表盘的名称，可跳转到当前选择的仪表盘。</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_6.png" 
+                 alt="img_6.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="rounded-lg my-2 overflow-hidden border border-blue-200">
+        
+        <div class="flex items-start space-x-2 p-2 rounded-t-lg bg-blue-50">
+               <div class="flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+               <h3 class="text-sm font-medium text-gray-900 mb-2">提示</h3>
+           </div>
+                   
+            <div class="w-full px-5 py-3">
+                <div class="text-sm text-blue-700">
+                    
+        <span class="text-base text-gray-700 leading-7 my-2">该操作将会跳转到新页面进行仪表盘的显示。</span>
+    
+                </div>
+            </div>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white my-3 [&_span]:!font-inherit [&_span]:!text-inherit [&_code]:!text-inherit [&_span]:!text-xl [&_span]:sm:!text-2xl">
+            <div id="bian-ji-yi-biao-pan" class="inline-flex items-center">
+        <span class="text-base text-gray-700 leading-7 my-2">编辑仪表盘</span>
+    </div>
+        </div>
+    
+        <hr class="my-4 h-0.5 border-0 bg-gray-200 dark:bg-gray-700"/>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">在仪表盘列表页面，点击 </span>
+    
+        <span class="inline-flex items-center justify-center relative top-[3px]" style="width: px; height: px;">
+            <span class="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></span>
+            <i data-lucide="cog"
+                class="relative"
+                style="width: px; height: px; color: currentColor;">
+            </i>
+        </span>
+    
+        <span class="text-base text-gray-700 leading-7 my-2"> 图标，可出现操作列表</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_7.png" 
+                 alt="img_7.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">点击 </span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <span class="inline-flex items-center">
+                    修改仪表盘
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2"> 菜单，即可跳转到编辑仪表盘页面，该操作和新建仪表盘操作一致。</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white my-3 [&_span]:!font-inherit [&_span]:!text-inherit [&_code]:!text-inherit [&_span]:!text-xl [&_span]:sm:!text-2xl">
+            <div id="shan-chu-yi-biao-pan" class="inline-flex items-center">
+        <span class="text-base text-gray-700 leading-7 my-2">删除仪表盘</span>
+    </div>
+        </div>
+    
+        <hr class="my-4 h-0.5 border-0 bg-gray-200 dark:bg-gray-700"/>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">在仪表盘列表页面，点击 </span>
+    
+        <span class="inline-flex items-center justify-center relative top-[3px]" style="width: px; height: px;">
+            <span class="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></span>
+            <i data-lucide="cog"
+                class="relative"
+                style="width: px; height: px; color: currentColor;">
+            </i>
+        </span>
+    
+        <span class="text-base text-gray-700 leading-7 my-2"> 图标，可出现操作列表</span>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">点击 </span>
+    
+            <button class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <span class="inline-flex items-center">
+                    删除仪表盘
+                </span>
+            </button>
+        
+        <span class="text-base text-gray-700 leading-7 my-2"> 菜单，即可弹出如下窗口</span>
+    
+        <div class="space-y-4"></div>
+    
+        <div class="w-full h-full relative">
+            <style>
+                @keyframes loading-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loading-flower {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #e5e7eb;
+                    border-top-color: #6b7280;
+                    border-radius: 50%;
+                    animation: loading-spin 0.8s linear infinite;
+                }
+                .dark .loading-flower {
+                    border-color: #4b5563;
+                    border-top-color: #9ca3af;
+                }
+            </style>
+            
+            <!-- 加载动画 -->
+            <div class="loading-indicator absolute inset-0 flex items-center justify-center">
+                <div class="loading-flower"></div>
+            </div>
+            
+            <!-- 图片 -->
+            <img src="img_8.png" 
+                 alt="img_8.png" class="max-w-full h-auto"
+                 style="opacity: 0; "
+                 onload="this.style.opacity = 1; this.previousElementSibling.style.display = 'none'"
+                 onerror="this.parentElement.innerHTML = '<div class='text-red-500 dark:text-red-400'>图片加载失败</div>'"
+                 class="transition-opacity duration-300 max-w-full h-auto"/>
+        </div>
+    
+        <div class="space-y-4"></div>
+    
+        <span class="text-base text-gray-700 leading-7 my-2">在输入框中输入仪表盘名称，点击删除即可删除该仪表盘。</span>
+    
         </div>
 
         <div class="clear-both"></div>
@@ -823,7 +1551,7 @@
                 <line x1="3" y1="12" y2="12" x2="9"/>
                 <line x1="15" y1="12" y2="12" x2="21"/>
             </svg>
-            <span>提交于 2025年2月8日 02:05</span>
+            <span>提交于 2025年2月8日 03:29</span>
         </div>
 
         <!-- 最后修改时间 -->
@@ -835,7 +1563,7 @@
                 <path d="M3 3v5h5"/>
                 <path d="M12 7v5l4 2"/>
             </svg>
-            <span>修改于 2025年2月8日 02:05</span>
+            <span>修改于 2025年2月8日 03:29</span>
         </div>
 
         <!-- Hash 链接 -->
@@ -848,11 +1576,11 @@
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                 </svg>
-                <a href="https://github.com/devlive-community/datacap/commit/ca0b5993ae507a499d8a8a2d316bc3172b1eace7"
+                <a href="https://github.com/devlive-community/datacap/commit/d3e280405fcc268d7ab68a8925eedbe13d3efec0"
                    target="_blank"
                    rel="noopener noreferrer"
                    class="hover:text-blue-600 dark:hover:text-blue-400">
-                    首次提交 (ca0b5993)
+                    首次提交 (d3e28040)
                 </a>
             </div>
 
@@ -864,11 +1592,11 @@
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                 </svg>
-                <a href="https://github.com/devlive-community/datacap/commit/ca0b5993ae507a499d8a8a2d316bc3172b1eace7"
+                <a href="https://github.com/devlive-community/datacap/commit/d3e280405fcc268d7ab68a8925eedbe13d3efec0"
                    target="_blank"
                    rel="noopener noreferrer"
                    class="hover:text-blue-600 dark:hover:text-blue-400">
-                    末次提交 (ca0b5993)
+                    末次提交 (d3e28040)
                 </a>
             </div>
         
@@ -968,6 +1696,50 @@
             
             
                 
+                    <div class="pl-8">
+                        <a href="#tian-jia-yi-biao-pan"
+                           class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                           data-slug="tian-jia-yi-biao-pan">
+                            
+        <span class="text-base text-gray-700 leading-7 my-2">添加仪表盘</span>
+    
+                        </a>
+                    </div>
+                    
+                
+                    <div class="pl-8">
+                        <a href="#yu-lan-yi-biao-pan"
+                           class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                           data-slug="yu-lan-yi-biao-pan">
+                            
+        <span class="text-base text-gray-700 leading-7 my-2">预览仪表盘</span>
+    
+                        </a>
+                    </div>
+                    
+                
+                    <div class="pl-8">
+                        <a href="#bian-ji-yi-biao-pan"
+                           class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                           data-slug="bian-ji-yi-biao-pan">
+                            
+        <span class="text-base text-gray-700 leading-7 my-2">编辑仪表盘</span>
+    
+                        </a>
+                    </div>
+                    
+                
+                    <div class="pl-8">
+                        <a href="#shan-chu-yi-biao-pan"
+                           class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                           data-slug="shan-chu-yi-biao-pan">
+                            
+        <span class="text-base text-gray-700 leading-7 my-2">删除仪表盘</span>
+    
+                        </a>
+                    </div>
+                    
+                
             
         </nav>
     </div>
@@ -1000,6 +1772,50 @@
          style="max-height: calc(60vh - var(--header-height));">
         
         
+            
+                <div class="pl-8">
+                    <a href="#tian-jia-yi-biao-pan"
+                       class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                       data-slug="tian-jia-yi-biao-pan">
+                        
+        <span class="text-base text-gray-700 leading-7 my-2">添加仪表盘</span>
+    
+                    </a>
+                </div>
+                
+            
+                <div class="pl-8">
+                    <a href="#yu-lan-yi-biao-pan"
+                       class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                       data-slug="yu-lan-yi-biao-pan">
+                        
+        <span class="text-base text-gray-700 leading-7 my-2">预览仪表盘</span>
+    
+                    </a>
+                </div>
+                
+            
+                <div class="pl-8">
+                    <a href="#bian-ji-yi-biao-pan"
+                       class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                       data-slug="bian-ji-yi-biao-pan">
+                        
+        <span class="text-base text-gray-700 leading-7 my-2">编辑仪表盘</span>
+    
+                    </a>
+                </div>
+                
+            
+                <div class="pl-8">
+                    <a href="#shan-chu-yi-biao-pan"
+                       class="block px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-150 toc-link"
+                       data-slug="shan-chu-yi-biao-pan">
+                        
+        <span class="text-base text-gray-700 leading-7 my-2">删除仪表盘</span>
+    
+                    </a>
+                </div>
+                
             
         
     </nav>
