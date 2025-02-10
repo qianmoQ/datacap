@@ -66,6 +66,282 @@
     "lang": "en"
   },
   {
+    "title": "新建 & 修改",
+    "content": "!img.png 鼠标打开管理员菜单，点击 工作流 子菜单，跳转到工作流列表页面 !img1.png 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加工作流窗口 !img2.png 我们通过左侧拖拽需要的节点，拖拽后系统会自动进行配置的验证，默认验证失败会出现以下页面 !img3.png 如果验证成功，页面如下 !img4.png 配置完成后，左上角 发布 按钮可以点击，点击后弹出配置窗口 !img5.png 输入流程名称点击 提交 按钮即可完成工作流的创建，创建完成后跳转到工作流列表页面。 在工作流列表中，我们找到需要修改的工作流对应的数据行，点击操作栏的 设置 图标 !img6.png 点击修改流程选项，即可进入修改流程页面，操作方式和新建一致。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/create/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "查看工作流错误",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的叹号图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中会显示当前工作流的错误信息。 !!! warning 只有工作流在执行失败的情况下，才可以查看错误信息。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/error/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "停止工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 停止流程 按钮，即可停止当前工作流的执行。 !!! warning 只有工作流在执行中的情况下，才可以停止工作流。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/stop/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "重启工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 重新启动 按钮，即可重新启动当前工作流的执行。 !!! warning 只有工作流在非执行中的情况下，才可以重新启动工作流。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/restart/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "工作流日志",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，显示的是当前工作流的日志。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/logger/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "删除工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 删除流程 按钮，即可删除流程。 !!! warning 只有工作流在非执行中的情况下，才可以删除工作流。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/delete/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "工作流视图",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，显示的是当前工作流的视图。",
+    "url": "https://datacap.devlive.org/en/reference/get-started/workflow/dag/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "个人资料",
+    "content": "!!! info \"提示\" 通过个人资料功能，可以对个人用户的一些查询历史和数据源的使用进行一些概览查看。 !!! 鼠标移向顶部菜单的最右侧的头像菜单，会弹出下拉框，点击下拉框中的第一个子菜单。弹出类似如下窗口： !img.png 首先我们看到的最上面的一个图表是近一年的查询日历图。它根据每天的查询总数汇总来计算。 第二个图表是近7日的数据源使用情况。它根据每天的数据源使用情况汇总来计算。 --- 当点击个人资料按钮后（也就是左侧菜单的第一个按钮），会弹出如下窗口： !img1.png 该页面主要展示了个人资料的基本信息。 --- 当点击登录日志按钮后（也就是左侧菜单的第二个按钮），会弹出如下窗口： !img2.png 该页面主要展示了当前用户的详细登录日志，包括了登录时间、登录地点、登录方式等。 --- 当点击账号设置按钮后（也就是左侧菜单的第三个按钮），会弹出如下窗口： !img3.png 该页面主要展示了一些用户可以进行的配置功能。 --- 当点击修改用户名按钮后，会弹出如下窗口： !img4.png 输入修改后的用户名和当前密码，点击确定按钮即可完成修改。 !!! danger \"警告\" 需要注意的是：修改用户名后，需要重新登录。系统会默认退出当前账号。 !!! --- 当点击修改密码按钮后，会弹出如下窗口： !img5.png 输入原密码和新密码，点击确定按钮即可完成修改。 !!! danger \"警告\" 需要注意的是：修改密码后，需要重新登录。系统会默认退出当前账号。 !!! --- 当点击 ChatGPT 按钮后，会弹出如下窗口： !img6.png 该页面主要展示了一些 ChatGPT 可以进行的配置功能。 --- 当点击编辑器按钮后，会弹出如下窗口： !img7.png 在修改编辑器时，修改的配置会同步到系统中的所有用到编辑器的位置。 编辑器的修改是所见即所得的状态，可以实时显示出来当前的配置方案。",
+    "url": "https://datacap.devlive.org/en/reference/manager/profile/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "数据源",
+    "content": "!!! info \"提示\" 通过数据源功能，可以添加对各种自定义数据源的支持，并执行后续的数据源操作等。 !!! 鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的第一个子菜单。弹出类似如下窗口，默认列表为空，需要自行添加。 !img.png 如果您添加了数据源会显示类似如下页面 !img1.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img2.png 当我们选择某种类型的数据源时，数据源配置信息将显示在顶部标签栏中，不同的数据源有不同的配置项，它的配置单在服务启动是的指定目录中。 当我们选择类型为 MySQL 的源时，弹出类似以下窗口 !img3.png 在配置页面中出现了4个选项卡，点击不同的选项卡填充相关信息，然后点击底部的 Test 按钮，会弹出如下页面： !img4.png 当数据源测试成功后顶部会展示当前服务测试后的版本号，此时点击地步的 Save 按钮即可保存数据。 !!! info \"提示\" 数据源保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据源中 Action 中的第一个按钮即可修改数据源，操作类似于 添加数据源 操作 --- 点击列表中某个数据源的 Action 中的第二个按钮，删除该数据源，点击后会弹出以下内容 !img5.png 单击弹出的小窗口，然后单击 OK 以删除选中的数据源。 !!! danger \"注意\" 需要注意的是，删除数据源后，与数据源相关的查询历史记录将被删除。 !!! --- 单击列表中数据源的 Action 中的第三个或者第四个按钮，跳转到数据源管理页面。 !img6.png 页面分为左右两部分。左侧主要展示数据源的基本信息，包括： 选中数据源的相关元数据 当我们在左侧选择数据库和数据表时，右侧的内容显示如下 !img7.png 在右侧内容中出现两个选项卡: Info（默认选项） Data !!! info \"提示\" 默认当前选项卡下显示关于当前表的相关信息。 !!! 点击 Data 选项卡，会出现类似如下页面，它展示了当前选中表的相关数据。 !img8.png 在顶部的四个按钮分别是： First Page Previous Page Next Page Last Page 接下来后面的按钮是用于设置数据查询的配置： !img9.png Jump to Page Show Page Size 填充配置后，点击 Apply 按钮即可应用当前配置信息。 在右侧还有一个按钮，点击后会展示当前查询使用到的详细 SQL 内容 !img10.png !!! info \"提示\" 当前 SQL 生成是根据同步到元数据的顺序而定。 !!! !!! danger \"注意\" 目前并不是所有的数据源都支持管理，如果需要可自行添加模版。如果有兴趣可将源码贡献给我们。 !!!",
+    "url": "https://datacap.devlive.org/en/reference/manager/datasource/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "代码片段",
+    "content": "!!! note 通过代码段功能，可以添加对各种自定义代码段的支持，并执行后续的代码段操作等。添加的代码片段后续会添加到编辑器中。 !!! 鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Snippet 子菜单。弹出类似如下窗口，默认列表为空，需要自行添加。 !img.png 如果您添加了片段会显示类似如下页面 !img1.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img2.png 在窗口中，我们需要输入以下内容 | 属性 | 描述 | |:-------------:|:----------------:| | Name | 标记当前代码段的名称 | | Description | 当前代码片段的说明 | | Snippet | 当前代码片段的特定 SQL 内容 | 填写完以上内容后，点击底部的 Submit 按钮保存代码片段。 !!! note 数据保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据中 Action 中的第一个按钮，查看具体的代码片段内容，会弹出一个对话框，大致如下 !img3.png 单击 OK 或 Cancel 关闭对话框 --- 点击列表中某个数据中 Action 中的第二个按钮即可修改代码段，该操作类似于 添加片段 操作。 --- 点击列表中某个数据的 Action 中的第三个按钮，引用当前代码片段，会跳转到查询页面，片段内容会直接输入到编辑器中。 --- 点击列表中某个数据的 Action 中的第四个按钮，删除代码段，点击后会弹出以下内容 !img4.png 单击弹出的小窗口，然后单击 OK 以删除代码段。",
+    "url": "https://datacap.devlive.org/en/reference/manager/snippet/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "查询历史",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 History 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可自动添加记录。 !img.png --- 点击列表中某个数据中 Action 中的第一个按钮，查看具体的代码片段内容，会弹出一个对话框，大致如下 !img1.png 此查询中查询的特定 SQL 语句将显示在窗口中。 --- !!! danger 只有查询出现异常情况下，才可以查看错误信息。 !!! 点击列表中某个数据中 Action 中的第二个按钮即可查看错误信息 !img2.png",
+    "url": "https://datacap.devlive.org/en/reference/manager/history/query/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "流水线",
+    "content": "在 DataCap 软件中流水线用于用户针对数据进行迁移等一些数据操作的工具。 --- 进入系统后，点击顶部 Admin 菜单下对应的 Pipeline 子菜单，默认进入流水线列表。类似下图： !img.png 点击列表右侧的 + Create 按钮，系统会弹出配置页面： !img1.png 配置页面分为三个配置模块，分别是： Description 主要配置用户执行的 SQL From 配置数据接入源 To 配置数据输出源 每个数据源具有不同的配置属性，当选择数据源后按照提示配置相关属性即可。 当任务发布成功后默认会刷新任务列表，如下图所示： !img2.png --- 任务发布后默认将会启动，在任务的右侧 Action 操作中包含以下功能： 当我们点击 Action 中的第一个按钮时，系统会弹出错误信息页面。 > 只有任务运行失败后该功能才会被启用 !img3.png 当我们点击 Action 中的第二个按钮时，系统会弹出日志页面。 !img4.png 当我们点击 Action 中的第三个按钮时，系统会弹出停止任务页面。 > 只有任务运行中该功能才会被启用 !img5.png 我们按照窗口提示的信息输入任务名字后点击 Stop 按钮即可。 当我们点击 Action 中的第四个按钮时，系统会弹出删除任务页面。 !img6.png 我们按照窗口提示的信息输入任务名字后点击 Delete 按钮即可。",
+    "url": "https://datacap.devlive.org/en/reference/manager/pipeline/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "报表",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Report 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可添加报表。 !img.png --- 新建报表功能在查询页面，当我们查询成功后会在结果表格上方显示出如下窗口 !img1.png 点击图中红框选择的按钮，弹出如下窗口 !img2.png 顶部为报表名称和是否实时报表 !!! note 如果是实时报表，那么报表数据会在展示时进行后端服务查询从而渲染，不同的查询引擎这可能会造成报表渲染慢的问题。非实时报表只会展示当前查询的静态数据。 !!! 左侧是报表渲染区域，右侧为报表的配置，目前支持报表的类型： 折线图 柱状图 以下是一个我们配置好的报表： !img3.png 报表配置完成后，点击发布即可将报表保留下来。 --- 在报表列表页面查询记录后有操作按钮，操作按钮的第一个 !img4.png{ width=\"20\" } 点击后可以查看报表 !img5.png --- 在报表列表页面查询记录后有操作按钮，操作按钮的第二个 !img6.png{ width=\"20\" } 点击后可以弹出如下窗口 !img7.png 在输入框中输入报表名称，点击删除即可删除该报表。",
+    "url": "https://datacap.devlive.org/en/reference/manager/report/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Functions",
+    "content": "!!! note We can enhance the automatic prompt function of the code editor through the function module provided by the system. !!! --- The system has built-in the following data source functions by default (it does not mean that it is the most complete function of the new version, if there is something missing, please submit issues or pr to fix it): ClickHouse MySQL Hive Trino & Presto (fit a part) --- After entering the system, click the corresponding Function submenu under the top Settings menu to go to the function configuration function !img.png Click the Add button on the top right to add a new function, and the following window will pop up after clicking: !img1.png The following is a detailed parameter description: Name: The name used to mark the function prompt, the suggestion is English Plugin: The plugin this function applies to, multiple options can be selected Content: The specific content of the function, which will be entered into the editor Description: Description of the function Type: Type of function, can be: KeyWord, Operator, Function, default is KeyWord Example: For the use example of this function, it is convenient for users to understand how to use the function When the above content is written, click the Submit button at the bottom to save the operation, and you can use it in the editor later. --- The system provides a way to import functions in batches. Currently, it supports the import of content and URI addresses. Next, let's take a look at how to do it. We perform the batch import function by clicking the import button on the top right. !img2.png The content import method allows us to enter a list of functions, and they are divided according to each line. Adding the following keywords we need to import: sql SHOW USE In Plugin, we choose to use the ClickHouse plug-in, and in Type, we choose KeyWord. After the operation is completed, we click the Submit button at the bottom to use the import function of the current input function. The URI import method is relatively simple. We can import data in batches by specifying the remote server URI address, which can be your local server address or the address provided by the software. The URI address format provided by the software by default is sql (http|https)://datacap.edurt.io/resources/functions/plugin/keywords.txt (http|https)://datacap.edurt.io/resources/functions/plugin/operators.txt (http|https)://datacap.edurt.io/resources/functions/plugin/functions.txt We only need to replace the value of plugin in the address with the name of the plugin that needs to be imported. !!! warning It should be noted that due to local network problems, the URI import method may be slow. !!!",
+    "url": "https://datacap.devlive.org/en/reference/system/functions/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Sql Template",
+    "content": "!!! note The system supports the SQL template function, through which the realization of some monitoring and other functions can be supported. !!! --- The system supports some default templates, currently supports: getAllDatabaseAndTable getAllDatabase getAllTablesFromDatabase Of course, each template can support one or more plug-ins, and they will be used in subsequent operations of the system. After entering the system, click the corresponding Sql submenu under the top Settings menu to go to the function configuration function !img.png Click the Add button on the top right to add a new function, and the following window will pop up after clicking: !img1.png The following is a detailed parameter description: Name: The name used to mark the function prompt, the suggestion is English Plugin: The plugin this function applies to, multiple options can be selected Description: Description of the function Template: The SQL statement executed by the template When the above content is written, click the Submit button at the bottom to save the operation, and you can use it in the editor later. !!! warning The default template does not carry any parameters and we can execute it directly. !!! We can realize the template dynamic parameter passing function by defining variables. Let's take an example, we need to display all the data tables under the default database, the normal SQL is sql SHOW TABLES FROM default When we use the template, the SQL changes to sql SHOW TABLES FROM ${database:String} The system parses the parameter into database=String by collecting {database:String} expression, where database is the parameter name, and String is the type of parameter passing. When we use the expression time, we only need to pass the Map type parameter, where key=parameter name, value=data value passed according to the type.",
+    "url": "https://datacap.devlive.org/en/reference/system/sql/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "菜单",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Menu 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可自动添加记录。 !img.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img1.png 填写完以上内容后，点击底部的 Submit 按钮保存代码片段。 !!! note 数据保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据中 Action 中的第一个按钮，会弹出修改窗口，它和新建菜单一致。",
+    "url": "https://datacap.devlive.org/en/reference/system/menu/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "InfluxDB",
+    "content": "InfluxDB 是一个由 InfluxData 开发的开源时序型数据库。它由 Go 写成，着力于高性能地查询与存储时序型数据。InfluxDB 被广泛应用于存储系统的监控数据。 --- DataCap 整合 InfluxDB 模块，用于实现对 InfluxDB 数据源的数据操作。 在该模块中我们使用的是 influxdb-jdbc 依赖，版本为 0.2.6。 使用到的驱动器为 net.suteren.jdbc.influxdb.InfluxDbDriver。 驱动源码可参考：https://github.com/konikvranik/jdbc-influxdb/ --- | 操作 | 是否支持 | |:--------:|:----:| | SELECT | ✅ | > 所有驱动器支持的操作均支持。 --- !!! note 如果需要使用该数据源，需要将 DataCap 服务升级到 >= 2024.03.7 !!! 支持时间: 2024-06-26 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"基本配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 名称 | ✅ | - |-| | 主机地址 | ✅ | 127.0.0.1 | - | | 端口 | ✅ | 8086 | - | === \"授权配置\" | 属性 | 是否必要 | 默认值 | |---|---|---| | 用户名 | ❌ | - | | 密码 | ❌ | - | === \"自定义\" > 可以添加所有 InfluxDB 驱动支持的配置，方式为 key = value 默认: | 属性 | 默认值 | |---|---| | database | default | :::",
+    "url": "https://datacap.devlive.org/en/reference/connectors/influxdb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Solr",
+    "content": "Apache Solr 是基于 Apache Lucene™ 构建的快速开源搜索平台，提供可扩展的索引和搜索，以及分面、命中突出显示和高级分析/标记化功能。Solr 由 Apache 软件基金会管理。 --- DataCap 整合 Apache Solr 模块，用于实现对 Apache Solr 数据源的数据操作。 在该模块中我们使用的是 solr-solrj 依赖，版本为 6.0.0。 使用到的驱动器为 org.apache.solr.client.solrj.io.sql.DriverImpl。 --- | 操作 | 是否支持 | |:--------:|:----:| | SELECT | ✅ | > 所有驱动器支持的操作均支持。 --- !!! note 如果需要使用该数据源，需要将 DataCap 服务升级到 >= 2024.03.7 !!! 支持时间: 2024-06-25 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"基本配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 名称 | ✅ | - |-| | 主机地址 | ✅ | 127.0.0.1 | 这里的地址需要填写 zookeeper 的相关地址 | | 端口 | ✅ | 8983 | - | === \"授权配置\" | 属性 | 是否必要 | 默认值 | |---|---|---| | 用户名 | ❌ | - | | 密码 | ❌ | - | === \"高级配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 数据库 | ✅ | local | 这里是指在 solr 服务器中创建的 collection | === \"自定义\" > 可以添加所有 Solr 驱动支持的配置，方式为 key = value 暂无默认配置 :::",
+    "url": "https://datacap.devlive.org/en/reference/connectors/solr/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Timescale",
+    "content": "Timescale 是一个用于时间序列、事件和分析的 PostgreSQL 数据平台。 它为您提供 PostgreSQL 的可靠性、TimescaleDB 的时间序列超能力以及完全托管服务的安心。 它提供自动备份和恢复、复制的高可用性、无缝扩展和调整大小等功能。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.02.1 !!! 支持时间: 2024-02-05 --- ::: tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |------|---------------------------------|-------------| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5432 | === \"高级\" | 属性 | 是否必要 | 默认值 | |----------|--------------------------------|-------------| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/timescale/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "ParadeDB",
+    "content": "ParadeDB 是基于 Postgres 构建的 Elasticsearch 替代方案。我们正在对 Elasticsearch 的功能进行现代化改造， 从实时搜索和分析开始。 ParadeDB 不是 Postgres 的分支，而是安装了自定义扩展的常规 Postgres。ParadeDB 本身 随 Postgres 16 一起提供。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.02.1 !!! 支持时间: 2024-02-05 --- :::tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |------|---------------------------------|-------------| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5432 | === \"高级\" | 属性 | 是否必要 | 默认值 | |----------|--------------------------------|-------------| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |-----|----------------| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues !!! [x] all",
+    "url": "https://datacap.devlive.org/en/reference/connectors/paradedb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "ScyllaDB",
+    "content": "ScyllaDB 是一个分布式 NoSQL 宽列数据库，适用于需要高性能和低延迟的数据密集型应用程序。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.01.1 !!! 支持时间: 2024-01-12 --- ::: tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9042 | === \"高级\" | 属性 | 是否必要 | 默认值 | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/scylladb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "MatrixOne",
+    "content": "MatrixOne 是一款面向未来的超融合云和边缘原生 DBMS，通过简化的分布式数据库引擎，跨多个数据中心、云、边缘和其他异构基础设施支持事务、分析和流式工作负载。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.01.1 !!! 支持时间: 2024-01-12 --- :::tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 6001 | === \"授权\" | 属性 | 是否必要 | 默认值 | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | - | | Password | :check{20,#3CA34F}: | - | | SSL | :x{20,#ff0000}: | false | === \"高级\" | 属性 | 是否必要 | 默认值 | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | === \"自定义\" 暂无默认配置，支持用户自定义添加 ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :check: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] 1.1.0 !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/matrixone/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "ClickHouse",
+    "content": "ClickHouse® 是一个面向列的数据库管理系统（DBMS），用于在线分析查询处理（OLAP）。ClickHouse 的性能超过了所有其他面向列的数据库管理系统。它每台服务器每秒处理数十亿行和数十 GB 的数据。 !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 1.0.x !!! 支持时间: 2022-09-22 --- !!! note 如果您的 ClickHouse 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | === \"自定义\" !!! note 您可以通过添加 Key Value 来添加已经支持的 ClickHouse 参数，参数可以是 参考文档 !!! ::: --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] 19.x [x] 20.x [x] 21.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/clickhouse/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "MySQL",
+    "content": "MySQL is one of the most recognizable technologies in the modern big data ecosystem. Often called the most popular database and currently enjoying widespread, effective use regardless of industry, it’s clear that anyone involved with enterprise data or general IT should at least aim for a basic familiarity of MySQL. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.0.x !!! Support Time: 2022-09-19 --- DataCap uses configuration files by default mysql.json !!! note If your MySQL service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 3306 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | | SSL | :x{20,#ff0000}: | false | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | default | === \"Custom\" !!! note You can add the already supported MySQL parameters by adding Key Value, the parameters can be reference document Default: | Key | value | |:-----------------------------:|:------:| | useOldAliasMetadataBehavior | true | !!! ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 5.x [x] 6.x [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/mysql/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Redis",
+    "content": "The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.3.x !!! Support Time: 2022-12-01 --- DataCap uses configuration files by default redis.json !!! note If your Redis service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 6379 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Password | :x{20,#ff0000}: | \\- | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 6.x [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/redis/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "H2 Database",
+    "content": "H2 is an embedded database developed in Java that is itself just a class library. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.8.x !!! Support Time: 2023-04-05 --- !!! note If your h2 service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] all !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/h2/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Snowflake",
+    "content": "Execute your most critical workloads on top of Snowflake's multi-cluster shared data architecture in a fully managed platform that capitalizes on the near-infinite resources of the cloud. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.4.x !!! Support Time: 2023-01-29 --- DataCap uses configuration files by default snowflake.json !!! note If your Snowflake service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 80 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | === \"Custom\" !!! note You can add the already supported Snowflake parameters by adding Key Value, the parameters can be reference document !!! ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/snowflake/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Yandex Database",
+    "content": "YDB is a fault-tolerant distributed SQL DBMS. YDB provides high availability, horizontal scalability, strict consistency, and ACID transaction support. Queries are made using an SQL dialect (YQL). !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.4.x !!! Support Time: 2023-01-30 --- DataCap uses configuration files by default ydb.json !!! note If your YDB service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 2136 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | local | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 2.1.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/ydb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Zookeeper",
+    "content": "ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services. All of these kinds of services are used in some form or another by distributed applications. Each time they are implemented there is a lot of work that goes into fixing the bugs and race conditions that are inevitable. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.5.x !!! Support Time: 2023-02-07 --- This chapter describes the SQL syntax used in Zookeeper on DataCap. !!! note \"Synopsis\" sql SELECT [ | <Columns> ] selectexpression [, ...] FROM fromitem [. ...] where fromitem is one of sql tablename [ a.b | a.b | a.b] !!! !!! danger When tablename is set to all the root directory is searched. !!! !!! note \"Select expressions\" Each selectexpression must be in one of the following forms: sql expression [ columnalias ] sql In the case of expression [ columnalias ], a single output column is defined. In the case of , all columns of the relation defined by the query are included in the result set. sql -------- data !!! !!! danger If it is a multi-level directory, such as /zookeeper/id/2, it will be written \\zookeeper\\.\\id\\.\\2\\, and use . to split between directories. !!! --- DataCap uses configuration files by default zookeeper.json !!! note If your Zookeeper service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1:2181 | | Port | :x{20,#ff0000}: | 1 | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 3.1.x - 3.7.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/zookeeper/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "DuckDB",
+    "content": "DuckDB is an in-process SQL OLAP database management system. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.6.x !!! Support Time: 2023-02-20 --- DataCap uses configuration files by default duckdb.json !!! note If your DuckDB service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | /root | | Port | :check{20,#3CA34F}: | 0 | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | local | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 0.7.0 !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/duckdb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "AliYun OSS",
+    "content": "Fully managed object storage service to store and access any amount of data from anywhere --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.6.x !!! Support Time: 2023-02-23 --- This chapter describes the SQL syntax used in Aliyun OSS on DataCap. !!! note \"Synopsis\" sql SELECT [ | <Columns> ] selectexpression [, ...] FROM fromitem [. ...] where fromitem is one of sql tablename [ a.b | a.b | a.b] !!! !!! danger When tablename is set to all the root directory is searched. !!! !!! note \"Select expressions\" Each selectexpression must be in one of the following forms: sql expression [ columnalias ] sql In the case of expression [ columnalias ], a single output column is defined. In the case of , all columns of the relation defined by the query are included in the result set. sql -------- data !!! !!! danger If it is a multi-level directory, such as /oss/id/2, it will be written \\oss\\.\\id\\.\\2\\, and use . to split between directories. !!! --- DataCap uses configuration files by default alioss.json !!! note If your Aliyun OSS service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------------------------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | https://oss-cn-regison.aliyuncs.com | === \"Authorization\" | Field | Required | Description | Default Value | |:----------:|:---------------------------------:|:-------------:|:-------------:| | Username | :check{20,#3CA34F}: | access Id | \\- | | Password | :check{20,#3CA34F}: | access Secret | \\- | === \"Advanced\" | Field | Required | Description | Default Value | |:----------:|:--------------------------------:|:-----------:|:-------------:| | Database | :check{20,#3CA34F}: | bucket name | default | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] all version !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/alioss/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Kafka",
+    "content": "Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.7.x !!! Support Time: 2023-03-06 --- This chapter describes the SQL syntax used in DataCap Kafka plugin. SHOW TOPICS SHOW CONSUMERS --- DataCap uses configuration files by default kafka.json !!! note If your Apache Kafka service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:----------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | localhost:9092 | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 1.0.0 [x] 1.1.0 [x] 1.2.0 !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/kafka/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "SHOW TOPICS",
+    "content": "--- sql SHOW TOPICS --- Returns a list of all defined topics in the current cluster. Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/en/reference/sql-syntax/connectors/kafka/show_topics.html",
+    "lang": "en"
+  },
+  {
+    "title": "SHOW CONSUMERS",
+    "content": "--- sql SHOW CONSUMERS SHOW CONSUMERS FROM topic --- Returns a list of all defined consumers in the current cluster (if a topic is specified, a list of consumers for the specified topic will be returned). Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/en/reference/sql-syntax/connectors/kafka/show_consumers.html",
+    "lang": "en"
+  },
+  {
+    "title": "SHOW DATABASES",
+    "content": "--- sql SHOW DATABASES --- Returns a list of all defined topics in the current cluster. Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/en/reference/sql-syntax/connectors/kafka/show_databases.html",
+    "lang": "en"
+  },
+  {
+    "title": "SHOW TABLES",
+    "content": "--- sql SHOW TABLES SHOW TABLES FROM database > database kafka topic name --- Returns a list of all defined consumers in the current cluster (if a topic is specified, a list of consumers for the specified topic will be returned). Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/en/reference/sql-syntax/connectors/kafka/show_tables.html",
+    "lang": "en"
+  },
+  {
+    "title": "CeresDB",
+    "content": "CeresDB 是一款高性能、分布式的云原生时序数据库。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-12 --- !!! note 如果您的CeresDB服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5440 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 1.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/ceresdb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "GreptimeDB",
+    "content": "一个开源、云原生、分布式时间序列数据库，支持PromQL/SQL/Python。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-14 --- !!! note 如果您的 GreptimeDB 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5440 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 0.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/greptimedb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "QuestDB",
+    "content": "QuestDB 是一个开源时间序列数据库，用于高吞吐量摄取和快速 SQL 查询，操作简单。它支持使用 InfluxDB 行协议、PostgreSQL 有线协议和用于批量导入和导出的 REST API 进行与模式无关的摄取。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-17 --- !!! note 如果您的 QuestDB 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/questdb/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Doris",
+    "content": "一个易于使用、高性能和统一的分析数据库 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-19 --- !!! note 如果您的 Doris 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9093 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/doris/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "StarRocks",
+    "content": "开源、高性能的分析数据库 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-20 --- !!! note 如果您的 StarRocks 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9030 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 2.2.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/starrocks/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Hologres",
+    "content": "Hologres是兼容PostgreSQL的一站式实时数据仓库引擎，支持PB级数据多维分析（OLAP）与即席分析（Ad Hoc），支持高并发低延迟的在线数据服务（Serving）。与MaxCompute、Flink、DataWorks深度融合，提供离在线一体化全栈数仓解决方案。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-25 --- !!! note 如果您的 Hologres 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | hologres-cn-regison.aliyuncs.com | | Port | :check{20,#3CA34F}: | 80 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/hologres/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Hadoop HDFS",
+    "content": "The Hadoop Distributed File System (HDFS) is a distributed file system designed to run on commodity hardware. It has many similarities with existing distributed file systems. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.9.x !!! Support Time: 2023-04-27 --- !!! note If your HDFS service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------------------------------:| | Name | :check{20,#3CA34F}: | \\- | === \"Advanced\" | Field | Required | Description | Default Value | |:----------:|:--------------------------------:|:-----------:|:-------------:| | file | :check{20,#3CA34F}: | core-site.xml <br /> hdfs-site.xml | [] | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 3.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/hdfs/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Pinot",
+    "content": "Apache Pinot 是一个实时分布式 OLAP 数据存储，专为低延迟、高吞吐量分析而构建，非常适合面向用户的分析工作负载。 --- !!! note 如果需要使用该数据源，需要将DataCap服务升级到 >= 1.10.x !!! 支持时间: 2023-05-06 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启DataCap服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | === \"授权\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 0.8.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/pinot/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "Apache Cassandra",
+    "content": "Apache Cassandra® powers mission-critical deployments with improved performance and unparalleled levels of scale in the cloud. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.11.x !!! Support Time: 2023-06-07 --- !!! note If your plugin service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9042 | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | datacenter | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 0.4.x !!!",
+    "url": "https://datacap.devlive.org/en/reference/connectors/cassandra/home.html",
+    "lang": "en"
+  },
+  {
+    "title": "主页",
+    "content": "",
+    "url": "https://datacap.devlive.org/en/index.html",
+    "lang": "en"
+  },
+  {
     "title": "使用案例",
     "content": "",
     "url": "https://datacap.devlive.org/en/useCases.html",
@@ -141,6 +417,282 @@
     "title": "清空数据",
     "content": "数据集提供了清空数据的操作，可以通过数据集列表中在每行数据的末尾有 清空数据 按钮，如下窗口 !img.png !!! info \"提示\" 该操作只会在当前数据集有数据的情况下可以操作。 !!! 当数据集无数据的情况下，该菜单将不可操作。 点击 清空数据 按钮后会弹出 清空数据 窗口 !img1.png 该窗口中会展示当前数据集的 总行数 和 总大小 确定清空数据后，点击 清空数据 按钮后，系统会在后台创建清空数据任务，进行清空数据。",
     "url": "https://datacap.devlive.org/zh-CN/reference/get-started/dataset/clear/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "新建 & 修改",
+    "content": "!img.png 鼠标打开管理员菜单，点击 工作流 子菜单，跳转到工作流列表页面 !img1.png 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加工作流窗口 !img2.png 我们通过左侧拖拽需要的节点，拖拽后系统会自动进行配置的验证，默认验证失败会出现以下页面 !img3.png 如果验证成功，页面如下 !img4.png 配置完成后，左上角 发布 按钮可以点击，点击后弹出配置窗口 !img5.png 输入流程名称点击 提交 按钮即可完成工作流的创建，创建完成后跳转到工作流列表页面。 在工作流列表中，我们找到需要修改的工作流对应的数据行，点击操作栏的 设置 图标 !img6.png 点击修改流程选项，即可进入修改流程页面，操作方式和新建一致。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/create/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "查看工作流错误",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的叹号图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中会显示当前工作流的错误信息。 !!! warning 只有工作流在执行失败的情况下，才可以查看错误信息。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/error/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "停止工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 停止流程 按钮，即可停止当前工作流的执行。 !!! warning 只有工作流在执行中的情况下，才可以停止工作流。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/stop/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "重启工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 重新启动 按钮，即可重新启动当前工作流的执行。 !!! warning 只有工作流在非执行中的情况下，才可以重新启动工作流。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/restart/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "工作流日志",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，显示的是当前工作流的日志。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/logger/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "删除工作流",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，按照提示输入，点击 删除流程 按钮，即可删除流程。 !!! warning 只有工作流在非执行中的情况下，才可以删除工作流。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/delete/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "工作流视图",
+    "content": "在工作流列表中，我们找到需要工作流对应的数据行，点击操作栏的 设置 图标 !img.png 点击后会弹出如下窗口 !img1.png 在这个窗口中，显示的是当前工作流的视图。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/get-started/workflow/dag/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "个人资料",
+    "content": "!!! info \"提示\" 通过个人资料功能，可以对个人用户的一些查询历史和数据源的使用进行一些概览查看。 !!! 鼠标移向顶部菜单的最右侧的头像菜单，会弹出下拉框，点击下拉框中的第一个子菜单。弹出类似如下窗口： !img.png 首先我们看到的最上面的一个图表是近一年的查询日历图。它根据每天的查询总数汇总来计算。 第二个图表是近7日的数据源使用情况。它根据每天的数据源使用情况汇总来计算。 --- 当点击个人资料按钮后（也就是左侧菜单的第一个按钮），会弹出如下窗口： !img1.png 该页面主要展示了个人资料的基本信息。 --- 当点击登录日志按钮后（也就是左侧菜单的第二个按钮），会弹出如下窗口： !img2.png 该页面主要展示了当前用户的详细登录日志，包括了登录时间、登录地点、登录方式等。 --- 当点击账号设置按钮后（也就是左侧菜单的第三个按钮），会弹出如下窗口： !img3.png 该页面主要展示了一些用户可以进行的配置功能。 --- 当点击修改用户名按钮后，会弹出如下窗口： !img4.png 输入修改后的用户名和当前密码，点击确定按钮即可完成修改。 !!! danger \"警告\" 需要注意的是：修改用户名后，需要重新登录。系统会默认退出当前账号。 !!! --- 当点击修改密码按钮后，会弹出如下窗口： !img5.png 输入原密码和新密码，点击确定按钮即可完成修改。 !!! danger \"警告\" 需要注意的是：修改密码后，需要重新登录。系统会默认退出当前账号。 !!! --- 当点击 ChatGPT 按钮后，会弹出如下窗口： !img6.png 该页面主要展示了一些 ChatGPT 可以进行的配置功能。 --- 当点击编辑器按钮后，会弹出如下窗口： !img7.png 在修改编辑器时，修改的配置会同步到系统中的所有用到编辑器的位置。 编辑器的修改是所见即所得的状态，可以实时显示出来当前的配置方案。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/profile/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "数据源",
+    "content": "!!! info \"提示\" 通过数据源功能，可以添加对各种自定义数据源的支持，并执行后续的数据源操作等。 !!! 鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的第一个子菜单。弹出类似如下窗口，默认列表为空，需要自行添加。 !img.png 如果您添加了数据源会显示类似如下页面 !img1.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img2.png 当我们选择某种类型的数据源时，数据源配置信息将显示在顶部标签栏中，不同的数据源有不同的配置项，它的配置单在服务启动是的指定目录中。 当我们选择类型为 MySQL 的源时，弹出类似以下窗口 !img3.png 在配置页面中出现了4个选项卡，点击不同的选项卡填充相关信息，然后点击底部的 Test 按钮，会弹出如下页面： !img4.png 当数据源测试成功后顶部会展示当前服务测试后的版本号，此时点击地步的 Save 按钮即可保存数据。 !!! info \"提示\" 数据源保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据源中 Action 中的第一个按钮即可修改数据源，操作类似于 添加数据源 操作 --- 点击列表中某个数据源的 Action 中的第二个按钮，删除该数据源，点击后会弹出以下内容 !img5.png 单击弹出的小窗口，然后单击 OK 以删除选中的数据源。 !!! danger \"注意\" 需要注意的是，删除数据源后，与数据源相关的查询历史记录将被删除。 !!! --- 单击列表中数据源的 Action 中的第三个或者第四个按钮，跳转到数据源管理页面。 !img6.png 页面分为左右两部分。左侧主要展示数据源的基本信息，包括： 选中数据源的相关元数据 当我们在左侧选择数据库和数据表时，右侧的内容显示如下 !img7.png 在右侧内容中出现两个选项卡: Info（默认选项） Data !!! info \"提示\" 默认当前选项卡下显示关于当前表的相关信息。 !!! 点击 Data 选项卡，会出现类似如下页面，它展示了当前选中表的相关数据。 !img8.png 在顶部的四个按钮分别是： First Page Previous Page Next Page Last Page 接下来后面的按钮是用于设置数据查询的配置： !img9.png Jump to Page Show Page Size 填充配置后，点击 Apply 按钮即可应用当前配置信息。 在右侧还有一个按钮，点击后会展示当前查询使用到的详细 SQL 内容 !img10.png !!! info \"提示\" 当前 SQL 生成是根据同步到元数据的顺序而定。 !!! !!! danger \"注意\" 目前并不是所有的数据源都支持管理，如果需要可自行添加模版。如果有兴趣可将源码贡献给我们。 !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/datasource/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "代码片段",
+    "content": "!!! note 通过代码段功能，可以添加对各种自定义代码段的支持，并执行后续的代码段操作等。添加的代码片段后续会添加到编辑器中。 !!! 鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Snippet 子菜单。弹出类似如下窗口，默认列表为空，需要自行添加。 !img.png 如果您添加了片段会显示类似如下页面 !img1.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img2.png 在窗口中，我们需要输入以下内容 | 属性 | 描述 | |:-------------:|:----------------:| | Name | 标记当前代码段的名称 | | Description | 当前代码片段的说明 | | Snippet | 当前代码片段的特定 SQL 内容 | 填写完以上内容后，点击底部的 Submit 按钮保存代码片段。 !!! note 数据保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据中 Action 中的第一个按钮，查看具体的代码片段内容，会弹出一个对话框，大致如下 !img3.png 单击 OK 或 Cancel 关闭对话框 --- 点击列表中某个数据中 Action 中的第二个按钮即可修改代码段，该操作类似于 添加片段 操作。 --- 点击列表中某个数据的 Action 中的第三个按钮，引用当前代码片段，会跳转到查询页面，片段内容会直接输入到编辑器中。 --- 点击列表中某个数据的 Action 中的第四个按钮，删除代码段，点击后会弹出以下内容 !img4.png 单击弹出的小窗口，然后单击 OK 以删除代码段。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/snippet/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "查询历史",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 History 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可自动添加记录。 !img.png --- 点击列表中某个数据中 Action 中的第一个按钮，查看具体的代码片段内容，会弹出一个对话框，大致如下 !img1.png 此查询中查询的特定 SQL 语句将显示在窗口中。 --- !!! danger 只有查询出现异常情况下，才可以查看错误信息。 !!! 点击列表中某个数据中 Action 中的第二个按钮即可查看错误信息 !img2.png",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/history/query/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "流水线",
+    "content": "在 DataCap 软件中流水线用于用户针对数据进行迁移等一些数据操作的工具。 --- 进入系统后，点击顶部 Admin 菜单下对应的 Pipeline 子菜单，默认进入流水线列表。类似下图： !img.png 点击列表右侧的 + Create 按钮，系统会弹出配置页面： !img1.png 配置页面分为三个配置模块，分别是： Description 主要配置用户执行的 SQL From 配置数据接入源 To 配置数据输出源 每个数据源具有不同的配置属性，当选择数据源后按照提示配置相关属性即可。 当任务发布成功后默认会刷新任务列表，如下图所示： !img2.png --- 任务发布后默认将会启动，在任务的右侧 Action 操作中包含以下功能： 当我们点击 Action 中的第一个按钮时，系统会弹出错误信息页面。 > 只有任务运行失败后该功能才会被启用 !img3.png 当我们点击 Action 中的第二个按钮时，系统会弹出日志页面。 !img4.png 当我们点击 Action 中的第三个按钮时，系统会弹出停止任务页面。 > 只有任务运行中该功能才会被启用 !img5.png 我们按照窗口提示的信息输入任务名字后点击 Stop 按钮即可。 当我们点击 Action 中的第四个按钮时，系统会弹出删除任务页面。 !img6.png 我们按照窗口提示的信息输入任务名字后点击 Delete 按钮即可。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/pipeline/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "报表",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Report 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可添加报表。 !img.png --- 新建报表功能在查询页面，当我们查询成功后会在结果表格上方显示出如下窗口 !img1.png 点击图中红框选择的按钮，弹出如下窗口 !img2.png 顶部为报表名称和是否实时报表 !!! note 如果是实时报表，那么报表数据会在展示时进行后端服务查询从而渲染，不同的查询引擎这可能会造成报表渲染慢的问题。非实时报表只会展示当前查询的静态数据。 !!! 左侧是报表渲染区域，右侧为报表的配置，目前支持报表的类型： 折线图 柱状图 以下是一个我们配置好的报表： !img3.png 报表配置完成后，点击发布即可将报表保留下来。 --- 在报表列表页面查询记录后有操作按钮，操作按钮的第一个 !img4.png{ width=\"20\" } 点击后可以查看报表 !img5.png --- 在报表列表页面查询记录后有操作按钮，操作按钮的第二个 !img6.png{ width=\"20\" } 点击后可以弹出如下窗口 !img7.png 在输入框中输入报表名称，点击删除即可删除该报表。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/manager/report/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Functions",
+    "content": "!!! note We can enhance the automatic prompt function of the code editor through the function module provided by the system. !!! --- The system has built-in the following data source functions by default (it does not mean that it is the most complete function of the new version, if there is something missing, please submit issues or pr to fix it): ClickHouse MySQL Hive Trino & Presto (fit a part) --- After entering the system, click the corresponding Function submenu under the top Settings menu to go to the function configuration function !img.png Click the Add button on the top right to add a new function, and the following window will pop up after clicking: !img1.png The following is a detailed parameter description: Name: The name used to mark the function prompt, the suggestion is English Plugin: The plugin this function applies to, multiple options can be selected Content: The specific content of the function, which will be entered into the editor Description: Description of the function Type: Type of function, can be: KeyWord, Operator, Function, default is KeyWord Example: For the use example of this function, it is convenient for users to understand how to use the function When the above content is written, click the Submit button at the bottom to save the operation, and you can use it in the editor later. --- The system provides a way to import functions in batches. Currently, it supports the import of content and URI addresses. Next, let's take a look at how to do it. We perform the batch import function by clicking the import button on the top right. !img2.png The content import method allows us to enter a list of functions, and they are divided according to each line. Adding the following keywords we need to import: sql SHOW USE In Plugin, we choose to use the ClickHouse plug-in, and in Type, we choose KeyWord. After the operation is completed, we click the Submit button at the bottom to use the import function of the current input function. The URI import method is relatively simple. We can import data in batches by specifying the remote server URI address, which can be your local server address or the address provided by the software. The URI address format provided by the software by default is sql (http|https)://datacap.edurt.io/resources/functions/plugin/keywords.txt (http|https)://datacap.edurt.io/resources/functions/plugin/operators.txt (http|https)://datacap.edurt.io/resources/functions/plugin/functions.txt We only need to replace the value of plugin in the address with the name of the plugin that needs to be imported. !!! warning It should be noted that due to local network problems, the URI import method may be slow. !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/system/functions/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Sql Template",
+    "content": "!!! note The system supports the SQL template function, through which the realization of some monitoring and other functions can be supported. !!! --- The system supports some default templates, currently supports: getAllDatabaseAndTable getAllDatabase getAllTablesFromDatabase Of course, each template can support one or more plug-ins, and they will be used in subsequent operations of the system. After entering the system, click the corresponding Sql submenu under the top Settings menu to go to the function configuration function !img.png Click the Add button on the top right to add a new function, and the following window will pop up after clicking: !img1.png The following is a detailed parameter description: Name: The name used to mark the function prompt, the suggestion is English Plugin: The plugin this function applies to, multiple options can be selected Description: Description of the function Template: The SQL statement executed by the template When the above content is written, click the Submit button at the bottom to save the operation, and you can use it in the editor later. !!! warning The default template does not carry any parameters and we can execute it directly. !!! We can realize the template dynamic parameter passing function by defining variables. Let's take an example, we need to display all the data tables under the default database, the normal SQL is sql SHOW TABLES FROM default When we use the template, the SQL changes to sql SHOW TABLES FROM ${database:String} The system parses the parameter into database=String by collecting {database:String} expression, where database is the parameter name, and String is the type of parameter passing. When we use the expression time, we only need to pass the Map type parameter, where key=parameter name, value=data value passed according to the type.",
+    "url": "https://datacap.devlive.org/zh-CN/reference/system/sql/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "菜单",
+    "content": "鼠标移向顶部菜单的 Admin 标识下，会弹出下拉框，点击下拉框中的 Menu 子菜单。弹出类似如下窗口，默认列表为空，通过查询页面进行查询即可自动添加记录。 !img.png --- 点击列表展示区域的右侧添加按钮（它是一个 + 图标），点击后将弹出如下添加数据源窗口 !img1.png 填写完以上内容后，点击底部的 Submit 按钮保存代码片段。 !!! note 数据保存后，数据源列表会自动刷新。 !!! --- 点击列表中某个数据中 Action 中的第一个按钮，会弹出修改窗口，它和新建菜单一致。",
+    "url": "https://datacap.devlive.org/zh-CN/reference/system/menu/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "InfluxDB",
+    "content": "InfluxDB 是一个由 InfluxData 开发的开源时序型数据库。它由 Go 写成，着力于高性能地查询与存储时序型数据。InfluxDB 被广泛应用于存储系统的监控数据。 --- DataCap 整合 InfluxDB 模块，用于实现对 InfluxDB 数据源的数据操作。 在该模块中我们使用的是 influxdb-jdbc 依赖，版本为 0.2.6。 使用到的驱动器为 net.suteren.jdbc.influxdb.InfluxDbDriver。 驱动源码可参考：https://github.com/konikvranik/jdbc-influxdb/ --- | 操作 | 是否支持 | |:--------:|:----:| | SELECT | ✅ | > 所有驱动器支持的操作均支持。 --- !!! note 如果需要使用该数据源，需要将 DataCap 服务升级到 >= 2024.03.7 !!! 支持时间: 2024-06-26 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"基本配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 名称 | ✅ | - |-| | 主机地址 | ✅ | 127.0.0.1 | - | | 端口 | ✅ | 8086 | - | === \"授权配置\" | 属性 | 是否必要 | 默认值 | |---|---|---| | 用户名 | ❌ | - | | 密码 | ❌ | - | === \"自定义\" > 可以添加所有 InfluxDB 驱动支持的配置，方式为 key = value 默认: | 属性 | 默认值 | |---|---| | database | default | :::",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/influxdb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Solr",
+    "content": "Apache Solr 是基于 Apache Lucene™ 构建的快速开源搜索平台，提供可扩展的索引和搜索，以及分面、命中突出显示和高级分析/标记化功能。Solr 由 Apache 软件基金会管理。 --- DataCap 整合 Apache Solr 模块，用于实现对 Apache Solr 数据源的数据操作。 在该模块中我们使用的是 solr-solrj 依赖，版本为 6.0.0。 使用到的驱动器为 org.apache.solr.client.solrj.io.sql.DriverImpl。 --- | 操作 | 是否支持 | |:--------:|:----:| | SELECT | ✅ | > 所有驱动器支持的操作均支持。 --- !!! note 如果需要使用该数据源，需要将 DataCap 服务升级到 >= 2024.03.7 !!! 支持时间: 2024-06-25 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"基本配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 名称 | ✅ | - |-| | 主机地址 | ✅ | 127.0.0.1 | 这里的地址需要填写 zookeeper 的相关地址 | | 端口 | ✅ | 8983 | - | === \"授权配置\" | 属性 | 是否必要 | 默认值 | |---|---|---| | 用户名 | ❌ | - | | 密码 | ❌ | - | === \"高级配置\" | 属性 | 是否必要 | 默认值 | 备注 | |---|---|---|---| | 数据库 | ✅ | local | 这里是指在 solr 服务器中创建的 collection | === \"自定义\" > 可以添加所有 Solr 驱动支持的配置，方式为 key = value 暂无默认配置 :::",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/solr/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Timescale",
+    "content": "Timescale 是一个用于时间序列、事件和分析的 PostgreSQL 数据平台。 它为您提供 PostgreSQL 的可靠性、TimescaleDB 的时间序列超能力以及完全托管服务的安心。 它提供自动备份和恢复、复制的高可用性、无缝扩展和调整大小等功能。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.02.1 !!! 支持时间: 2024-02-05 --- ::: tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |------|---------------------------------|-------------| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5432 | === \"高级\" | 属性 | 是否必要 | 默认值 | |----------|--------------------------------|-------------| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/timescale/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "ParadeDB",
+    "content": "ParadeDB 是基于 Postgres 构建的 Elasticsearch 替代方案。我们正在对 Elasticsearch 的功能进行现代化改造， 从实时搜索和分析开始。 ParadeDB 不是 Postgres 的分支，而是安装了自定义扩展的常规 Postgres。ParadeDB 本身 随 Postgres 16 一起提供。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.02.1 !!! 支持时间: 2024-02-05 --- :::tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |------|---------------------------------|-------------| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5432 | === \"高级\" | 属性 | 是否必要 | 默认值 | |----------|--------------------------------|-------------| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |-----|----------------| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues !!! [x] all",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/paradedb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "ScyllaDB",
+    "content": "ScyllaDB 是一个分布式 NoSQL 宽列数据库，适用于需要高性能和低延迟的数据密集型应用程序。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.01.1 !!! 支持时间: 2024-01-12 --- ::: tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9042 | === \"高级\" | 属性 | 是否必要 | 默认值 | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :x: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/scylladb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "MatrixOne",
+    "content": "MatrixOne 是一款面向未来的超融合云和边缘原生 DBMS，通过简化的分布式数据库引擎，跨多个数据中心、云、边缘和其他异构基础设施支持事务、分析和流式工作负载。 --- !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 2024.01.1 !!! 支持时间: 2024-01-12 --- :::tabs === \"配置\" | 属性 | 是否必要 | 默认值 | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | - | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 6001 | === \"授权\" | 属性 | 是否必要 | 默认值 | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | - | | Password | :check{20,#3CA34F}: | - | | SSL | :x{20,#ff0000}: | false | === \"高级\" | 属性 | 是否必要 | 默认值 | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | === \"自定义\" 暂无默认配置，支持用户自定义添加 ::: --- | 功能 | 支持 | |:-----:|:----------------:| | 即席查询 | :check: | | 数据集 | :check: | | 流水线 | :check: | | 元数据管理 | :x: | --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] 1.1.0 !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/matrixone/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "ClickHouse",
+    "content": "ClickHouse® 是一个面向列的数据库管理系统（DBMS），用于在线分析查询处理（OLAP）。ClickHouse 的性能超过了所有其他面向列的数据库管理系统。它每台服务器每秒处理数十亿行和数十 GB 的数据。 !!! note 如果需要使用此数据源，则需要将 DataCap 服务升级到 >= 1.0.x !!! 支持时间: 2022-09-22 --- !!! note 如果您的 ClickHouse 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | === \"自定义\" !!! note 您可以通过添加 Key Value 来添加已经支持的 ClickHouse 参数，参数可以是 参考文档 !!! ::: --- !!! warning 在线服务尚未测试，如果您有详细的测试结果，请提交 issues [x] 19.x [x] 20.x [x] 21.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/clickhouse/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "MySQL",
+    "content": "MySQL is one of the most recognizable technologies in the modern big data ecosystem. Often called the most popular database and currently enjoying widespread, effective use regardless of industry, it’s clear that anyone involved with enterprise data or general IT should at least aim for a basic familiarity of MySQL. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.0.x !!! Support Time: 2022-09-19 --- DataCap uses configuration files by default mysql.json !!! note If your MySQL service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 3306 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | | SSL | :x{20,#ff0000}: | false | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | default | === \"Custom\" !!! note You can add the already supported MySQL parameters by adding Key Value, the parameters can be reference document Default: | Key | value | |:-----------------------------:|:------:| | useOldAliasMetadataBehavior | true | !!! ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 5.x [x] 6.x [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/mysql/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Redis",
+    "content": "The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.3.x !!! Support Time: 2022-12-01 --- DataCap uses configuration files by default redis.json !!! note If your Redis service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 6379 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Password | :x{20,#ff0000}: | \\- | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 6.x [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/redis/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "H2 Database",
+    "content": "H2 is an embedded database developed in Java that is itself just a class library. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.8.x !!! Support Time: 2023-04-05 --- !!! note If your h2 service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] all !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/h2/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Snowflake",
+    "content": "Execute your most critical workloads on top of Snowflake's multi-cluster shared data architecture in a fully managed platform that capitalizes on the near-infinite resources of the cloud. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.4.x !!! Support Time: 2023-01-29 --- DataCap uses configuration files by default snowflake.json !!! note If your Snowflake service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 80 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | === \"Custom\" !!! note You can add the already supported Snowflake parameters by adding Key Value, the parameters can be reference document !!! ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/snowflake/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Yandex Database",
+    "content": "YDB is a fault-tolerant distributed SQL DBMS. YDB provides high availability, horizontal scalability, strict consistency, and ACID transaction support. Queries are made using an SQL dialect (YQL). !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.4.x !!! Support Time: 2023-01-30 --- DataCap uses configuration files by default ydb.json !!! note If your YDB service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 2136 | === \"Authorization\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | local | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 2.1.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/ydb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Zookeeper",
+    "content": "ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services. All of these kinds of services are used in some form or another by distributed applications. Each time they are implemented there is a lot of work that goes into fixing the bugs and race conditions that are inevitable. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.5.x !!! Support Time: 2023-02-07 --- This chapter describes the SQL syntax used in Zookeeper on DataCap. !!! note \"Synopsis\" sql SELECT [ | <Columns> ] selectexpression [, ...] FROM fromitem [. ...] where fromitem is one of sql tablename [ a.b | a.b | a.b] !!! !!! danger When tablename is set to all the root directory is searched. !!! !!! note \"Select expressions\" Each selectexpression must be in one of the following forms: sql expression [ columnalias ] sql In the case of expression [ columnalias ], a single output column is defined. In the case of , all columns of the relation defined by the query are included in the result set. sql -------- data !!! !!! danger If it is a multi-level directory, such as /zookeeper/id/2, it will be written \\zookeeper\\.\\id\\.\\2\\, and use . to split between directories. !!! --- DataCap uses configuration files by default zookeeper.json !!! note If your Zookeeper service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1:2181 | | Port | :x{20,#ff0000}: | 1 | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 3.1.x - 3.7.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/zookeeper/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "DuckDB",
+    "content": "DuckDB is an in-process SQL OLAP database management system. !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.6.x !!! Support Time: 2023-02-20 --- DataCap uses configuration files by default duckdb.json !!! note If your DuckDB service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | /root | | Port | :check{20,#3CA34F}: | 0 | === \"Advanced\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | local | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 0.7.0 !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/duckdb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "AliYun OSS",
+    "content": "Fully managed object storage service to store and access any amount of data from anywhere --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.6.x !!! Support Time: 2023-02-23 --- This chapter describes the SQL syntax used in Aliyun OSS on DataCap. !!! note \"Synopsis\" sql SELECT [ | <Columns> ] selectexpression [, ...] FROM fromitem [. ...] where fromitem is one of sql tablename [ a.b | a.b | a.b] !!! !!! danger When tablename is set to all the root directory is searched. !!! !!! note \"Select expressions\" Each selectexpression must be in one of the following forms: sql expression [ columnalias ] sql In the case of expression [ columnalias ], a single output column is defined. In the case of , all columns of the relation defined by the query are included in the result set. sql -------- data !!! !!! danger If it is a multi-level directory, such as /oss/id/2, it will be written \\oss\\.\\id\\.\\2\\, and use . to split between directories. !!! --- DataCap uses configuration files by default alioss.json !!! note If your Aliyun OSS service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------------------------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | https://oss-cn-regison.aliyuncs.com | === \"Authorization\" | Field | Required | Description | Default Value | |:----------:|:---------------------------------:|:-------------:|:-------------:| | Username | :check{20,#3CA34F}: | access Id | \\- | | Password | :check{20,#3CA34F}: | access Secret | \\- | === \"Advanced\" | Field | Required | Description | Default Value | |:----------:|:--------------------------------:|:-----------:|:-------------:| | Database | :check{20,#3CA34F}: | bucket name | default | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] all version !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/alioss/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Kafka",
+    "content": "Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.7.x !!! Support Time: 2023-03-06 --- This chapter describes the SQL syntax used in DataCap Kafka plugin. SHOW TOPICS SHOW CONSUMERS --- DataCap uses configuration files by default kafka.json !!! note If your Apache Kafka service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:----------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | localhost:9092 | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 1.0.0 [x] 1.1.0 [x] 1.2.0 !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/kafka/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "SHOW TOPICS",
+    "content": "--- sql SHOW TOPICS --- Returns a list of all defined topics in the current cluster. Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/zh-CN/reference/sql-syntax/connectors/kafka/show_topics.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "SHOW CONSUMERS",
+    "content": "--- sql SHOW CONSUMERS SHOW CONSUMERS FROM topic --- Returns a list of all defined consumers in the current cluster (if a topic is specified, a list of consumers for the specified topic will be returned). Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/zh-CN/reference/sql-syntax/connectors/kafka/show_consumers.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "SHOW DATABASES",
+    "content": "--- sql SHOW DATABASES --- Returns a list of all defined topics in the current cluster. Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/zh-CN/reference/sql-syntax/connectors/kafka/show_databases.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "SHOW TABLES",
+    "content": "--- sql SHOW TABLES SHOW TABLES FROM database > database kafka topic name --- Returns a list of all defined consumers in the current cluster (if a topic is specified, a list of consumers for the specified topic will be returned). Returns NULL for any information that is not populated or unavailable on the data source. The list data is returned as a row of each column, and the default header is . | Column | Description | Notes | |--------|------------------------|---------------------------------| | | The name of the column | NULL in the table summary row |",
+    "url": "https://datacap.devlive.org/zh-CN/reference/sql-syntax/connectors/kafka/show_tables.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "CeresDB",
+    "content": "CeresDB 是一款高性能、分布式的云原生时序数据库。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-12 --- !!! note 如果您的CeresDB服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5440 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 1.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/ceresdb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "GreptimeDB",
+    "content": "一个开源、云原生、分布式时间序列数据库，支持PromQL/SQL/Python。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-14 --- !!! note 如果您的 GreptimeDB 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 5440 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 0.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/greptimedb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "QuestDB",
+    "content": "QuestDB 是一个开源时间序列数据库，用于高吞吐量摄取和快速 SQL 查询，操作简单。它支持使用 InfluxDB 行协议、PostgreSQL 有线协议和用于批量导入和导出的 REST API 进行与模式无关的摄取。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-17 --- !!! note 如果您的 QuestDB 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 7.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/questdb/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Doris",
+    "content": "一个易于使用、高性能和统一的分析数据库 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-19 --- !!! note 如果您的 Doris 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9093 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/doris/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "StarRocks",
+    "content": "开源、高性能的分析数据库 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-20 --- !!! note 如果您的 StarRocks 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9030 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 2.2.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/starrocks/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Hologres",
+    "content": "Hologres是兼容PostgreSQL的一站式实时数据仓库引擎，支持PB级数据多维分析（OLAP）与即席分析（Ad Hoc），支持高并发低延迟的在线数据服务（Serving）。与MaxCompute、Flink、DataWorks深度融合，提供离在线一体化全栈数仓解决方案。 !!! note 如果你需要使用这个数据源, 您需要将 DataCap 服务升级到 >= 1.9.x !!! 支持时间: 2023-04-25 --- !!! note 如果您的 Hologres 服务版本需要其他特殊配置，请参考修改配置文件并重启 DataCap 服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | hologres-cn-regison.aliyuncs.com | | Port | :check{20,#3CA34F}: | 80 | === \"授权\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Username | :x{20,#ff0000}: | \\- | | Password | :x{20,#ff0000}: | \\- | === \"高级\" | Field | Required | Default Value | |:----------:|:-----------------------:|:-------------:| | Database | :x{20,#ff0000}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] all !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/hologres/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Hadoop HDFS",
+    "content": "The Hadoop Distributed File System (HDFS) is a distributed file system designed to run on commodity hardware. It has many similarities with existing distributed file systems. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.9.x !!! Support Time: 2023-04-27 --- !!! note If your HDFS service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------------------------------:| | Name | :check{20,#3CA34F}: | \\- | === \"Advanced\" | Field | Required | Description | Default Value | |:----------:|:--------------------------------:|:-----------:|:-------------:| | file | :check{20,#3CA34F}: | core-site.xml <br /> hdfs-site.xml | [] | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 3.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/hdfs/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Pinot",
+    "content": "Apache Pinot 是一个实时分布式 OLAP 数据存储，专为低延迟、高吞吐量分析而构建，非常适合面向用户的分析工作负载。 --- !!! note 如果需要使用该数据源，需要将DataCap服务升级到 >= 1.10.x !!! 支持时间: 2023-05-06 --- !!! note 如果您的服务版本需要其他特殊配置，请参考修改配置文件并重启DataCap服务。 !!! ::: tabs === \"配置\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9000 | === \"授权\" | Field | Required | Default Value | |:----------:|:---------------------------------:|:-------------:| | Username | :check{20,#3CA34F}: | \\- | | Password | :check{20,#3CA34F}: | \\- | ::: --- !!! warning 服务版本尚未测试，如果您有详细的测试并发现错误，请提交 issues [x] 0.8.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/pinot/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "Apache Cassandra",
+    "content": "Apache Cassandra® powers mission-critical deployments with improved performance and unparalleled levels of scale in the cloud. --- !!! note If you need to use this data source, you need to upgrade the DataCap service to >= 1.11.x !!! Support Time: 2023-06-07 --- !!! note If your plugin service version requires other special configurations, please refer to modifying the configuration file and restarting the DataCap service. !!! ::: tabs === \"Configure\" | Field | Required | Default Value | |:------:|:---------------------------------:|:-------------:| | Name | :check{20,#3CA34F}: | \\- | | Host | :check{20,#3CA34F}: | 127.0.0.1 | | Port | :check{20,#3CA34F}: | 9042 | === \"Advanced\" | Field | Required | Default Value | |:----------:|:--------------------------------:|:-------------:| | Database | :check{20,#3CA34F}: | datacenter | ::: --- !!! warning The online service has not been tested yet, if you have detailed test results, please submit issues to us [x] 0.4.x !!!",
+    "url": "https://datacap.devlive.org/zh-CN/reference/connectors/cassandra/home.html",
+    "lang": "zh-CN"
+  },
+  {
+    "title": "主页",
+    "content": "",
+    "url": "https://datacap.devlive.org/zh-CN/index.html",
     "lang": "zh-CN"
   },
   {
