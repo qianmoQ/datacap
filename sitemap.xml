@@ -36,6 +36,11 @@
         <priority>0.5</priority>
     </url>
     <url>
+        <loc>https://datacap.devlive.org/en/reference/get-started/dataset/adhoc/home.html</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
         <loc>https://datacap.devlive.org/en/useCases.html</loc>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
@@ -77,6 +82,11 @@
     </url>
     <url>
         <loc>https://datacap.devlive.org/zh-CN/reference/get-started/dataset/create/home.html</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://datacap.devlive.org/zh-CN/reference/get-started/dataset/adhoc/home.html</loc>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
     </url>
