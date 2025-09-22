@@ -14,7 +14,7 @@
     <description>DataCap - Http</description>
 
     <properties>
-        <okhttp.version>4.9.2</okhttp.version>
+        <okhttp.version>5.1.0</okhttp.version>
     </properties>
 
     <dependencies>
