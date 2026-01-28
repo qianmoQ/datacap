@@ -692,12 +692,13 @@ defaultValue
 // Names and Identifiers
 catalogName: identifier;
 columnName: identifier;
-tableName: (databaseName '.')? identifier;
+tableName: (databaseName '.')? identifier | patternIdentifier;
 databaseName: identifier;
 indexName: identifier;
 constraintName: identifier;
 alias: identifier;
 functionName: identifier;
+patternIdentifier: PATTERN_IDENTIFIER;
 
 identifier
     : IDENTIFIER
@@ -816,6 +817,12 @@ DECIMAL_VALUE
 STRING
     : '\'' ( ~('\''|'\\') | ('\\' .) )* '\''
     | '"' ( ~('"'|'\\') | ('\\' .) )* '"'
+    ;
+
+PATTERN_IDENTIFIER
+    : '*'
+    | (LETTER | DIGIT | '_')+ (':' (LETTER | DIGIT | '_' | '*' | '?')+)+
+    | (LETTER | DIGIT | '_')+ ':' '*'
     ;
 
 IDENTIFIER

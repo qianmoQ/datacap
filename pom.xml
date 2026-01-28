@@ -205,6 +205,7 @@
         <quartz.version>2.3.2</quartz.version>
         <h2.version>2.1.214</h2.version>
         <mongodb-driver.version>4.11.1</mongodb-driver.version>
+        <redisson.version>3.27.0</redisson.version>
         <assembly-plugin.version>3.6.0</assembly-plugin.version>
         <dep.reflections.version>0.10.2</dep.reflections.version>
         <!-- datacap plugin dependency -->
@@ -425,6 +426,11 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
                 <version>${mongodb-driver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
