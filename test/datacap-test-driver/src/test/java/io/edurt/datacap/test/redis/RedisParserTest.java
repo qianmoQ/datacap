@@ -1,5 +1,6 @@
 package io.edurt.datacap.test.redis;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.driver.parser.RedisParser;
 import io.edurt.datacap.driver.parser.RedisSelectParser;
 import io.edurt.datacap.driver.parser.RedisShowParser;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
+@SuppressFBWarnings(value = {"JUA_DONT_ASSERT_INSTANCEOF_IN_TESTS"})
 public class RedisParserTest
 {
     @Test

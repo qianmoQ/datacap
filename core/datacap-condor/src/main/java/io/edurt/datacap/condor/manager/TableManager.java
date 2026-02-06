@@ -17,7 +17,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -189,7 +188,9 @@ public class TableManager
 
             for (RowDefinition row : rows) {
                 if (whereCondition == null || whereCondition.evaluate(row)) {
-//                    updateRow(row, setValues);
+                    for (Map.Entry<String, Object> entry : setValues.entrySet()) {
+                        row.setValue(entry.getKey(), entry.getValue());
+                    }
                     updatedCount++;
                 }
             }
@@ -292,7 +293,7 @@ public class TableManager
     private void saveAllRows(String tableName, List<RowDefinition> rows)
             throws TableException
     {
-        Path dataPath = Paths.get(dataDir + tableName + ".data");
+        Path dataPath = dataDir.resolve(tableName).resolve("data").resolve("table.data");
         try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(dataPath, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING))) {
             for (RowDefinition row : rows) {
@@ -376,16 +377,38 @@ public class TableManager
         }
 
         switch (expectedType) {
+            case TINYINT:
+            case SMALLINT:
             case INTEGER:
-                return value instanceof Integer;
+            case INT:
+            case BIGINT:
+                return value instanceof Number;
+            case FLOAT:
+            case REAL:
+            case DOUBLE:
+            case DECIMAL:
+            case NUMERIC:
+                return value instanceof Number;
+            case CHARACTER:
+            case CHAR:
             case VARCHAR:
+            case TEXT:
+            case JSON:
+            case XML:
                 return value instanceof String;
             case BOOLEAN:
                 return value instanceof Boolean;
-            case DOUBLE:
-                return value instanceof Double;
+            case BINARY:
+            case VARBINARY:
+            case BLOB:
+                return value instanceof byte[] || value instanceof String;
+            case DATE:
+            case TIME:
+            case TIMESTAMP:
+            case DATETIME:
+                return value instanceof String || value instanceof Number;
             default:
-                return false;
+                return true;
         }
     }
 
@@ -451,6 +474,11 @@ public class TableManager
             log.error("Failed to load table metadata", e);
             throw new IOException("Failed to load table metadata", e);
         }
+    }
+
+    public String[] listTables()
+    {
+        return tableMetadataCache.keySet().toArray(new String[0]);
     }
 
     public boolean tableExists(String tableName)

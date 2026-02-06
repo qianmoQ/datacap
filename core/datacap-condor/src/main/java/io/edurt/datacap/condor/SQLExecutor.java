@@ -1,5 +1,9 @@
 package io.edurt.datacap.condor;
 
+import io.edurt.datacap.condor.condition.AndCondition;
+import io.edurt.datacap.condor.condition.Condition;
+import io.edurt.datacap.condor.condition.OrCondition;
+import io.edurt.datacap.condor.condition.SimpleCondition;
 import io.edurt.datacap.condor.manager.DatabaseManager;
 import io.edurt.datacap.condor.manager.TableManager;
 import io.edurt.datacap.condor.metadata.ColumnDefinition;
@@ -9,23 +13,29 @@ import io.edurt.datacap.condor.metadata.TableDefinition;
 import io.edurt.datacap.sql.SQLParser;
 import io.edurt.datacap.sql.node.ColumnConstraint;
 import io.edurt.datacap.sql.node.ConstraintType;
+import io.edurt.datacap.sql.node.Expression;
 import io.edurt.datacap.sql.node.TableConstraint;
 import io.edurt.datacap.sql.node.element.ColumnElement;
 import io.edurt.datacap.sql.node.element.SelectElement;
 import io.edurt.datacap.sql.node.element.TableElement;
 import io.edurt.datacap.sql.statement.CreateDatabaseStatement;
 import io.edurt.datacap.sql.statement.CreateTableStatement;
+import io.edurt.datacap.sql.statement.DeleteStatement;
 import io.edurt.datacap.sql.statement.DropDatabaseStatement;
 import io.edurt.datacap.sql.statement.DropTableStatement;
 import io.edurt.datacap.sql.statement.InsertStatement;
 import io.edurt.datacap.sql.statement.SQLStatement;
 import io.edurt.datacap.sql.statement.SelectStatement;
+import io.edurt.datacap.sql.statement.ShowStatement;
+import io.edurt.datacap.sql.statement.UpdateStatement;
 import io.edurt.datacap.sql.statement.UseDatabaseStatement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,42 +55,49 @@ public class SQLExecutor
             SQLStatement statement = SQLParser.parse(sql);
 
             if (statement instanceof CreateDatabaseStatement) {
-                CreateDatabaseStatement createDatabaseStatement = (CreateDatabaseStatement) statement;
-                return (SQLResult<T>) executeCreateDatabase(createDatabaseStatement);
+                return (SQLResult<T>) executeCreateDatabase((CreateDatabaseStatement) statement);
             }
 
             if (statement instanceof DropDatabaseStatement) {
-                DropDatabaseStatement dropDatabaseStatement = (DropDatabaseStatement) statement;
-                return (SQLResult<T>) executeDropDatabase(dropDatabaseStatement);
+                return (SQLResult<T>) executeDropDatabase((DropDatabaseStatement) statement);
             }
 
             if (statement instanceof UseDatabaseStatement) {
-                UseDatabaseStatement useDatabaseStatement = (UseDatabaseStatement) statement;
-                return (SQLResult<T>) executeUseDatabase(useDatabaseStatement);
+                return (SQLResult<T>) executeUseDatabase((UseDatabaseStatement) statement);
+            }
+
+            if (statement instanceof ShowStatement) {
+                return (SQLResult<T>) executeShow((ShowStatement) statement);
             }
 
             if (statement instanceof CreateTableStatement) {
                 ensureCurrentTableManager();
-                CreateTableStatement createTableStatement = (CreateTableStatement) statement;
-                return (SQLResult<T>) executeCreateTable(createTableStatement);
+                return (SQLResult<T>) executeCreateTable((CreateTableStatement) statement);
             }
 
             if (statement instanceof DropTableStatement) {
                 ensureCurrentTableManager();
-                DropTableStatement dropTableStatement = (DropTableStatement) statement;
-                return (SQLResult<T>) executeDropTable(dropTableStatement);
+                return (SQLResult<T>) executeDropTable((DropTableStatement) statement);
             }
 
             if (statement instanceof InsertStatement) {
                 ensureCurrentTableManager();
-                InsertStatement insertStatement = (InsertStatement) statement;
-                return (SQLResult<T>) executeInsert(insertStatement);
+                return (SQLResult<T>) executeInsert((InsertStatement) statement);
             }
 
             if (statement instanceof SelectStatement) {
                 ensureCurrentTableManager();
-                SelectStatement selectStatement = (SelectStatement) statement;
-                return (SQLResult<T>) executeSelect(selectStatement);
+                return (SQLResult<T>) executeSelect((SelectStatement) statement);
+            }
+
+            if (statement instanceof UpdateStatement) {
+                ensureCurrentTableManager();
+                return (SQLResult<T>) executeUpdate((UpdateStatement) statement);
+            }
+
+            if (statement instanceof DeleteStatement) {
+                ensureCurrentTableManager();
+                return (SQLResult<T>) executeDelete((DeleteStatement) statement);
             }
 
             return new SQLResult<>(false, String.format("Unsupported SQL statement: %s", statement));
@@ -104,14 +121,10 @@ public class SQLExecutor
         try {
             String databaseName = statement.getDatabaseName();
 
-            // 检查是否带有 IF NOT EXISTS
-            // Check if IF NOT EXISTS is present
             if (statement.isIfNotExists() && databaseManager.databaseExists(databaseName)) {
                 return new SQLResult<>(true, "Database already exists");
             }
 
-            // 执行创建数据库
-            // Execute database creation
             databaseManager.createDatabase(databaseName);
             return new SQLResult<>(true, "Database created successfully");
         }
@@ -140,6 +153,7 @@ public class SQLExecutor
         try {
             String databaseName = statement.getDatabaseName();
             databaseManager.useDatabase(databaseName);
+            tableManager = null;
             return new SQLResult<>(true, "Database changed");
         }
         catch (DatabaseException e) {
@@ -147,9 +161,58 @@ public class SQLExecutor
         }
     }
 
+    private SQLResult<List<RowDefinition>> executeShow(ShowStatement statement)
+    {
+        try {
+            List<RowDefinition> rows = new ArrayList<>();
+
+            switch (statement.getShowType()) {
+                case DATABASES:
+                    for (String dbName : databaseManager.listDatabases()) {
+                        RowDefinition row = new RowDefinition();
+                        row.setValue("Database", dbName);
+                        rows.add(row);
+                    }
+                    break;
+                case TABLES:
+                    ensureCurrentTableManager();
+                    for (String tableName : tableManager.listTables()) {
+                        RowDefinition row = new RowDefinition();
+                        row.setValue("Table", tableName);
+                        rows.add(row);
+                    }
+                    break;
+                case COLUMNS:
+                    ensureCurrentTableManager();
+                    String tableName = statement.getTableName();
+                    TableDefinition metadata = tableManager.getTableMetadata(tableName);
+                    for (ColumnDefinition col : metadata.getColumns()) {
+                        RowDefinition row = new RowDefinition();
+                        row.setValue("Field", col.getName());
+                        row.setValue("Type", col.getType().name());
+                        row.setValue("Null", col.isNullable() ? "YES" : "NO");
+                        row.setValue("Key", col.isPrimaryKey() ? "PRI" : "");
+                        rows.add(row);
+                    }
+                    break;
+                default:
+                    return new SQLResult<>(false, "Unsupported SHOW type: " + statement.getShowType());
+            }
+
+            return new SQLResult<>(true, String.format("Show %d rows", rows.size()), rows);
+        }
+        catch (Exception e) {
+            return new SQLResult<>(false, "Failed to execute SHOW: " + e.getMessage());
+        }
+    }
+
     private SQLResult<Void> executeCreateTable(CreateTableStatement statement)
     {
         try {
+            if (statement.isIfNotExists() && tableManager.tableExists(statement.getTableName())) {
+                return new SQLResult<>(true, "Table already exists");
+            }
+
             List<ColumnDefinition> columns = convertToColumns(statement.getColumns());
 
             TableDefinition metadata = new TableDefinition(statement.getTableName(), columns);
@@ -164,7 +227,12 @@ public class SQLExecutor
     private SQLResult<Void> executeDropTable(DropTableStatement statement)
     {
         try {
-            tableManager.dropTable(statement.getTableNames().get(0));
+            String tableName = statement.getTableNames().get(0);
+            if (statement.isIfExists() && !tableManager.tableExists(tableName)) {
+                return new SQLResult<>(true, "Table does not exist");
+            }
+
+            tableManager.dropTable(tableName);
             return new SQLResult<>(true, "Table dropped successfully");
         }
         catch (Exception e) {
@@ -175,7 +243,6 @@ public class SQLExecutor
     private SQLResult<Integer> executeInsert(InsertStatement statement)
     {
         try {
-            // TODO: Support check is multiple insert for InsertStatement
             if (statement.getSimpleValues().size() == 1) {
                 tableManager.insert(
                         statement.getTableName(),
@@ -201,12 +268,21 @@ public class SQLExecutor
     private SQLResult<List<RowDefinition>> executeSelect(SelectStatement statement)
     {
         try {
+            Condition whereCondition = null;
+            if (statement.getWhereClause() != null) {
+                whereCondition = convertExpressionToCondition(statement.getWhereClause());
+            }
+
+            List<String> columnNames = statement.getSelectElements().stream()
+                    .map(SelectElement::getColumn)
+                    .collect(Collectors.toList());
+
+            boolean isSelectAll = columnNames.stream().anyMatch("*"::equals);
+
             List<RowDefinition> rows = tableManager.select(
                     statement.getFromSources().get(0).getTableName(),
-                    statement.getSelectElements().stream()
-                            .map(SelectElement::getColumn)
-                            .collect(Collectors.toList()),
-                    null
+                    isSelectAll ? null : columnNames,
+                    whereCondition
             );
             return new SQLResult<>(
                     true,
@@ -216,6 +292,106 @@ public class SQLExecutor
         }
         catch (Exception e) {
             return new SQLResult<>(false, "Failed to select rows: " + e.getMessage());
+        }
+    }
+
+    private SQLResult<Integer> executeUpdate(UpdateStatement statement)
+    {
+        try {
+            Condition whereCondition = null;
+            if (statement.getWhereClause() != null) {
+                whereCondition = convertExpressionToCondition(statement.getWhereClause());
+            }
+
+            Map<String, Object> setValues = new HashMap<>();
+            for (Map.Entry<String, Expression> entry : statement.getSetValues().entrySet()) {
+                setValues.put(entry.getKey(), entry.getValue().getValue());
+            }
+
+            int updatedCount = tableManager.update(
+                    statement.getTableName(),
+                    setValues,
+                    whereCondition
+            );
+            return new SQLResult<>(true, String.format("Updated %d rows", updatedCount), updatedCount);
+        }
+        catch (Exception e) {
+            return new SQLResult<>(false, "Failed to update rows: " + e.getMessage());
+        }
+    }
+
+    private SQLResult<Integer> executeDelete(DeleteStatement statement)
+    {
+        try {
+            Condition whereCondition = null;
+            if (statement.getWhereClause() != null) {
+                whereCondition = convertExpressionToCondition(statement.getWhereClause());
+            }
+
+            int deletedCount = tableManager.delete(
+                    statement.getTableName(),
+                    whereCondition
+            );
+            return new SQLResult<>(true, String.format("Deleted %d rows", deletedCount), deletedCount);
+        }
+        catch (Exception e) {
+            return new SQLResult<>(false, "Failed to delete rows: " + e.getMessage());
+        }
+    }
+
+    private Condition convertExpressionToCondition(Expression expression)
+    {
+        if (expression == null) {
+            return null;
+        }
+
+        if (expression.getType() == Expression.ExpressionType.BINARY_OP) {
+            String operator = (String) expression.getValue();
+            List<Expression> children = expression.getChildren();
+
+            if ("AND".equalsIgnoreCase(operator)) {
+                Condition left = convertExpressionToCondition(children.get(0));
+                Condition right = convertExpressionToCondition(children.get(1));
+                return new AndCondition(left, right);
+            }
+
+            if ("OR".equalsIgnoreCase(operator)) {
+                Condition left = convertExpressionToCondition(children.get(0));
+                Condition right = convertExpressionToCondition(children.get(1));
+                return new OrCondition(left, right);
+            }
+
+            Expression leftExpr = children.get(0);
+            Expression rightExpr = children.get(1);
+
+            String columnName = (String) leftExpr.getValue();
+            Object value = rightExpr.getValue();
+
+            ComparisonOperator compOp = convertOperator(operator);
+            return new SimpleCondition(columnName, value, compOp);
+        }
+
+        return null;
+    }
+
+    private ComparisonOperator convertOperator(String operator)
+    {
+        switch (operator) {
+            case "=":
+                return ComparisonOperator.EQUALS;
+            case "!=":
+            case "<>":
+                return ComparisonOperator.NOT_EQUALS;
+            case ">":
+                return ComparisonOperator.GREATER_THAN;
+            case ">=":
+                return ComparisonOperator.GREATER_THAN_OR_EQUALS;
+            case "<":
+                return ComparisonOperator.LESS_THAN;
+            case "<=":
+                return ComparisonOperator.LESS_THAN_OR_EQUALS;
+            default:
+                return ComparisonOperator.EQUALS;
         }
     }
 
@@ -265,8 +441,6 @@ public class SQLExecutor
 
     private DataType convertDataType(io.edurt.datacap.sql.node.DataType sourceType)
     {
-        // Implement conversion logic from source DataType to target DataType
-        // This depends on your DataType enum definition
         return DataType.valueOf(sourceType.getBaseType());
     }
 }

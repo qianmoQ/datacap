@@ -2,8 +2,28 @@ package io.edurt.datacap.condor;
 
 public enum DataType
 {
-    INTEGER,
+    CHARACTER,
+    CHAR,
     VARCHAR,
+    BINARY,
+    VARBINARY,
+    TINYINT,
+    SMALLINT,
+    INTEGER,
+    INT,
+    BIGINT,
+    FLOAT,
+    REAL,
+    DOUBLE,
+    DECIMAL,
+    NUMERIC,
+    DATE,
+    TIME,
+    TIMESTAMP,
+    DATETIME,
     BOOLEAN,
-    DOUBLE
+    BLOB,
+    TEXT,
+    JSON,
+    XML
 }

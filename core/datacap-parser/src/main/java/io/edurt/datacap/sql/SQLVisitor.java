@@ -21,16 +21,20 @@ import io.edurt.datacap.sql.processor.ExpressionProcessor;
 import io.edurt.datacap.sql.processor.ShowProcessor;
 import io.edurt.datacap.sql.statement.CreateDatabaseStatement;
 import io.edurt.datacap.sql.statement.CreateTableStatement;
+import io.edurt.datacap.sql.statement.DeleteStatement;
 import io.edurt.datacap.sql.statement.DropDatabaseStatement;
 import io.edurt.datacap.sql.statement.DropTableStatement;
 import io.edurt.datacap.sql.statement.InsertStatement;
 import io.edurt.datacap.sql.statement.SQLStatement;
 import io.edurt.datacap.sql.statement.SelectStatement;
+import io.edurt.datacap.sql.statement.UpdateStatement;
 import io.edurt.datacap.sql.statement.UseDatabaseStatement;
 import org.antlr.v4.runtime.RuleContext;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SQLVisitor
@@ -199,15 +203,34 @@ public class SQLVisitor
     @Override
     public SQLStatement visitUpdateStatement(SqlBaseParser.UpdateStatementContext ctx)
     {
-        // TODO: Implement update statement parsing
-        return null;
+        String tableName = ctx.tableName().getText();
+
+        Map<String, Expression> setValues = new LinkedHashMap<>();
+        for (SqlBaseParser.UpdateElementContext elementCtx : ctx.updateElement()) {
+            String columnName = elementCtx.columnName().getText();
+            Expression value = processExpression(elementCtx.expression());
+            setValues.put(columnName, value);
+        }
+
+        Expression whereClause = null;
+        if (ctx.whereClause() != null) {
+            whereClause = processExpression(ctx.whereClause().expression());
+        }
+
+        return new UpdateStatement(tableName, setValues, whereClause);
     }
 
     @Override
     public SQLStatement visitDeleteStatement(SqlBaseParser.DeleteStatementContext ctx)
     {
-        // TODO: Implement delete statement parsing
-        return null;
+        String tableName = ctx.tableName().getText();
+
+        Expression whereClause = null;
+        if (ctx.whereClause() != null) {
+            whereClause = processExpression(ctx.whereClause().expression());
+        }
+
+        return new DeleteStatement(tableName, whereClause);
     }
 
     @Override
