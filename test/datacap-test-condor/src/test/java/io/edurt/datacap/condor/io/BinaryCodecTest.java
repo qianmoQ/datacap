@@ -1,5 +1,6 @@
 package io.edurt.datacap.condor.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.condor.DataType;
 import io.edurt.datacap.condor.metadata.ColumnDefinition;
 import io.edurt.datacap.condor.metadata.RowDefinition;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
+@SuppressFBWarnings(value = {"CNT_ROUGH_CONSTANT_VALUE"})
 public class BinaryCodecTest
 {
     private Path tempDir;

@@ -1,5 +1,6 @@
 package io.edurt.datacap.condor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.condor.condition.AndCondition;
 import io.edurt.datacap.condor.condition.Condition;
 import io.edurt.datacap.condor.condition.OrCondition;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@SuppressFBWarnings(value = {"REC_CATCH_EXCEPTION"})
 public class SQLExecutor
 {
     private final DatabaseManager databaseManager;

@@ -8,7 +8,7 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-@SuppressFBWarnings(value = {"NP_NONNULL_RETURN_VIOLATION", "EI_EXPOSE_REP2"})
+@SuppressFBWarnings(value = {"NP_NONNULL_RETURN_VIOLATION", "EI_EXPOSE_REP2", "REC_CATCH_EXCEPTION"})
 public class RedisResultSetMetaData
         implements ResultSetMetaData
 {

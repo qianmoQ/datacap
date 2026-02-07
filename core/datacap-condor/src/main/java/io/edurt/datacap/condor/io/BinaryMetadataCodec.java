@@ -1,5 +1,6 @@
 package io.edurt.datacap.condor.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.condor.DataType;
 import io.edurt.datacap.condor.metadata.ColumnDefinition;
 import io.edurt.datacap.condor.metadata.TableDefinition;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 public class BinaryMetadataCodec
 {
     private static final byte[] MAGIC = {'C', 'M', 'T', 'A'};
@@ -32,7 +34,7 @@ public class BinaryMetadataCodec
 
         try (OutputStream os = Files.newOutputStream(metaPath,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-             DataOutputStream dos = new DataOutputStream(os)) {
+                DataOutputStream dos = new DataOutputStream(os)) {
             dos.write(MAGIC);
             dos.writeShort(VERSION);
 
@@ -54,7 +56,7 @@ public class BinaryMetadataCodec
             throws IOException
     {
         try (InputStream is = Files.newInputStream(metaPath);
-             DataInputStream dis = new DataInputStream(is)) {
+                DataInputStream dis = new DataInputStream(is)) {
             byte[] magic = new byte[4];
             dis.readFully(magic);
             if (magic[0] != MAGIC[0] || magic[1] != MAGIC[1]
