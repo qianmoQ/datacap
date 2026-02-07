@@ -35,7 +35,7 @@ public class BinaryRowCodec
     {
         try (OutputStream os = Files.newOutputStream(dataPath,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-             DataOutputStream dos = new DataOutputStream(os)) {
+                DataOutputStream dos = new DataOutputStream(os)) {
             dos.write(MAGIC);
             dos.writeShort(VERSION);
             dos.writeInt(rows.size());
@@ -77,7 +77,7 @@ public class BinaryRowCodec
         }
 
         try (InputStream is = Files.newInputStream(dataPath);
-             DataInputStream dis = new DataInputStream(is)) {
+                DataInputStream dis = new DataInputStream(is)) {
             byte[] magic = new byte[4];
             dis.readFully(magic);
             if (magic[0] != MAGIC[0] || magic[1] != MAGIC[1]
