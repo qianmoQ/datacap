@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.edurt.datacap</groupId>
         <artifactId>datacap</artifactId>
-        <version>2025.1.2</version>
+        <version>2026.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -21,6 +21,12 @@
         <dependency>
             <groupId>io.edurt.datacap</groupId>
             <artifactId>datacap-driver-mongodb</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.edurt.datacap</groupId>
+            <artifactId>datacap-driver-redis</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 set "HOME=%cd%"
-set "VERSION=2025.1.2
+set "VERSION=2026.0.0
 set "CDN_CENTER=https://repo1.maven.org/maven2/io/edurt/datacap"
 
 :: 检查并创建临时目录

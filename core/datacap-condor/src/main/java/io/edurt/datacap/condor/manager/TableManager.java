@@ -4,21 +4,16 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.condor.DataType;
 import io.edurt.datacap.condor.TableException;
 import io.edurt.datacap.condor.condition.Condition;
-import io.edurt.datacap.condor.io.AppendableObjectInputStream;
-import io.edurt.datacap.condor.io.AppendableObjectOutputStream;
+import io.edurt.datacap.condor.io.BinaryMetadataCodec;
+import io.edurt.datacap.condor.io.BinaryRowCodec;
 import io.edurt.datacap.condor.metadata.ColumnDefinition;
 import io.edurt.datacap.condor.metadata.RowDefinition;
 import io.edurt.datacap.condor.metadata.TableDefinition;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -88,7 +83,6 @@ public class TableManager
 
         try {
             saveTableMetadata(metadata);
-
             createTableDataFile(metadata.getTableName());
 
             tableMetadataCache.put(metadata.getTableName(), metadata);
@@ -146,26 +140,18 @@ public class TableManager
 
         lock.writeLock().lock();
         try {
-            // Validate all rows first
             for (List<Object> values : valuesList) {
                 validateInsertData(metadata, columnNames, values);
             }
 
-            // Create all rows
             List<RowDefinition> rows = new ArrayList<>();
             for (List<Object> values : valuesList) {
                 rows.add(createRow(metadata, columnNames, values));
             }
 
-            // Batch write to file
-            Path dataPath = dataDir.resolve(tableName)
-                    .resolve("data")
-                    .resolve("table.data");
-            try (ObjectOutputStream oos = new AppendableObjectOutputStream(
-                    Files.newOutputStream(dataPath, StandardOpenOption.APPEND))) {
-                for (RowDefinition row : rows) {
-                    oos.writeObject(row);
-                }
+            Path dataPath = getDataPath(tableName);
+            try {
+                BinaryRowCodec.appendRows(dataPath, rows);
             }
             catch (IOException e) {
                 throw new TableException("Failed to batch insert rows: " + e.getMessage());
@@ -179,7 +165,7 @@ public class TableManager
     public int update(String tableName, Map<String, Object> setValues, Condition whereCondition)
             throws TableException
     {
-        TableDefinition metadata = getTableMetadata(tableName);
+        getTableMetadata(tableName);
         ReadWriteLock lock = tableLocks.get(tableName);
 
         lock.writeLock().lock();
@@ -189,7 +175,9 @@ public class TableManager
 
             for (RowDefinition row : rows) {
                 if (whereCondition == null || whereCondition.evaluate(row)) {
-//                    updateRow(row, setValues);
+                    for (Map.Entry<String, Object> entry : setValues.entrySet()) {
+                        row.setValue(entry.getKey(), entry.getValue());
+                    }
                     updatedCount++;
                 }
             }
@@ -274,14 +262,17 @@ public class TableManager
         }
     }
 
+    private Path getDataPath(String tableName)
+    {
+        return dataDir.resolve(tableName).resolve("data").resolve("table.data");
+    }
+
     private void appendRowToFile(String tableName, RowDefinition row)
             throws TableException
     {
-        Path dataPath = dataDir.resolve(tableName)
-                .resolve("data")
-                .resolve("table.data");
-        try (ObjectOutputStream oos = new AppendableObjectOutputStream(Files.newOutputStream(dataPath, StandardOpenOption.APPEND))) {
-            oos.writeObject(row);
+        Path dataPath = getDataPath(tableName);
+        try {
+            BinaryRowCodec.appendRow(dataPath, row);
         }
         catch (IOException e) {
             log.error("Failed to append row to file", e);
@@ -292,12 +283,9 @@ public class TableManager
     private void saveAllRows(String tableName, List<RowDefinition> rows)
             throws TableException
     {
-        Path dataPath = Paths.get(dataDir + tableName + ".data");
-        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(dataPath, StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING))) {
-            for (RowDefinition row : rows) {
-                oos.writeObject(row);
-            }
+        Path dataPath = getDataPath(tableName);
+        try {
+            BinaryRowCodec.writeAll(dataPath, rows);
         }
         catch (IOException e) {
             throw new TableException("Failed to save rows to file: " + e.getMessage());
@@ -307,30 +295,14 @@ public class TableManager
     private List<RowDefinition> readAllRows(String tableName)
             throws TableException
     {
-        List<RowDefinition> rows = new ArrayList<>();
-        Path dataPath = dataDir.resolve(tableName).resolve("data").resolve("table.data");
-
-        if (!Files.exists(dataPath)) {
-            return rows;
+        Path dataPath = getDataPath(tableName);
+        try {
+            return BinaryRowCodec.readAll(dataPath);
         }
-
-        try (AppendableObjectInputStream ois = new AppendableObjectInputStream(Files.newInputStream(dataPath))) {
-            while (true) {
-                try {
-                    RowDefinition row = (RowDefinition) ois.readObject();
-                    rows.add(row);
-                }
-                catch (EOFException e) {
-                    break;
-                }
-            }
-        }
-        catch (IOException | ClassNotFoundException e) {
+        catch (IOException e) {
             log.error("Failed to read rows", e);
             throw new TableException("Failed to read rows: " + e.getMessage());
         }
-
-        return rows;
     }
 
     private void validateTableName(String tableName)
@@ -376,16 +348,38 @@ public class TableManager
         }
 
         switch (expectedType) {
+            case TINYINT:
+            case SMALLINT:
             case INTEGER:
-                return value instanceof Integer;
+            case INT:
+            case BIGINT:
+                return value instanceof Number;
+            case FLOAT:
+            case REAL:
+            case DOUBLE:
+            case DECIMAL:
+            case NUMERIC:
+                return value instanceof Number;
+            case CHARACTER:
+            case CHAR:
             case VARCHAR:
+            case TEXT:
+            case JSON:
+            case XML:
                 return value instanceof String;
             case BOOLEAN:
                 return value instanceof Boolean;
-            case DOUBLE:
-                return value instanceof Double;
+            case BINARY:
+            case VARBINARY:
+            case BLOB:
+                return value instanceof byte[] || value instanceof String;
+            case DATE:
+            case TIME:
+            case TIMESTAMP:
+            case DATETIME:
+                return value instanceof String || value instanceof Number;
             default:
-                return false;
+                return true;
         }
     }
 
@@ -413,28 +407,16 @@ public class TableManager
         Path metaPath = dataDir.resolve(metadata.getTableName())
                 .resolve("metadata")
                 .resolve("table.meta");
-        if (!Files.exists(metaPath)) {
-            Files.createDirectories(metaPath.getParent());
-        }
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(metaPath))) {
-            oos.writeObject(metadata);
-        }
-        catch (IOException e) {
-            log.error("Failed to save table metadata", e);
-            throw new IOException("Failed to save table metadata", e);
-        }
+        BinaryMetadataCodec.write(metaPath, metadata);
     }
 
     private void createTableDataFile(String tableName)
             throws IOException
     {
-        Path metaPath = dataDir.resolve(tableName)
-                .resolve("data")
-                .resolve("table.data");
-        if (!Files.exists(metaPath)) {
-            Files.createDirectories(metaPath.getParent());
-            Files.createFile(metaPath);
+        Path dataPath = getDataPath(tableName);
+        if (!Files.exists(dataPath)) {
+            Files.createDirectories(dataPath.getParent());
+            Files.createFile(dataPath);
         }
     }
 
@@ -444,13 +426,12 @@ public class TableManager
         Path metaPath = dataDir.resolve(tableName)
                 .resolve("metadata")
                 .resolve("table.meta");
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(metaPath))) {
-            return (TableDefinition) ois.readObject();
-        }
-        catch (IOException | ClassNotFoundException e) {
-            log.error("Failed to load table metadata", e);
-            throw new IOException("Failed to load table metadata", e);
-        }
+        return BinaryMetadataCodec.read(metaPath);
+    }
+
+    public String[] listTables()
+    {
+        return tableMetadataCache.keySet().toArray(new String[0]);
     }
 
     public boolean tableExists(String tableName)

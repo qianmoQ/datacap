@@ -3,8 +3,6 @@ package io.edurt.datacap.condor.condition;
 import io.edurt.datacap.condor.ComparisonOperator;
 import io.edurt.datacap.condor.metadata.RowDefinition;
 
-import java.util.Comparator;
-
 public class SimpleCondition
         implements Condition
 {
@@ -19,24 +17,44 @@ public class SimpleCondition
         this.operator = operator;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean evaluate(RowDefinition row)
     {
         Object rowValue = row.getValue(columnName);
         if (rowValue == null || value == null) {
-            return false;
+            return operator == ComparisonOperator.EQUALS && rowValue == value;
         }
 
         switch (operator) {
             case EQUALS:
                 return value.equals(rowValue);
+            case NOT_EQUALS:
+                return !value.equals(rowValue);
             case GREATER_THAN:
-                return Comparator.comparing(Object::toString).compare(rowValue, value) > 0;
+                return compareValues(rowValue, value) > 0;
+            case GREATER_THAN_OR_EQUALS:
+                return compareValues(rowValue, value) >= 0;
             case LESS_THAN:
-                return Comparator.comparing(Object::toString).compare(rowValue, value) < 0;
-//                return ((Comparable) rowValue).compareTo(value) < 0;
+                return compareValues(rowValue, value) < 0;
+            case LESS_THAN_OR_EQUALS:
+                return compareValues(rowValue, value) <= 0;
             default:
                 return false;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private int compareValues(Object left, Object right)
+    {
+        if (left instanceof Comparable && right instanceof Comparable) {
+            if (left.getClass() == right.getClass()) {
+                return ((Comparable<Object>) left).compareTo(right);
+            }
+            if (left instanceof Number && right instanceof Number) {
+                return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
+            }
+        }
+        return left.toString().compareTo(right.toString());
     }
 }
