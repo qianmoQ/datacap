@@ -25,7 +25,12 @@ public class DatasetJob
     @Override
     protected void executeInternal(JobExecutionContext context)
     {
-        String code = context.getJobDetail().getJobDataMap().get("code").toString();
+        Object idValue = context.getJobDetail().getJobDataMap().get("id");
+        if (idValue == null) {
+            log.warn("Job [ {} ] skipped: missing 'id' in JobDataMap", context.getJobDetail().getKey());
+            return;
+        }
+        String code = idValue.toString();
         log.info("Job [ {} ] run time [ {} ]", code, context.getFireTime().getTime());
         this.service.syncData(code);
     }
