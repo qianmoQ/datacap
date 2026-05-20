@@ -34,8 +34,9 @@ class LocalExecutorService : ExecutorService
             val outputPlugin = output.plugin ?: throw IllegalArgumentException("Output plugin is null")
             val inputConfigure = input.originConfigure ?: throw IllegalArgumentException("Input configure is null")
             val outputConfigure = output.originConfigure ?: throw IllegalArgumentException("Output configure is null")
-            val database = output.database ?: throw IllegalArgumentException("Output database is null")
-            val table = output.table ?: throw IllegalArgumentException("Output table is null")
+            // DataCap 约定：目标库 / 目标表 由调用方放在 input 上（见 DataSetServiceImpl）
+            val database = input.database ?: throw IllegalArgumentException("Target database is null")
+            val table = input.table ?: throw IllegalArgumentException("Target table is null")
             val query = input.query ?: throw IllegalArgumentException("Input query is null")
 
             val originColumns = input.originColumns.toList()
