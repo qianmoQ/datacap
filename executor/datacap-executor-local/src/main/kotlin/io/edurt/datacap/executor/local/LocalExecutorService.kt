@@ -12,13 +12,16 @@ import io.edurt.datacap.executor.common.RunState
 import io.edurt.datacap.executor.configure.ExecutorRequest
 import io.edurt.datacap.executor.configure.ExecutorResponse
 import io.edurt.datacap.executor.configure.OriginColumn
+import io.edurt.datacap.lib.logger.LoggerExecutor
+import io.edurt.datacap.lib.logger.logback.LogbackExecutor
 import io.edurt.datacap.spi.PluginService
 import io.edurt.datacap.spi.adapter.BatchWriter
 import io.edurt.datacap.spi.adapter.RowCallback
 import io.edurt.datacap.spi.model.Configure
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION"])
+@SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION", "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"])
 class LocalExecutorService : ExecutorService
 {
     private val log = LoggerFactory.getLogger(LocalExecutorService::class.java)
@@ -26,8 +29,12 @@ class LocalExecutorService : ExecutorService
     override fun start(request: ExecutorRequest): ExecutorResponse
     {
         val response = ExecutorResponse()
+        val loggerExecutor: LoggerExecutor<*>? = newTaskLogger(request)
+        val taskLog: Logger = loggerExecutor?.getLogger() ?: log
         try
         {
+            taskLog.info("Local executor task starting: task={} user={}", request.taskName, request.userName)
+
             val input = request.input
             val output = request.output
             val inputPlugin = input.plugin ?: throw IllegalArgumentException("Input plugin is null")
@@ -50,12 +57,20 @@ class LocalExecutorService : ExecutorService
             val fetchSize = if (request.fetchSize > 0) request.fetchSize else DEFAULT_FETCH_SIZE
             val batchSize = if (request.batchSize > 0) request.batchSize else DEFAULT_BATCH_SIZE
 
+            taskLog.info(
+                    "Resolved input plugin={} output plugin={} streaming={}/{} fetchSize={} batchSize={}",
+                    inputPlugin.name(), outputPlugin.name(),
+                    inputPlugin.supportsStreaming(), outputPlugin.supportsStreaming(),
+                    fetchSize, batchSize
+            )
+            taskLog.info("Source query: {}", query)
+
             val written = if (inputPlugin.supportsStreaming() && outputPlugin.supportsStreaming())
             {
                 runStreaming(
                     inputPlugin, inputConfigure, query, fetchSize,
                     outputPlugin, outputConfigure, database, table,
-                    targetColumns, sourceKeys, batchSize
+                    targetColumns, sourceKeys, batchSize, taskLog
                 )
             }
             else
@@ -63,22 +78,51 @@ class LocalExecutorService : ExecutorService
                 runLegacy(
                     inputPlugin, inputConfigure, query,
                     outputPlugin, outputConfigure, database, table,
-                    originColumns, batchSize
+                    originColumns, batchSize, taskLog
                 )
             }
 
             response.count = if (written > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else written.toInt()
             response.successful = true
             response.state = RunState.SUCCESS
+            taskLog.info("Local executor task completed: rows={} state=SUCCESS", written)
         }
         catch (ex: Exception)
         {
-            log.error("Local executor failed", ex)
+            taskLog.error("Local executor failed", ex)
             response.successful = false
             response.state = RunState.FAILURE
             response.message = ex.message
         }
+        finally
+        {
+            loggerExecutor?.destroy()
+        }
         return response
+    }
+
+    private fun newTaskLogger(request: ExecutorRequest): LoggerExecutor<*>?
+    {
+        val workHome = request.workHome
+        val taskName = request.taskName
+        if (workHome.isNullOrBlank() || taskName.isBlank())
+        {
+            return null
+        }
+        return try
+        {
+            val dir = java.io.File(workHome)
+            if (!dir.exists())
+            {
+                dir.mkdirs()
+            }
+            LogbackExecutor(workHome, "$taskName.log")
+        }
+        catch (ex: Exception)
+        {
+            log.warn("Create task logger at {} failed: {}", workHome, ex.message)
+            null
+        }
     }
 
     override fun stop(request: ExecutorRequest): ExecutorResponse
@@ -101,9 +145,15 @@ class LocalExecutorService : ExecutorService
         table: String,
         targetColumns: List<String>,
         sourceKeys: List<String>,
-        batchSize: Int
+        batchSize: Int,
+        taskLog: Logger
     ): Long
     {
+        taskLog.info(
+                "Streaming sync start: target=`{}`.`{}` columns={} fetchSize={} batchSize={}",
+                database, table, targetColumns.size, fetchSize, batchSize
+        )
+        val startNanos = System.nanoTime()
         var written = 0L
         val writer: BatchWriter = outputPlugin.openBatchWriter(
             outputConfigure, database, table, targetColumns, batchSize
@@ -116,6 +166,7 @@ class LocalExecutorService : ExecutorService
                 {
                     indexByHeader.clear()
                     headers.forEachIndexed { i, h -> indexByHeader[h.lowercase()] = i }
+                    taskLog.info("Streaming sync: source returned headers={}", headers)
                 }
 
                 override fun onRow(row: List<Any?>)
@@ -129,9 +180,23 @@ class LocalExecutorService : ExecutorService
                     }
                     writer.addRow(projected)
                     written ++
+                    if (written % PROGRESS_INTERVAL == 0L)
+                    {
+                        val seconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
+                        val rps = if (seconds > 0) (written / seconds).toLong() else 0L
+                        taskLog.info(
+                                "Streaming sync progress: read={} committed={} elapsed={}s rps={}",
+                                written, writer.writtenCount(), "%.1f".format(seconds), rps
+                        )
+                    }
                 }
             })
         }
+        val totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
+        taskLog.info(
+                "Streaming sync done: rows={} committed={} elapsed={}s",
+                written, writer.writtenCount(), "%.1f".format(totalSeconds)
+        )
         return written
     }
 
@@ -148,15 +213,19 @@ class LocalExecutorService : ExecutorService
         database: String,
         table: String,
         originColumns: List<OriginColumn>,
-        batchSize: Int
+        batchSize: Int,
+        taskLog: Logger
     ): Long
     {
+        taskLog.info("Legacy sync start: target=`{}`.`{}` batchSize={}", database, table, batchSize)
+        val startNanos = System.nanoTime()
         val inputResult = inputPlugin.execute(inputConfigure, query)
         if (inputResult.isSuccessful != true)
         {
             throw RuntimeException(inputResult.message ?: "Input plugin failed")
         }
         val rows = inputResult.columns ?: return 0L
+        taskLog.info("Legacy sync: source materialized {} rows", rows.size)
 
         // 目标端能流式：用 BatchWriter 安全 + 节省内存
         if (outputPlugin.supportsStreaming())
@@ -178,8 +247,14 @@ class LocalExecutorService : ExecutorService
                     }
                     writer.addRow(projected)
                     written ++
+                    if (written % PROGRESS_INTERVAL == 0L)
+                    {
+                        taskLog.info("Legacy sync progress: written={} committed={}", written, writer.writtenCount())
+                    }
                 }
             }
+            val totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
+            taskLog.info("Legacy sync done: rows={} committed={} elapsed={}s", written, writer.writtenCount(), "%.1f".format(totalSeconds))
             return written
         }
 
@@ -211,6 +286,10 @@ class LocalExecutorService : ExecutorService
                 flushLegacyBatch(outputPlugin, outputConfigure, batch)
                 written += batch.size
                 batch.clear()
+                if (written % PROGRESS_INTERVAL == 0L)
+                {
+                    taskLog.info("Legacy sync progress (sql batch): written={}", written)
+                }
             }
         }
         if (batch.isNotEmpty())
@@ -219,6 +298,8 @@ class LocalExecutorService : ExecutorService
             written += batch.size
             batch.clear()
         }
+        val totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
+        taskLog.info("Legacy sync done: rows={} elapsed={}s", written, "%.1f".format(totalSeconds))
         return written
     }
 
@@ -303,5 +384,6 @@ class LocalExecutorService : ExecutorService
     {
         private const val DEFAULT_FETCH_SIZE = 1000
         private const val DEFAULT_BATCH_SIZE = 1000
+        private const val PROGRESS_INTERVAL = 10_000L
     }
 }
