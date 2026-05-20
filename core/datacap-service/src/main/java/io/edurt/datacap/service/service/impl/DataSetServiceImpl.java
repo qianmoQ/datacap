@@ -1044,6 +1044,8 @@ public class DataSetServiceImpl
                                                                         String.join(File.separator, "dataset", entity.getExecutor().toLowerCase(), taskName)
                                                                 );
 
+                                                                int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
+                                                                int batchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.batchSize", "1000"));
                                                                 ExecutorRequest request = new ExecutorRequest(
                                                                         taskName,
                                                                         entity.getUser().getUsername(),
@@ -1057,7 +1059,9 @@ public class DataSetServiceImpl
                                                                         RunMode.valueOf(requireNonNull(environment.getProperty("datacap.executor.mode"))),
                                                                         environment.getProperty("datacap.executor.startScript"),
                                                                         RunEngine.valueOf(requireNonNull(environment.getProperty("datacap.executor.engine"))),
-                                                                        null
+                                                                        null,
+                                                                        fetchSize,
+                                                                        batchSize
                                                                 );
 
                                                                 history.setState(RunState.RUNNING);

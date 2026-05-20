@@ -7,7 +7,7 @@ import io.edurt.datacap.executor.common.RunWay
 import io.edurt.datacap.plugin.PluginManager
 
 @SuppressFBWarnings(value = ["EI_EXPOSE_REP", "EI_EXPOSE_REP2"])
-data class ExecutorRequest(
+data class ExecutorRequest @JvmOverloads constructor(
     var taskName: String,
     var userName: String,
     var input: ExecutorConfigure,
@@ -20,7 +20,9 @@ data class ExecutorRequest(
     var runMode: RunMode = RunMode.CLIENT,
     var startScript: String? = null,
     var runEngine: RunEngine = RunEngine.SPARK,
-    var transform: ExecutorConfigure? = null
+    var transform: ExecutorConfigure? = null,
+    var fetchSize: Int = 1000,
+    var batchSize: Int = 1000
 )
 {
     constructor(

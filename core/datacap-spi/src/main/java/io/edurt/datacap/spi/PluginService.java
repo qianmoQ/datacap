@@ -6,9 +6,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.edurt.datacap.plugin.Service;
 import io.edurt.datacap.spi.adapter.Adapter;
+import io.edurt.datacap.spi.adapter.BatchWriter;
 import io.edurt.datacap.spi.adapter.HttpAdapter;
 import io.edurt.datacap.spi.adapter.JdbcAdapter;
+import io.edurt.datacap.spi.adapter.JdbcStreamAdapter;
 import io.edurt.datacap.spi.adapter.NativeAdapter;
+import io.edurt.datacap.spi.adapter.RowCallback;
 import io.edurt.datacap.spi.connection.Connection;
 import io.edurt.datacap.spi.connection.JdbcConnection;
 import io.edurt.datacap.spi.generator.DataType;
@@ -178,6 +181,51 @@ public interface PluginService
     {
         this.connect(configure);
         return this.execute(content);
+    }
+
+    /**
+     * 当前插件是否支持流式读写
+     * Whether the plugin supports streaming read / batched write.
+     * Default: only JDBC plugins. Override to opt-in or opt-out.
+     */
+    default boolean supportsStreaming()
+    {
+        return type().equals(PluginType.JDBC);
+    }
+
+    /**
+     * 流式执行查询，按行回调，不在 JVM 内物化结果集。
+     * Stream rows out of the source one at a time. The implementation must NOT materialize
+     * the full result set in heap.
+     */
+    default void executeStream(Configure configure, String content, int fetchSize, RowCallback callback)
+    {
+        if (type().equals(PluginType.JDBC)) {
+            JdbcStreamAdapter.executeStream(this, configure, content, fetchSize, callback);
+        }
+        else {
+            throw new UnsupportedOperationException("Streaming read is not supported for plugin " + this.name());
+        }
+    }
+
+    /**
+     * 打开批量写入会话，调用方按行 add 后由会话内部按 batchSize flush。
+     * Open a batch-write session. Caller pushes rows; the writer flushes every batchSize rows
+     * and on close(). Must be closed by the caller.
+     */
+    default BatchWriter openBatchWriter(
+            Configure configure,
+            String database,
+            String table,
+            java.util.List<String> columns,
+            int batchSize)
+    {
+        if (type().equals(PluginType.JDBC)) {
+            return JdbcStreamAdapter.openBatchWriter(this, configure, database, table, columns, batchSize);
+        }
+        else {
+            throw new UnsupportedOperationException("Batch write is not supported for plugin " + this.name());
+        }
     }
 
     /**
