@@ -86,7 +86,7 @@ export default defineComponent({
       installedExecutors: [] as any[],
       formState: {
         code: null as string | null,
-        executor: 'LocalExecutor',
+        executor: 'Local',
         name: '',
         configure: null
       }
@@ -135,7 +135,7 @@ export default defineComponent({
                    if (workflow.status && workflow.data) {
                      this.workflowState = workflow.data.configure
                      // Update form state with existing workflow data
-                     this.formState.executor = workflow.data.executor || 'LocalExecutor'
+                     this.formState.executor = workflow.data.executor || 'Local'
                      this.formState.name = workflow.data.name || ''
                      this.formState.configure = workflow.data.configure || null
                      this.formState.code = workflow.data.code || null

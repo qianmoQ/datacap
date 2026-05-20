@@ -9,7 +9,7 @@ import org.junit.Test
 class LocalExecutorPluginTest
 {
     private val pluginManager: PluginManager
-    private val pluginName = "LocalExecutor"
+    private val pluginName = "Local"
 
     init
     {

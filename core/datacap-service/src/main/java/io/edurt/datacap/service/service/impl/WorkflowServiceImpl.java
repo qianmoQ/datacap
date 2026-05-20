@@ -149,7 +149,7 @@ public class WorkflowServiceImpl
 
                                 String executorHome = environment.getProperty(
                                         String.format("datacap.executor.%s.home",
-                                                configure.getExecutor().toLowerCase())
+                                                plugin.getName().toLowerCase())
                                 );
                                 log.debug("Executor home directory: {}", executorHome);
 

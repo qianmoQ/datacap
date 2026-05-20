@@ -1038,10 +1038,11 @@ public class DataSetServiceImpl
                                                                 );
 
                                                                 String taskName = DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmmssSSS");
+                                                                String executorKey = executor.getName().toLowerCase();
                                                                 String workHome = FolderUtils.getWorkHome(
                                                                         initializerConfigure.getDataHome(),
                                                                         entity.getUser().getUsername(),
-                                                                        String.join(File.separator, "dataset", "executor", executorService.name().toLowerCase(), taskName)
+                                                                        String.join(File.separator, "dataset", "executor", executorKey, taskName)
                                                                 );
 
                                                                 int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
@@ -1051,7 +1052,7 @@ public class DataSetServiceImpl
                                                                         entity.getUser().getUsername(),
                                                                         input,
                                                                         output,
-                                                                        environment.getProperty(String.format("datacap.executor.%s.home", entity.getExecutor().toLowerCase())),
+                                                                        environment.getProperty(String.format("datacap.executor.%s.home", executorKey)),
                                                                         workHome,
                                                                         this.pluginManager,
                                                                         600,
