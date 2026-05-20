@@ -1041,7 +1041,7 @@ public class DataSetServiceImpl
                                                                 String workHome = FolderUtils.getWorkHome(
                                                                         initializerConfigure.getDataHome(),
                                                                         entity.getUser().getUsername(),
-                                                                        String.join(File.separator, "dataset", entity.getExecutor().toLowerCase(), taskName)
+                                                                        String.join(File.separator, "dataset", "executor", executorService.name().toLowerCase(), taskName)
                                                                 );
 
                                                                 int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
