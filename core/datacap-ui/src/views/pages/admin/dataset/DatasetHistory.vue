@@ -36,9 +36,18 @@
         </template>
 
         <template #action="{ row }">
-          <ShadcnButton size="small" type="primary" @click="onViewLog(row)">
-            {{ $t('dataset.history.viewLog') }}
-          </ShadcnButton>
+          <div class="flex gap-1">
+            <ShadcnButton size="small" type="primary" @click="onViewLog(row)">
+              {{ $t('dataset.history.viewLog') }}
+            </ShadcnButton>
+            <ShadcnButton v-if="isStoppable(row)"
+                          size="small"
+                          type="error"
+                          :loading="stoppingId === row.id"
+                          @click="onStop(row)">
+              {{ $t('dataset.history.stop') }}
+            </ShadcnButton>
+          </div>
         </template>
       </ShadcnTable>
 
@@ -123,7 +132,8 @@ export default defineComponent({
       pageSize: 10,
       dataCount: 0,
       loggerVisible: false,
-      loggerInfo: null as any
+      loggerInfo: null as any,
+      stoppingId: null as number | null
     }
   },
   created()
@@ -199,6 +209,35 @@ export default defineComponent({
     {
       this.loggerVisible = false
       this.loggerInfo = null
+    },
+    isStoppable(row: any): boolean
+    {
+      // STOPPING 状态已经在停了，不再展示按钮，防止重复点击
+      return row?.state === 'RUNNING' || row?.state === 'CREATED'
+    },
+    onStop(row: any)
+    {
+      if (!row?.id) {
+        return
+      }
+      this.stoppingId = row.id
+      DatasetService.stopHistory(row.id)
+                    .then(response => {
+                      if (response.status) {
+                        this.$Message.success({
+                          content: this.$t('dataset.history.stopRequested'),
+                          showIcon: true
+                        })
+                        this.handleInitialize()
+                      }
+                      else {
+                        this.$Message.error({
+                          content: response.message,
+                          showIcon: true
+                        })
+                      }
+                    })
+                    .finally(() => this.stoppingId = null)
     }
   }
 })

@@ -105,6 +105,10 @@ public class DataSetServiceImpl
     // 同步期间每 SIZE_REFRESH_EVERY 次进度回调才刷一次 totalSize（查 ClickHouse system.parts 较重）
     private static final int SIZE_REFRESH_EVERY = 10;
 
+    // 已请求停止但还没真正停下来的 history id 集合：进度回调据此把 state 维持为 STOPPING 而不是 RUNNING
+    // Set of history ids whose sync has been asked to stop but hasn't reached its cancellation checkpoint yet.
+    private static final java.util.Set<Long> stoppingHistoryIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public final DataSetColumnRepository columnRepository;
     private final DataSetRepository repository;
     private final DatasetHistoryRepository historyRepository;
@@ -360,6 +364,48 @@ public class DataSetServiceImpl
                     }
                 })
                 .orElseGet(() -> CommonResponse.<List<String>>failure(String.format("Sync history [ %d ] not found", id)));
+    }
+
+    @Override
+    public CommonResponse<Boolean> stopHistory(Long id)
+    {
+        log.info("Stop history [ {} ] requested", id);
+        return historyRepository.findById(id)
+                .map(history -> {
+                    log.info("Stop history [ {} ] state={} taskName={}", id, history.getState(), history.getTaskName());
+                    if (history.getState() != RunState.RUNNING && history.getState() != RunState.CREATED) {
+                        return CommonResponse.<Boolean>failure(String.format("Sync history [ %d ] is not running (current state: %s)", id, history.getState()));
+                    }
+                    String taskName = history.getTaskName();
+                    if (StringUtils.isBlank(taskName)) {
+                        return CommonResponse.<Boolean>failure("Sync history has no taskName (older record), cannot stop");
+                    }
+                    DataSetEntity dataset = history.getDataset();
+                    if (dataset == null || StringUtils.isBlank(dataset.getExecutor())) {
+                        return CommonResponse.<Boolean>failure("Sync history has no associated dataset executor");
+                    }
+                    log.info("Stop history [ {} ] resolving executor plugin [ {} ]", id, dataset.getExecutor());
+                    Optional<io.edurt.datacap.plugin.Plugin> executorPlugin = pluginManager.getPlugin(dataset.getExecutor());
+                    if (executorPlugin.isEmpty()) {
+                        return CommonResponse.<Boolean>failure(String.format("Executor [ %s ] not found", dataset.getExecutor()));
+                    }
+                    ExecutorService executorService = executorPlugin.get().getService(ExecutorService.class);
+                    // stop 只需要 taskName 定位活跃任务，input/output 用空 configure 占位
+                    ExecutorConfigure stopPlaceholder = new ExecutorConfigure(null);
+                    ExecutorRequest stopRequest = new ExecutorRequest(taskName, "", stopPlaceholder, stopPlaceholder);
+                    log.info("Stop history [ {} ] calling executor.stop(taskName={})", id, taskName);
+                    ExecutorResponse stopResponse = executorService.stop(stopRequest);
+                    log.info("Stop history [ {} ] executor returned successful={} message={}", id, stopResponse.getSuccessful(), stopResponse.getMessage());
+                    if (Boolean.TRUE.equals(stopResponse.getSuccessful())) {
+                        // 让 UI 立刻看到 STOPPING 中间态；进度回调会继续把它保持住直到真正停下
+                        stoppingHistoryIds.add(id);
+                        history.setState(RunState.STOPPING);
+                        historyRepository.save(history);
+                        return CommonResponse.success(Boolean.TRUE);
+                    }
+                    return CommonResponse.<Boolean>failure(stopResponse.getMessage() == null ? "Stop failed" : stopResponse.getMessage());
+                })
+                .orElseGet(() -> CommonResponse.<Boolean>failure(String.format("Sync history [ %d ] not found", id)));
     }
 
     @Override
@@ -1136,6 +1182,10 @@ public class DataSetServiceImpl
                                                                             progressHistory.setProgress(percent);
                                                                         }
                                                                     }
+                                                                    // 收到停止请求后，进度回调不能把 state 写回 RUNNING；保持 STOPPING 直到真正退出
+                                                                    if (stoppingHistoryIds.contains(progressHistory.getId())) {
+                                                                        progressHistory.setState(RunState.STOPPING);
+                                                                    }
                                                                     try {
                                                                         historyRepository.save(progressHistory);
                                                                     }
@@ -1182,6 +1232,8 @@ public class DataSetServiceImpl
                                                                     response = executorService.start(request);
                                                                 }
                                                                 finally {
+                                                                    // 任务一旦真正退出，从 STOPPING 集合移除（不管是正常 / 失败 / 被停止）
+                                                                    stoppingHistoryIds.remove(progressHistory.getId());
                                                                     // 关闭异步 size 刷新线程，等正在跑的最多 30 秒
                                                                     sizeRefreshExecutor.shutdown();
                                                                     try {
@@ -1199,12 +1251,20 @@ public class DataSetServiceImpl
                                                                 history.setMode(QueryMode.SYNC);
                                                                 history.setCount(response.getCount());
                                                                 history.setState(response.getState());
+                                                                if (response.getMessage() != null) {
+                                                                    history.setMessage(response.getMessage());
+                                                                }
                                                                 if (response.getSuccessful()) {
                                                                     history.setProcessedCount((long) response.getCount());
                                                                     if (history.getTotalCount() == null || history.getTotalCount() < 0L) {
                                                                         history.setTotalCount((long) response.getCount());
                                                                     }
                                                                     history.setProgress(java.math.BigDecimal.valueOf(100.0).setScale(2, java.math.RoundingMode.HALF_UP));
+                                                                }
+                                                                historyRepository.save(history);
+                                                                // STOPPED 是用户主动停止，已经把最终状态写入 history，无需当作异常抛出 / 也不刷 table metadata
+                                                                if (response.getState() == RunState.STOPPED) {
+                                                                    return;
                                                                 }
                                                                 Preconditions.checkArgument(response.getSuccessful(), response.getMessage());
 

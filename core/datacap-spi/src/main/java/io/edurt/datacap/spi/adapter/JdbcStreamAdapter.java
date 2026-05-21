@@ -59,6 +59,8 @@ public final class JdbcStreamAdapter
                     ResultSet.TYPE_FORWARD_ONLY,
                     ResultSet.CONCUR_READ_ONLY)) {
                 applyFetchSize(statement, effectiveFetchSize, configure);
+                // 暴露给上层，方便取消逻辑直接调用 Statement.cancel()
+                callback.onStatement(statement);
                 try (ResultSet rs = statement.executeQuery(sql)) {
                     ResultSetMetaData metaData = rs.getMetaData();
                     int columnCount = metaData.getColumnCount();

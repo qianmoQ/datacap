@@ -37,4 +37,10 @@ public interface DataSetService
      * Read the executor's task log for the given sync history record
      */
     CommonResponse<List<String>> getHistoryLog(Long id);
+
+    /**
+     * 停止正在运行的同步任务。仅对 state=RUNNING 且当前进程持有该 taskName 的任务生效
+     * Stop a running sync task. Effective only when state=RUNNING and the task is held by this process
+     */
+    CommonResponse<Boolean> stopHistory(Long id);
 }

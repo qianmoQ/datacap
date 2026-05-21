@@ -21,17 +21,40 @@ import io.edurt.datacap.spi.adapter.RowCallback
 import io.edurt.datacap.spi.model.Configure
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
-@SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION", "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"])
+@SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION", "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", "MS_MUTABLE_COLLECTION_PKGPROTECT"])
 class LocalExecutorService : ExecutorService
 {
     private val log = LoggerFactory.getLogger(LocalExecutorService::class.java)
+
+    /**
+     * 已注册的活跃任务句柄。
+     * - cancelled: 调度循环每条行检查
+     * - sourceStatement: stop() 会调 cancel() 立即终止源端 JDBC 查询，不必等下一行
+     * - taskLog: 让 stop() 把"用户停止"事件写到任务专属日志里
+     * - rowsAtStop: 记录被停止时已处理的行数，供 history 落库
+     */
+    private class TaskHandle
+    {
+        val cancelled: AtomicBoolean = AtomicBoolean(false)
+        @Volatile var sourceStatement: java.sql.Statement? = null
+        @Volatile var taskLog: Logger? = null
+        @Volatile var rowsAtStop: Long = 0L
+    }
 
     override fun start(request: ExecutorRequest): ExecutorResponse
     {
         val response = ExecutorResponse()
         val loggerExecutor: LoggerExecutor<*>? = newTaskLogger(request)
         val taskLog: Logger = loggerExecutor?.getLogger() ?: log
+        val handle = TaskHandle()
+        handle.taskLog = taskLog
+        if (request.taskName.isNotBlank())
+        {
+            runningTasks[request.taskName] = handle
+        }
         try
         {
             taskLog.info("Local executor task starting: task={} user={}", request.taskName, request.userName)
@@ -83,7 +106,7 @@ class LocalExecutorService : ExecutorService
                     inputPlugin, inputConfigure, query, fetchSize,
                     outputPlugin, outputConfigure, database, table,
                     targetColumns, sourceKeys, batchSize, taskLog,
-                    totalCount, progressListener
+                    totalCount, progressListener, handle
                 )
             }
             else
@@ -92,7 +115,7 @@ class LocalExecutorService : ExecutorService
                     inputPlugin, inputConfigure, query,
                     outputPlugin, outputConfigure, database, table,
                     originColumns, batchSize, taskLog,
-                    totalCount, progressListener
+                    totalCount, progressListener, handle
                 )
             }
 
@@ -103,19 +126,47 @@ class LocalExecutorService : ExecutorService
             progressListener?.onProgress(written, if (totalCount >= 0) totalCount else written)
             taskLog.info("Local executor task completed: rows={} state=SUCCESS", written)
         }
+        catch (ex: TaskCancelledException)
+        {
+            taskLog.warn("Local executor task stopped by user: rows={} task={}", ex.processed, request.taskName)
+            response.count = if (ex.processed > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else ex.processed.toInt()
+            response.successful = false
+            response.state = RunState.STOPPED
+            response.message = "Stopped by user"
+        }
         catch (ex: Exception)
         {
-            taskLog.error("Local executor failed", ex)
-            response.successful = false
-            response.state = RunState.FAILURE
-            response.message = ex.message
+            // 取消可能以包装异常的形式抛出（例如 SQLException by Statement.cancel()），通过 handle 反向判别
+            if (handle.cancelled.get())
+            {
+                val rows = handle.rowsAtStop
+                taskLog.warn("Local executor task stopped by user (via JDBC cancel): rows≈{} task={}", rows, request.taskName)
+                response.count = if (rows > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else rows.toInt()
+                response.successful = false
+                response.state = RunState.STOPPED
+                response.message = "Stopped by user"
+            }
+            else
+            {
+                taskLog.error("Local executor failed", ex)
+                response.successful = false
+                response.state = RunState.FAILURE
+                response.message = ex.message
+            }
         }
         finally
         {
+            if (request.taskName.isNotBlank())
+            {
+                runningTasks.remove(request.taskName, handle)
+            }
             loggerExecutor?.destroy()
         }
         return response
     }
+
+    /** 取消传播专用异常，携带已处理行数便于上游记录 */
+    private class TaskCancelledException(val processed: Long) : RuntimeException("Task cancelled by user")
 
     private fun newTaskLogger(request: ExecutorRequest): LoggerExecutor<*>?
     {
@@ -143,7 +194,42 @@ class LocalExecutorService : ExecutorService
 
     override fun stop(request: ExecutorRequest): ExecutorResponse
     {
-        return ExecutorResponse(false, true, RunState.SUCCESS, null)
+        val taskName = request.taskName
+        if (taskName.isBlank())
+        {
+            return ExecutorResponse(false, false, RunState.FAILURE, "taskName is required")
+        }
+        val handle = runningTasks[taskName]
+        if (handle == null)
+        {
+            return ExecutorResponse(false, false, RunState.FAILURE, "Task [ $taskName ] is not running on this node")
+        }
+        // 设标志位 + 写日志：纯内存操作，立即完成
+        handle.cancelled.set(true)
+        log.info("Cancel requested for task [ {} ]", taskName)
+        handle.taskLog?.warn("Stop requested by user for task [ {} ]", taskName)
+        // Statement.cancel() 实现里通常会新开一个 JDBC 连接发 KILL QUERY，
+        // 如果源 DB 网络异常会阻塞 HTTP 请求线程。所以放到独立线程，不让 HTTP 等
+        val stmt = handle.sourceStatement
+        if (stmt != null)
+        {
+            cancelExecutor.submit {
+                try
+                {
+                    if (!stmt.isClosed)
+                    {
+                        stmt.cancel()
+                        handle.taskLog?.warn("Source JDBC statement cancelled for task [ {} ]", taskName)
+                    }
+                }
+                catch (ex: Exception)
+                {
+                    log.warn("Cancel source statement failed: {}", ex.message)
+                    handle.taskLog?.warn("Cancel source statement failed: {}", ex.message)
+                }
+            }
+        }
+        return ExecutorResponse(false, true, RunState.STOPPED, null)
     }
 
     /**
@@ -202,7 +288,8 @@ class LocalExecutorService : ExecutorService
         batchSize: Int,
         taskLog: Logger,
         totalCount: Long,
-        progressListener: ExecutorProgressListener?
+        progressListener: ExecutorProgressListener?,
+        handle: TaskHandle
     ): Long
     {
         taskLog.info(
@@ -225,8 +312,17 @@ class LocalExecutorService : ExecutorService
                     taskLog.info("Streaming sync: source returned headers={}", headers)
                 }
 
+                override fun onStatement(statement: java.sql.Statement)
+                {
+                    handle.sourceStatement = statement
+                }
+
                 override fun onRow(row: List<Any?>)
                 {
+                    if (handle.cancelled.get())
+                    {
+                        throw TaskCancelledException(written)
+                    }
                     val projected = ArrayList<Any?>(sourceKeys.size)
                     for (key in sourceKeys)
                     {
@@ -245,9 +341,16 @@ class LocalExecutorService : ExecutorService
                                 written, writer.writtenCount(), "%.1f".format(seconds), rps
                         )
                         progressListener?.onProgress(writer.writtenCount(), totalCount)
+                        // 顺手记录最近一次进度行数，给 stop 后 catch 取整时使用
+                        handle.rowsAtStop = writer.writtenCount()
                     }
                 }
             })
+        }
+        // 某些驱动在 Statement.cancel() 后直接让 rs.next() 返回 false（不抛异常），需要在循环结束后再判一次
+        if (handle.cancelled.get())
+        {
+            throw TaskCancelledException(written)
         }
         val totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
         taskLog.info(
@@ -273,7 +376,8 @@ class LocalExecutorService : ExecutorService
         batchSize: Int,
         taskLog: Logger,
         totalCount: Long,
-        progressListener: ExecutorProgressListener?
+        progressListener: ExecutorProgressListener?,
+        handle: TaskHandle
     ): Long
     {
         taskLog.info("Legacy sync start: target=`{}`.`{}` batchSize={}", database, table, batchSize)
@@ -300,6 +404,10 @@ class LocalExecutorService : ExecutorService
             writer.use { writer ->
                 for (item in rows)
                 {
+                    if (handle.cancelled.get())
+                    {
+                        throw TaskCancelledException(written)
+                    }
                     val node = item as? ObjectNode ?: continue
                     val projected = ArrayList<Any?>(sourceKeys.size)
                     for (key in sourceKeys)
@@ -325,6 +433,10 @@ class LocalExecutorService : ExecutorService
         val batch = ArrayList<String>(batchSize)
         for (item in rows)
         {
+            if (handle.cancelled.get())
+            {
+                throw TaskCancelledException(written)
+            }
             val node = item as? ObjectNode ?: continue
             val sqlColumns = ArrayList<SqlColumn>(originColumns.size)
             for (col in originColumns)
@@ -448,5 +560,17 @@ class LocalExecutorService : ExecutorService
         private const val DEFAULT_FETCH_SIZE = 1000
         private const val DEFAULT_BATCH_SIZE = 1000
         private const val PROGRESS_INTERVAL = 1_000L
+
+        // 进程内活跃任务表。多个并发 sync 共享同一 LocalExecutorService 实例，
+        // 用 taskName 唯一索引；stop() 通过 taskName 查到 handle 后设置取消标志位
+        private val runningTasks: ConcurrentHashMap<String, TaskHandle> = ConcurrentHashMap()
+
+        // Statement.cancel() 可能会阻塞（驱动会新开连接发 KILL），放到独立线程跑避免拖住调用方
+        private val cancelExecutor: java.util.concurrent.ExecutorService =
+                java.util.concurrent.Executors.newCachedThreadPool { r ->
+                    val t = Thread(r, "local-executor-cancel")
+                    t.isDaemon = true
+                    t
+                }
     }
 }

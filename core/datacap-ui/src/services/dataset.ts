@@ -71,6 +71,17 @@ export class DatasetService
     }
 
     /**
+     * Stop a running sync task identified by the given history record id.
+     *
+     * @param {number} id - the dataset history id (must be RUNNING)
+     * @return {Promise<ResponseModel>} success when the cancel flag has been set
+     */
+    stopHistory(id: number): Promise<ResponseModel>
+    {
+        return new HttpUtils().put(`${ DEFAULT_PATH }/history/stop/${ id }`)
+    }
+
+    /**
      * Sync data with the server using the provided id.
      *
      * @param {string} code - The id of the data to sync

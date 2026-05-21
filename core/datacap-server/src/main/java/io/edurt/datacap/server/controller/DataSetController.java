@@ -81,6 +81,12 @@ public class DataSetController
         return this.service.getHistoryLog(id);
     }
 
+    @PutMapping(value = "history/stop/{id}")
+    public CommonResponse<Boolean> historyStop(@PathVariable Long id)
+    {
+        return this.service.stopHistory(id);
+    }
+
     @GetMapping(value = "getActuators")
     public CommonResponse<Set<PluginMetadata>> getActuators()
     {

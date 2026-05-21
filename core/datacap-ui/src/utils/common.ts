@@ -29,6 +29,8 @@ const getColor = (origin: string): string => {
             return 'hsl(142.1 76.2% 36.3%)'
         case 'FAILURE':
             return 'hsl(346.8 77.2% 49.8%)'
+        case 'STOPPING':
+            return 'hsl(38 92% 50%)'
         case 'STOPPED':
             return '#17233d'
         case 'TIMEOUT':
@@ -79,6 +81,8 @@ export function useUtil()
                 return t('state.common.success')
             case 'FAILURE':
                 return t('state.common.failure')
+            case 'STOPPING':
+                return t('state.common.stopping')
             case 'STOPPED':
                 return t('state.common.stop')
             case 'TIMEOUT':

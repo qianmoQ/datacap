@@ -7,5 +7,6 @@ enum class RunState {
     RUNNING,
     FAILURE,
     SUCCESS,
+    STOPPING,
     STOPPED
 }
