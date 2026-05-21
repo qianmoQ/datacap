@@ -8,7 +8,7 @@
 
       <ShadcnTable size="small" :columns="historyHeaders" :data="data">
         <template #state="{ row }">
-          <ShadcnHoverCard v-if="row?.state === 'FAILURE'">
+          <ShadcnHoverCard v-if="hasMessage(row)">
             <ShadcnTag :color="Common.getColor(row?.state)">
               {{ getStateText(row?.state) }}
             </ShadcnTag>
@@ -214,6 +214,11 @@ export default defineComponent({
     {
       // STOPPING 状态已经在停了，不再展示按钮，防止重复点击
       return row?.state === 'RUNNING' || row?.state === 'CREATED'
+    },
+    hasMessage(row: any): boolean
+    {
+      // FAILURE / INTERRUPTED 都带 message，hover 显示原因
+      return !!row?.message && (row?.state === 'FAILURE' || row?.state === 'INTERRUPTED')
     },
     onStop(row: any)
     {

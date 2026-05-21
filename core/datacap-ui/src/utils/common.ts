@@ -33,6 +33,8 @@ const getColor = (origin: string): string => {
             return 'hsl(38 92% 50%)'
         case 'STOPPED':
             return '#17233d'
+        case 'INTERRUPTED':
+            return 'hsl(280 60% 50%)'
         case 'TIMEOUT':
             return 'hsl(47.9 95.8% 53.1%)'
         default:
@@ -85,6 +87,8 @@ export function useUtil()
                 return t('state.common.stopping')
             case 'STOPPED':
                 return t('state.common.stop')
+            case 'INTERRUPTED':
+                return t('state.common.interrupted')
             case 'TIMEOUT':
                 return t('state.common.timeout')
             case 'QUEUE':

@@ -8,5 +8,11 @@ enum class RunState {
     FAILURE,
     SUCCESS,
     STOPPING,
-    STOPPED
+    STOPPED,
+
+    /**
+     * 服务异常终止后留下的未完结任务在重启时被标记为此状态。
+     * Task was alive when the server died; recovery on next startup marks it as such.
+     */
+    INTERRUPTED
 }
