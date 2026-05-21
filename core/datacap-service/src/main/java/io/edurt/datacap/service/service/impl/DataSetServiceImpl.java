@@ -60,6 +60,7 @@ import io.edurt.datacap.service.repository.NotificationRepository;
 import io.edurt.datacap.service.repository.SourceRepository;
 import io.edurt.datacap.service.security.UserDetailsService;
 import io.edurt.datacap.service.service.DataSetService;
+import io.edurt.datacap.service.service.RuntimeConfigureService;
 import io.edurt.datacap.spi.PluginService;
 import io.edurt.datacap.spi.PluginType;
 import io.edurt.datacap.spi.generator.definition.TableDefinition;
@@ -119,8 +120,9 @@ public class DataSetServiceImpl
     private final SourceRepository sourceRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationEventPublisher eventPublisher;
+    private final RuntimeConfigureService runtimeConfigureService;
 
-    public DataSetServiceImpl(DataSetRepository repository, DataSetColumnRepository columnRepository, DatasetHistoryRepository historyRepository, PluginManager pluginManager, InitializerConfigure initializerConfigure, org.quartz.Scheduler scheduler, Environment environment, SourceRepository sourceRepository, NotificationRepository notificationRepository, NotificationEventPublisher eventPublisher)
+    public DataSetServiceImpl(DataSetRepository repository, DataSetColumnRepository columnRepository, DatasetHistoryRepository historyRepository, PluginManager pluginManager, InitializerConfigure initializerConfigure, org.quartz.Scheduler scheduler, Environment environment, SourceRepository sourceRepository, NotificationRepository notificationRepository, NotificationEventPublisher eventPublisher, RuntimeConfigureService runtimeConfigureService)
     {
         this.repository = repository;
         this.columnRepository = columnRepository;
@@ -132,6 +134,7 @@ public class DataSetServiceImpl
         this.sourceRepository = sourceRepository;
         this.notificationRepository = notificationRepository;
         this.eventPublisher = eventPublisher;
+        this.runtimeConfigureService = runtimeConfigureService;
     }
 
     @Transactional
@@ -170,6 +173,19 @@ public class DataSetServiceImpl
                     return CommonResponse.success(columnRepository.findAllByDatasetOrderByPositionAsc(item));
                 })
                 .orElseGet(() -> CommonResponse.failure(String.format("DataSet [ %s ] not found", code)));
+    }
+
+    private static int parseIntOrDefault(String raw, int fallback)
+    {
+        if (raw == null || raw.isEmpty()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        }
+        catch (NumberFormatException ex) {
+            return fallback;
+        }
     }
 
     private static void setAuthenticationContext(UserEntity user)
@@ -1136,22 +1152,28 @@ public class DataSetServiceImpl
                                                                 history.setWorkHome(workHome);
                                                                 historyRepository.save(history);
 
-                                                                int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
-                                                                int batchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.batchSize", "1000"));
-                                                                boolean preCount = Boolean.parseBoolean(environment.getProperty("datacap.executor.local.preCount", "true"));
+                                                                // 从 datacap_configure 取该 executor 的 effective 配置（DB 行覆盖 SPI schema 默认值）
+                                                                java.util.Map<String, String> executorCfg = runtimeConfigureService.getEffective(
+                                                                        RuntimeConfigureService.CATEGORY_EXECUTOR,
+                                                                        executor.getName(),
+                                                                        executor.configures()
+                                                                );
+                                                                int fetchSize = parseIntOrDefault(executorCfg.get("fetchSize"), 1000);
+                                                                int batchSize = parseIntOrDefault(executorCfg.get("batchSize"), 1000);
+                                                                boolean preCount = Boolean.parseBoolean(executorCfg.getOrDefault("preCount", "false"));
                                                                 ExecutorRequest request = new ExecutorRequest(
                                                                         taskName,
                                                                         entity.getUser().getUsername(),
                                                                         input,
                                                                         output,
-                                                                        environment.getProperty(String.format("datacap.executor.%s.home", executorKey)),
+                                                                        executorCfg.get("home"),
                                                                         workHome,
                                                                         this.pluginManager,
                                                                         600,
-                                                                        RunWay.valueOf(requireNonNull(environment.getProperty("datacap.executor.way"))),
-                                                                        RunMode.valueOf(requireNonNull(environment.getProperty("datacap.executor.mode"))),
-                                                                        environment.getProperty("datacap.executor.startScript"),
-                                                                        RunEngine.valueOf(requireNonNull(environment.getProperty("datacap.executor.engine"))),
+                                                                        RunWay.valueOf(executorCfg.getOrDefault("way", "LOCAL")),
+                                                                        RunMode.valueOf(executorCfg.getOrDefault("mode", "CLIENT")),
+                                                                        executorCfg.get("startScript"),
+                                                                        RunEngine.valueOf(executorCfg.getOrDefault("engine", "SPARK")),
                                                                         null,
                                                                         fetchSize,
                                                                         batchSize,
