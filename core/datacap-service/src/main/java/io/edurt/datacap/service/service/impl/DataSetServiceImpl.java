@@ -325,6 +325,44 @@ public class DataSetServiceImpl
     }
 
     @Override
+    public CommonResponse<List<String>> getHistoryLog(Long id)
+    {
+        return historyRepository.findById(id)
+                .map(history -> {
+                    String workHome = history.getWorkHome();
+                    String taskName = history.getTaskName();
+                    if (StringUtils.isBlank(workHome) || StringUtils.isBlank(taskName)) {
+                        return CommonResponse.<List<String>>failure("Sync history has no log location (older record or non-local executor)");
+                    }
+                    // 防穿越：拼好后规整为绝对路径，并校验仍在 dataHome 下
+                    java.io.File logFile = new java.io.File(workHome, taskName + ".log");
+                    String dataHome = initializerConfigure.getDataHome();
+                    try {
+                        String canonicalLog = logFile.getCanonicalPath();
+                        String canonicalHome = new java.io.File(dataHome).getCanonicalPath();
+                        if (!canonicalLog.startsWith(canonicalHome)) {
+                            return CommonResponse.<List<String>>failure("Illegal log path");
+                        }
+                    }
+                    catch (java.io.IOException ex) {
+                        return CommonResponse.<List<String>>failure("Resolve log path failed: " + ex.getMessage());
+                    }
+                    if (!logFile.exists()) {
+                        return CommonResponse.<List<String>>success(Lists.<String>newArrayList());
+                    }
+                    try (java.io.FileInputStream stream = new java.io.FileInputStream(logFile)) {
+                        List<String> lines = org.apache.commons.io.IOUtils.readLines(stream, java.nio.charset.StandardCharsets.UTF_8);
+                        return CommonResponse.<List<String>>success(lines);
+                    }
+                    catch (java.io.IOException ex) {
+                        log.error("Read sync log [ {} ] failed", logFile.getAbsolutePath(), ex);
+                        return CommonResponse.<List<String>>failure("Read log file failed: " + ex.getMessage());
+                    }
+                })
+                .orElseGet(() -> CommonResponse.<List<String>>failure(String.format("Sync history [ %d ] not found", id)));
+    }
+
+    @Override
     @Transactional
     @SendNotification(type = NotificationType.DELETED)
     public CommonResponse<String> deleteByCode(BaseRepository<DataSetEntity, Long> repository, String code)
@@ -1047,6 +1085,10 @@ public class DataSetServiceImpl
                                                                         entity.getUser().getUsername(),
                                                                         String.join(File.separator, "dataset", "executor", executorKey, taskName)
                                                                 );
+                                                                // 把 taskName / workHome 落到 history，供 UI 定位日志文件
+                                                                history.setTaskName(taskName);
+                                                                history.setWorkHome(workHome);
+                                                                historyRepository.save(history);
 
                                                                 int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
                                                                 int batchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.batchSize", "1000"));

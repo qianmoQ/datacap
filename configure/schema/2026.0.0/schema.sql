@@ -30,3 +30,9 @@ ALTER TABLE `datacap_dataset_history`
     ADD COLUMN `total_count`     BIGINT        DEFAULT NULL COMMENT 'Total rows from source query, NULL if pre-count is disabled',
     ADD COLUMN `processed_count` BIGINT        DEFAULT NULL COMMENT 'Rows successfully written to target',
     ADD COLUMN `progress`        DECIMAL(5, 2) DEFAULT NULL COMMENT 'processed_count / total_count * 100, NULL when total unknown';
+
+-- 同步历史新增 任务名 / 工作目录，用于定位 executor 写出的独立任务日志文件
+-- Sync history adds task name / work home so the UI can locate the executor's task log file
+ALTER TABLE `datacap_dataset_history`
+    ADD COLUMN `task_name` VARCHAR(64)  DEFAULT NULL COMMENT 'Executor task name; also the log file basename',
+    ADD COLUMN `work_home` VARCHAR(512) DEFAULT NULL COMMENT 'Executor task workHome; logs live at {work_home}/{task_name}.log';

@@ -75,6 +75,12 @@ public class DataSetController
         return this.service.getHistory(code, filter);
     }
 
+    @GetMapping(value = "history/log/{id}")
+    public CommonResponse<List<String>> historyLog(@PathVariable Long id)
+    {
+        return this.service.getHistoryLog(id);
+    }
+
     @GetMapping(value = "getActuators")
     public CommonResponse<Set<PluginMetadata>> getActuators()
     {

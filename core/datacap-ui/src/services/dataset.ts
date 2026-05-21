@@ -60,6 +60,17 @@ export class DatasetService
     }
 
     /**
+     * Read the executor's task log of a given sync history record.
+     *
+     * @param {number} id - the dataset history id
+     * @return {Promise<ResponseModel>} response containing the log lines (List<String>)
+     */
+    getHistoryLog(id: number): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/history/log/${ id }`)
+    }
+
+    /**
      * Sync data with the server using the provided id.
      *
      * @param {string} code - The id of the data to sync

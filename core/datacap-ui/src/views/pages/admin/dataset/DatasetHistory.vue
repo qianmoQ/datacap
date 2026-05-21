@@ -34,7 +34,18 @@
             <span class="text-xs whitespace-nowrap">{{ formatProgressText(row?.progress) }}</span>
           </div>
         </template>
+
+        <template #action="{ row }">
+          <ShadcnButton size="small" type="primary" @click="onViewLog(row)">
+            {{ $t('dataset.history.viewLog') }}
+          </ShadcnButton>
+        </template>
       </ShadcnTable>
+
+      <DatasetHistoryLogger v-if="loggerVisible"
+                            :is-visible="loggerVisible"
+                            :info="loggerInfo"
+                            @close="onLoggerClose"/>
 
       <ShadcnPagination v-if="data?.length > 0"
                         v-model="pageIndex"
@@ -61,9 +72,11 @@ import { useDatasetHeaders } from './DatasetUtils'
 import DatasetService from '@/services/dataset'
 import { DatasetModel } from '@/model/dataset'
 import Common, { useUtil } from '@/utils/common'
+import DatasetHistoryLogger from './DatasetHistoryLogger.vue'
 
 export default defineComponent({
   name: 'DatasetHistory',
+  components: { DatasetHistoryLogger },
   props: {
     isVisible: {
       type: Boolean,
@@ -108,7 +121,9 @@ export default defineComponent({
       data: [],
       pageIndex: 1,
       pageSize: 10,
-      dataCount: 0
+      dataCount: 0,
+      loggerVisible: false,
+      loggerInfo: null as any
     }
   },
   created()
@@ -174,6 +189,16 @@ export default defineComponent({
       const v = typeof value === 'string' ? parseFloat(value) : value
       if (isNaN(v)) return '-'
       return v.toFixed(2) + '%'
+    },
+    onViewLog(row: any)
+    {
+      this.loggerInfo = row
+      this.loggerVisible = true
+    },
+    onLoggerClose()
+    {
+      this.loggerVisible = false
+      this.loggerInfo = null
     }
   }
 })

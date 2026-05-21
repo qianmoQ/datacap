@@ -55,6 +55,12 @@ public class DatasetHistoryEntity
     @Column(name = "progress")
     private BigDecimal progress;
 
+    @Column(name = "task_name")
+    private String taskName;
+
+    @Column(name = "work_home")
+    private String workHome;
+
     @Column(name = "query_mode")
     @Enumerated(EnumType.STRING)
     private QueryMode mode;

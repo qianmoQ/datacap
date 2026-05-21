@@ -31,4 +31,10 @@ public interface DataSetService
     CommonResponse<DataSetEntity> getInfo(String code);
 
     CommonResponse<PageEntity<DatasetHistoryEntity>> getHistory(String code, FilterBody filter);
+
+    /**
+     * 读取指定同步历史的运行日志（独立任务日志文件，由 executor 写入 workHome）
+     * Read the executor's task log for the given sync history record
+     */
+    CommonResponse<List<String>> getHistoryLog(Long id);
 }

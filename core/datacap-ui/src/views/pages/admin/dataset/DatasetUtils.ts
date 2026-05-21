@@ -33,7 +33,8 @@ export function useDatasetHeaders()
         { key: 'count', label: t('common.count') },
         { key: 'createTime', label: t('common.createTime') },
         { key: 'updateTime', label: t('common.updateTime') },
-        { key: 'state', label: t('common.state'), slot: 'state' }
+        { key: 'state', label: t('common.state'), slot: 'state' },
+        { key: 'action', label: t('common.action'), slot: 'action' }
     ])
 
     return {
