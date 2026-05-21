@@ -160,6 +160,7 @@ import MarkdownPreview from '@/views/components/markdown/MarkdownView.vue'
 import DatasetRebuild from '@/views/pages/admin/dataset/DatasetRebuild.vue'
 import DatasetClear from '@/views/pages/admin/dataset/DatasetClear.vue'
 import DatasetDelete from '@/views/pages/admin/dataset/DatasetDelete.vue'
+import { useUtil } from '@/utils/common'
 
 export default defineComponent({
   name: 'DatasetHome',
@@ -168,10 +169,12 @@ export default defineComponent({
   {
     const filter: FilterModel = new FilterModel()
     const { headers } = useDatasetHeaders()
+    const { getDatasetStateText } = useUtil()
 
     return {
       filter,
-      headers
+      headers,
+      getDatasetStateText
     }
   },
   data()
@@ -282,7 +285,8 @@ export default defineComponent({
     getState(state: Array<any> | null): string | null
     {
       if (state && state.length > 0) {
-        return state[state.length - 1]
+        const last = state[state.length - 1]
+        return last ? this.getDatasetStateText(String(last)) : null
       }
       return null
     },

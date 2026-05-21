@@ -98,7 +98,42 @@ export function useUtil()
         }
     }
 
+    /**
+     * Translate a DataSetState enum code (e.g. "TABLE_SUCCESS") to a localized label.
+     * Falls back to the raw code when no translation key matches.
+     */
+    const getDatasetStateText = (origin: string | null | undefined): string => {
+        if (!origin) return ''
+        switch (origin) {
+            case 'METADATA_START':
+                return t('dataset.state.metadataStart')
+            case 'METADATA_FAILED':
+                return t('dataset.state.metadataFailed')
+            case 'METADATA_SUCCESS':
+                return t('dataset.state.metadataSuccess')
+            case 'TABLE_START':
+                return t('dataset.state.tableStart')
+            case 'TABLE_FAILED':
+                return t('dataset.state.tableFailed')
+            case 'TABLE_SUCCESS':
+                return t('dataset.state.tableSuccess')
+            case 'DATA_START':
+                return t('dataset.state.dataStart')
+            case 'DATA_FAILED':
+                return t('dataset.state.dataFailed')
+            case 'DATA_SUCCESS':
+                return t('dataset.state.dataSuccess')
+            case 'COMPLETE_FAILED':
+                return t('dataset.state.completeFailed')
+            case 'COMPLETE_SUCCESS':
+                return t('dataset.state.completeSuccess')
+            default:
+                return origin
+        }
+    }
+
     return {
-        getText
+        getText,
+        getDatasetStateText
     }
 }
