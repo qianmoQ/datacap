@@ -102,6 +102,9 @@ import static java.util.Objects.requireNonNull;
 public class DataSetServiceImpl
         implements DataSetService
 {
+    // 同步期间每 SIZE_REFRESH_EVERY 次进度回调才刷一次 totalSize（查 ClickHouse system.parts 较重）
+    private static final int SIZE_REFRESH_EVERY = 10;
+
     public final DataSetColumnRepository columnRepository;
     private final DataSetRepository repository;
     private final DatasetHistoryRepository historyRepository;
@@ -1047,6 +1050,7 @@ public class DataSetServiceImpl
 
                                                                 int fetchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.fetchSize", "1000"));
                                                                 int batchSize = Integer.parseInt(environment.getProperty("datacap.executor.local.batchSize", "1000"));
+                                                                boolean preCount = Boolean.parseBoolean(environment.getProperty("datacap.executor.local.preCount", "true"));
                                                                 ExecutorRequest request = new ExecutorRequest(
                                                                         taskName,
                                                                         entity.getUser().getUsername(),
@@ -1062,18 +1066,104 @@ public class DataSetServiceImpl
                                                                         RunEngine.valueOf(requireNonNull(environment.getProperty("datacap.executor.engine"))),
                                                                         null,
                                                                         fetchSize,
-                                                                        batchSize
+                                                                        batchSize,
+                                                                        preCount,
+                                                                        null
                                                                 );
+
+                                                                // 进度回调：每个 batch 写完后更新 datacap_dataset_history 以及数据集自身的 totalRows / totalSize
+                                                                // totalRows 直接用已写入计数；totalSize 必须查 ClickHouse system.parts，开销大且不可控，
+                                                                // 必须放到独立线程异步执行，否则会阻塞 MySQL 流式 cursor 触发 net_write_timeout
+                                                                final DatasetHistoryEntity progressHistory = history;
+                                                                final DataSetEntity progressEntity = entity;
+                                                                final java.util.concurrent.atomic.AtomicInteger progressTick = new java.util.concurrent.atomic.AtomicInteger();
+                                                                final java.util.concurrent.atomic.AtomicBoolean sizeRefreshInFlight = new java.util.concurrent.atomic.AtomicBoolean(false);
+                                                                final java.util.concurrent.ExecutorService sizeRefreshExecutor = Executors.newSingleThreadExecutor(r -> {
+                                                                    Thread t = new Thread(r, "dataset-size-refresh-" + taskName);
+                                                                    t.setDaemon(true);
+                                                                    return t;
+                                                                });
+                                                                request.setProgressListener((processed, total) -> {
+                                                                    progressHistory.setProcessedCount(processed);
+                                                                    if (total >= 0) {
+                                                                        progressHistory.setTotalCount(total);
+                                                                        if (total > 0) {
+                                                                            java.math.BigDecimal percent = java.math.BigDecimal
+                                                                                    .valueOf(processed * 100.0 / total)
+                                                                                    .setScale(2, java.math.RoundingMode.HALF_UP);
+                                                                            progressHistory.setProgress(percent);
+                                                                        }
+                                                                    }
+                                                                    try {
+                                                                        historyRepository.save(progressHistory);
+                                                                    }
+                                                                    catch (Exception ex) {
+                                                                        log.warn("Update sync history progress failed: {}", ex.getMessage());
+                                                                    }
+                                                                    // 同步期间用已写入行数滚动刷新 dataset.totalRows，方便列表实时看到进度
+                                                                    try {
+                                                                        progressEntity.setTotalRows(String.valueOf(processed));
+                                                                        repository.save(progressEntity);
+                                                                    }
+                                                                    catch (Exception ex) {
+                                                                        log.warn("Update dataset totalRows failed: {}", ex.getMessage());
+                                                                    }
+                                                                    // 节流 + 异步刷新 totalSize：每 SIZE_REFRESH_EVERY 次 progress 提交一次到独立线程；
+                                                                    // 上一次还没回来就跳过，绝不阻塞主流（MySQL 真流式 cursor 对客户端读速度敏感）
+                                                                    if (progressTick.incrementAndGet() % SIZE_REFRESH_EVERY == 0
+                                                                            && sizeRefreshInFlight.compareAndSet(false, true)) {
+                                                                        sizeRefreshExecutor.submit(() -> {
+                                                                            try {
+                                                                                this.flushTableMetadata(
+                                                                                        progressEntity,
+                                                                                        outputPlugin,
+                                                                                        database,
+                                                                                        requireNonNull(output.getOriginConfigure()),
+                                                                                        outPlugin
+                                                                                );
+                                                                            }
+                                                                            catch (Exception ex) {
+                                                                                log.warn("Refresh dataset totalSize failed: {}", ex.getMessage());
+                                                                            }
+                                                                            finally {
+                                                                                sizeRefreshInFlight.set(false);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                });
 
                                                                 history.setState(RunState.RUNNING);
                                                                 historyRepository.save(history);
 
-                                                                ExecutorResponse response = executorService.start(request);
+                                                                ExecutorResponse response;
+                                                                try {
+                                                                    response = executorService.start(request);
+                                                                }
+                                                                finally {
+                                                                    // 关闭异步 size 刷新线程，等正在跑的最多 30 秒
+                                                                    sizeRefreshExecutor.shutdown();
+                                                                    try {
+                                                                        if (!sizeRefreshExecutor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS)) {
+                                                                            sizeRefreshExecutor.shutdownNow();
+                                                                        }
+                                                                    }
+                                                                    catch (InterruptedException ie) {
+                                                                        sizeRefreshExecutor.shutdownNow();
+                                                                        Thread.currentThread().interrupt();
+                                                                    }
+                                                                }
                                                                 history.setUpdateTime(new Date());
                                                                 history.setElapsed((history.getUpdateTime().getTime() - history.getCreateTime().getTime()) / 1000);
                                                                 history.setMode(QueryMode.SYNC);
                                                                 history.setCount(response.getCount());
                                                                 history.setState(response.getState());
+                                                                if (response.getSuccessful()) {
+                                                                    history.setProcessedCount((long) response.getCount());
+                                                                    if (history.getTotalCount() == null || history.getTotalCount() < 0L) {
+                                                                        history.setTotalCount((long) response.getCount());
+                                                                    }
+                                                                    history.setProgress(java.math.BigDecimal.valueOf(100.0).setScale(2, java.math.RoundingMode.HALF_UP));
+                                                                }
                                                                 Preconditions.checkArgument(response.getSuccessful(), response.getMessage());
 
                                                                 this.flushTableMetadata(
@@ -1086,7 +1176,7 @@ public class DataSetServiceImpl
                                                             });
                                                 },
                                                 () -> {
-                                                    log.warn("Executor [ {} ] not found", entity.getExecutor());
+                                                    log.error("Executor [ {} ] not found", entity.getExecutor());
                                                     history.setMessage(String.format("Executor [ %s ] not found", entity.getExecutor()));
                                                     history.setState(RunState.FAILURE);
                                                     historyRepository.save(history);

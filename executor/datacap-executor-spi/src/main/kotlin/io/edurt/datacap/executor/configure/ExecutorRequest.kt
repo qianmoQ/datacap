@@ -22,7 +22,9 @@ data class ExecutorRequest @JvmOverloads constructor(
     var runEngine: RunEngine = RunEngine.SPARK,
     var transform: ExecutorConfigure? = null,
     var fetchSize: Int = 1000,
-    var batchSize: Int = 1000
+    var batchSize: Int = 1000,
+    var preCount: Boolean = false,
+    var progressListener: ExecutorProgressListener? = null
 )
 {
     constructor(

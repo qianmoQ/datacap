@@ -24,6 +24,16 @@
             <span>{{ getStateText(row?.state) }}</span>
           </ShadcnTag>
         </template>
+
+        <template #progress="{ row }">
+          <div class="flex items-center gap-2 min-w-[120px]">
+            <div class="flex-1 h-2 rounded bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <div class="h-full bg-blue-500 transition-all"
+                   :style="{ width: formatProgressWidth(row?.progress) }"/>
+            </div>
+            <span class="text-xs whitespace-nowrap">{{ formatProgressText(row?.progress) }}</span>
+          </div>
+        </template>
       </ShadcnTable>
 
       <ShadcnPagination v-if="data?.length > 0"
@@ -150,6 +160,20 @@ export default defineComponent({
     getStateText(origin: string): string
     {
       return this.getText(origin)
+    },
+    formatProgressWidth(value: number | string | null | undefined): string
+    {
+      if (value === null || value === undefined || value === '') return '0%'
+      const v = typeof value === 'string' ? parseFloat(value) : value
+      if (isNaN(v) || v < 0) return '0%'
+      return Math.min(v, 100) + '%'
+    },
+    formatProgressText(value: number | string | null | undefined): string
+    {
+      if (value === null || value === undefined || value === '') return '-'
+      const v = typeof value === 'string' ? parseFloat(value) : value
+      if (isNaN(v)) return '-'
+      return v.toFixed(2) + '%'
     }
   }
 })

@@ -9,6 +9,7 @@ import io.edurt.datacap.common.sql.configure.SqlColumn
 import io.edurt.datacap.common.sql.configure.SqlType
 import io.edurt.datacap.executor.ExecutorService
 import io.edurt.datacap.executor.common.RunState
+import io.edurt.datacap.executor.configure.ExecutorProgressListener
 import io.edurt.datacap.executor.configure.ExecutorRequest
 import io.edurt.datacap.executor.configure.ExecutorResponse
 import io.edurt.datacap.executor.configure.OriginColumn
@@ -56,21 +57,33 @@ class LocalExecutorService : ExecutorService
 
             val fetchSize = if (request.fetchSize > 0) request.fetchSize else DEFAULT_FETCH_SIZE
             val batchSize = if (request.batchSize > 0) request.batchSize else DEFAULT_BATCH_SIZE
+            val progressListener = request.progressListener
 
             taskLog.info(
-                    "Resolved input plugin={} output plugin={} streaming={}/{} fetchSize={} batchSize={}",
+                    "Resolved input plugin={} output plugin={} streaming={}/{} fetchSize={} batchSize={} preCount={}",
                     inputPlugin.name(), outputPlugin.name(),
                     inputPlugin.supportsStreaming(), outputPlugin.supportsStreaming(),
-                    fetchSize, batchSize
+                    fetchSize, batchSize, request.preCount
             )
             taskLog.info("Source query: {}", query)
+
+            // 可选：先跑 SELECT COUNT(*) 拿到源端总行数，作为进度分母
+            // Optional: pre-count to populate the total row count used for progress percentage
+            val totalCount: Long = if (request.preCount) preCount(inputPlugin, inputConfigure, query, taskLog) else -1L
+            if (totalCount >= 0)
+            {
+                taskLog.info("Pre-count: source total rows = {}", totalCount)
+                // 报告 0 进度，让上层立即知道 total
+                progressListener?.onProgress(0L, totalCount)
+            }
 
             val written = if (inputPlugin.supportsStreaming() && outputPlugin.supportsStreaming())
             {
                 runStreaming(
                     inputPlugin, inputConfigure, query, fetchSize,
                     outputPlugin, outputConfigure, database, table,
-                    targetColumns, sourceKeys, batchSize, taskLog
+                    targetColumns, sourceKeys, batchSize, taskLog,
+                    totalCount, progressListener
                 )
             }
             else
@@ -78,13 +91,16 @@ class LocalExecutorService : ExecutorService
                 runLegacy(
                     inputPlugin, inputConfigure, query,
                     outputPlugin, outputConfigure, database, table,
-                    originColumns, batchSize, taskLog
+                    originColumns, batchSize, taskLog,
+                    totalCount, progressListener
                 )
             }
 
             response.count = if (written > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else written.toInt()
             response.successful = true
             response.state = RunState.SUCCESS
+            // 最终上报一次：确保 100%
+            progressListener?.onProgress(written, if (totalCount >= 0) totalCount else written)
             taskLog.info("Local executor task completed: rows={} state=SUCCESS", written)
         }
         catch (ex: Exception)
@@ -131,6 +147,44 @@ class LocalExecutorService : ExecutorService
     }
 
     /**
+     * 跑 SELECT COUNT(*) FROM (userQuery) 估算总行数。失败时返回 -1，不影响后续流程。
+     * Run SELECT COUNT(*) over the user's query. On failure returns -1 — progress just lacks the denominator.
+     */
+    private fun preCount(plugin: PluginService, configure: Configure, query: String, taskLog: Logger): Long
+    {
+        return try
+        {
+            val trimmed = query.trim().trimEnd(';')
+            val sql = "SELECT COUNT(*) AS total FROM ($trimmed) datacap_precount_t"
+            taskLog.info("Pre-count starting: {}", sql)
+            val t0 = System.nanoTime()
+            val result = plugin.execute(configure, sql)
+            val elapsedMs = (System.nanoTime() - t0) / 1_000_000
+            taskLog.info("Pre-count returned in {} ms", elapsedMs)
+            if (result.isSuccessful != true)
+            {
+                taskLog.warn("Pre-count failed, will run without total: {}", result.message)
+                return -1L
+            }
+            val rows = result.columns ?: return -1L
+            if (rows.isEmpty()) return -1L
+            val first = rows[0]
+            when (first)
+            {
+                is com.fasterxml.jackson.databind.node.ObjectNode -> first.get("total")?.asLong(-1L) ?: -1L
+                is List<*> -> (first.firstOrNull() as? Number)?.toLong() ?: -1L
+                is Number -> first.toLong()
+                else -> -1L
+            }
+        }
+        catch (ex: Exception)
+        {
+            taskLog.warn("Pre-count threw, will run without total: {}", ex.message)
+            -1L
+        }
+    }
+
+    /**
      * 流式路径：源端 fetchSize 拉取，目标端 PreparedStatement 批量写。
      * 全程不在 JVM 内物化整个结果集。
      */
@@ -146,12 +200,14 @@ class LocalExecutorService : ExecutorService
         targetColumns: List<String>,
         sourceKeys: List<String>,
         batchSize: Int,
-        taskLog: Logger
+        taskLog: Logger,
+        totalCount: Long,
+        progressListener: ExecutorProgressListener?
     ): Long
     {
         taskLog.info(
-                "Streaming sync start: target=`{}`.`{}` columns={} fetchSize={} batchSize={}",
-                database, table, targetColumns.size, fetchSize, batchSize
+                "Streaming sync start: target=`{}`.`{}` columns={} fetchSize={} batchSize={} total={}",
+                database, table, targetColumns.size, fetchSize, batchSize, totalCount
         )
         val startNanos = System.nanoTime()
         var written = 0L
@@ -188,6 +244,7 @@ class LocalExecutorService : ExecutorService
                                 "Streaming sync progress: read={} committed={} elapsed={}s rps={}",
                                 written, writer.writtenCount(), "%.1f".format(seconds), rps
                         )
+                        progressListener?.onProgress(writer.writtenCount(), totalCount)
                     }
                 }
             })
@@ -214,7 +271,9 @@ class LocalExecutorService : ExecutorService
         table: String,
         originColumns: List<OriginColumn>,
         batchSize: Int,
-        taskLog: Logger
+        taskLog: Logger,
+        totalCount: Long,
+        progressListener: ExecutorProgressListener?
     ): Long
     {
         taskLog.info("Legacy sync start: target=`{}`.`{}` batchSize={}", database, table, batchSize)
@@ -226,6 +285,8 @@ class LocalExecutorService : ExecutorService
         }
         val rows = inputResult.columns ?: return 0L
         taskLog.info("Legacy sync: source materialized {} rows", rows.size)
+        // 全量路径已经能拿到精确总数，覆盖 pre-count 的估算
+        val effectiveTotal = if (totalCount >= 0) totalCount else rows.size.toLong()
 
         // 目标端能流式：用 BatchWriter 安全 + 节省内存
         if (outputPlugin.supportsStreaming())
@@ -250,6 +311,7 @@ class LocalExecutorService : ExecutorService
                     if (written % PROGRESS_INTERVAL == 0L)
                     {
                         taskLog.info("Legacy sync progress: written={} committed={}", written, writer.writtenCount())
+                        progressListener?.onProgress(writer.writtenCount(), effectiveTotal)
                     }
                 }
             }
@@ -289,6 +351,7 @@ class LocalExecutorService : ExecutorService
                 if (written % PROGRESS_INTERVAL == 0L)
                 {
                     taskLog.info("Legacy sync progress (sql batch): written={}", written)
+                    progressListener?.onProgress(written, effectiveTotal)
                 }
             }
         }
@@ -384,6 +447,6 @@ class LocalExecutorService : ExecutorService
     {
         private const val DEFAULT_FETCH_SIZE = 1000
         private const val DEFAULT_BATCH_SIZE = 1000
-        private const val PROGRESS_INTERVAL = 10_000L
+        private const val PROGRESS_INTERVAL = 1_000L
     }
 }

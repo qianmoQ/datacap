@@ -23,3 +23,10 @@ WHERE `executor` = 'LocalExecutor';
 UPDATE `datacap_workflow`
 SET `executor` = 'Seatunnel'
 WHERE `executor` = 'SeatunnelExecutor';
+
+-- 同步历史新增 总数 / 已完成 / 进度 三列
+-- Sync history adds total count / processed count / progress columns
+ALTER TABLE `datacap_dataset_history`
+    ADD COLUMN `total_count`     BIGINT        DEFAULT NULL COMMENT 'Total rows from source query, NULL if pre-count is disabled',
+    ADD COLUMN `processed_count` BIGINT        DEFAULT NULL COMMENT 'Rows successfully written to target',
+    ADD COLUMN `progress`        DECIMAL(5, 2) DEFAULT NULL COMMENT 'processed_count / total_count * 100, NULL when total unknown';

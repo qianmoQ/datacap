@@ -20,6 +20,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import java.math.BigDecimal;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -43,6 +45,15 @@ public class DatasetHistoryEntity
 
     @Column(name = "count")
     private int count;
+
+    @Column(name = "total_count")
+    private Long totalCount;
+
+    @Column(name = "processed_count")
+    private Long processedCount;
+
+    @Column(name = "progress")
+    private BigDecimal progress;
 
     @Column(name = "query_mode")
     @Enumerated(EnumType.STRING)
