@@ -8,11 +8,12 @@ import io.edurt.datacap.plugin.PluginType
  * - 类型固定为 EXECUTOR
  * - 名称自动从子类类名末尾剥掉 "Executor" 后缀。
  *   例如 SeatunnelExecutor -> "Seatunnel"，LocalExecutor -> "Local"。
+ * - 可配置字段通过 Plugin.configures() 声明（继承自 datacap-plugin 通用机制）。
  *
  * Common base for all executor plugins.
  * - Type is fixed to EXECUTOR.
  * - Name auto-derives from the subclass simple name by stripping the trailing "Executor".
- *   e.g. SeatunnelExecutor -> "Seatunnel", LocalExecutor -> "Local".
+ * - Configurable fields are declared via Plugin.configures() (inherited from datacap-plugin).
  */
 abstract class ExecutorPlugin : Plugin()
 {

@@ -219,6 +219,18 @@ public abstract class Plugin
         return StringUtils.remove(this.getClass().getSimpleName(), "Plugin");
     }
 
+    /**
+     * 声明该插件可配置的字段（名称 / 类型 / 默认值 / 是否允许普通用户临时覆盖）。
+     * 默认空：旧插件零改动。Executor / Scheduler / FS / Notify 等子类按需重写。
+     *
+     * Declare configurable fields exposed by this plugin. Default empty for full
+     * backward compatibility — subclasses (Executor / Scheduler / FS / Notify / ...) override as needed.
+     */
+    public java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField> configures()
+    {
+        return java.util.Collections.emptyList();
+    }
+
     public String getVersion()
     {
         if (cachedVersion != null) {
