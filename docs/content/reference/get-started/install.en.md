@@ -119,17 +119,12 @@ spring.datasource.password=12345678
 
 #### Actuator configuration
 
-```properties
-datacap.executor.data=
-datacap.executor.way=local
-datacap.executor.mode=client
-datacap.executor.seatunnel.home=/opt/lib/seatunnel
-```
+Since `2026.0.0`, executor configuration (formerly `datacap.executor.*`) has moved to the database table `datacap_configure` (category = `EXECUTOR`) and is no longer set via `application.properties`.
 
-- `datacap.executor.data`: Used to configure the data buffer path of the actuator
-- `datacap.executor.way`: It is used to configure the execution mode of the actuator, and different actuators have different execution methods
-- `datacap.executor.mode`: It is used to configure the execution mode of the actuator, different actuators have different execution modes
-- `datacap.executor.seatunnel.home`: The Apache Seatunnel home directory used to configure the executor
+- Default values are declared by each executor plugin (`ExecutorPlugin.configures()`) and **auto-seeded on first startup**.
+- Administrators can edit every field in the UI under **System Configuration → Runtime Configuration** (`/system/configure`).
+- Regular users can override `tunable=true` fields **per sync invocation** (not persisted).
+- The effective configuration JSON used by each sync is recorded in `datacap_dataset_history.executor_configure` for audit.
 
 #### Upload the configuration
 

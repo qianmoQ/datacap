@@ -119,57 +119,12 @@ spring.datasource.password=12345678
 
 #### 执行器配置
 
-```properties
-datacap.executor.data=
-datacap.executor.way=LOCAL
-datacap.executor.mode=CLIENT
-datacap.executor.engine=SPARK
-datacap.executor.startScript=start-seatunnel-spark-connector-v2.sh
-datacap.executor.seatunnel.home=/opt/lib/seatunnel
-```
+从 `2026.0.0` 起，执行器配置（原 `datacap.executor.*`）已经迁移到数据库表 `datacap_configure`（category = `EXECUTOR`），不再通过 `application.properties` 配置。
 
-- `datacap.executor.data`: 用于配置执行器的数据缓冲路径
-- `datacap.executor.way`: 用于配置执行器的执行方式，不同的执行器拥有不同的执行方式
-- `datacap.executor.mode`: 用于配置执行器的执行模式，不同的执行器拥有不同的执行模式
-- `datacap.executor.engine`: 用于配置执行器的执行引擎
-- `datacap.executor.startScript`: 用于配置执行器的启动脚本
-- `datacap.executor.seatunnel.home`: 用于配置执行器的 Apache Seatunnel 主目录
-
-##### Apache Seatunnel
-
-::: tabs
-    === "Spark 引擎配置"
-
-        ```properties
-        datacap.executor.data=
-        datacap.executor.way=LOCAL
-        datacap.executor.mode=CLIENT
-        datacap.executor.engine=SPARK
-        datacap.executor.startScript=start-seatunnel-spark-connector-v2.sh
-        datacap.executor.seatunnel.home=/opt/lib/seatunnel
-        ```
-    
-    === "Flink 引擎配置"
-        ```properties
-         datacap.executor.data=
-         datacap.executor.way=LOCAL
-         datacap.executor.mode=CLIENT
-         datacap.executor.engine=FLINK
-         datacap.executor.startScript=start-seatunnel-flink-13-connector-v2.sh
-         datacap.executor.seatunnel.home=/opt/lib/seatunnel
-        ```
-    
-    === "Seatunnel 引擎配置"
-        ```properties
-         datacap.executor.data=
-         # Only support LOCAL
-         datacap.executor.way=LOCAL
-         datacap.executor.mode=CLIENT
-         datacap.executor.engine=SEATUNNEL
-         datacap.executor.startScript=seatunnel.sh
-         datacap.executor.seatunnel.home=/opt/lib/seatunnel
-        ```
-:::
+- 默认值由各执行器插件（`ExecutorPlugin.configures()`）声明，**首次启动会自动写入数据库**
+- 管理员可在 UI 的 **系统配置 → 运行时配置** 页面（`/system/configure`）修改全部字段
+- 普通用户在触发同步时，可对每个执行器的 `tunable=true` 字段做**本次运行临时覆盖**（不持久化）
+- 每次同步实际生效的配置 JSON 会写入对应 `datacap_dataset_history.executor_configure`，方便审计
 
 #### 上传配置
 
