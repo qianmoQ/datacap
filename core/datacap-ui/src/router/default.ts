@@ -113,6 +113,15 @@ const createSystemRouter = (router: any) => {
                     isRoot: false
                 },
                 component: () => import('@/views/pages/system/menu/MenuHome.vue')
+            },
+            {
+                name: 'configure',
+                path: 'configure',
+                meta: {
+                    title: 'configure.runtime.title',
+                    isRoot: false
+                },
+                component: () => import('@/views/pages/system/configure/ConfigureHome.vue')
             }
         ]
     }
