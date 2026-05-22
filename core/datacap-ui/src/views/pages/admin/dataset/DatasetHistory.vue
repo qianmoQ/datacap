@@ -40,6 +40,12 @@
             <ShadcnButton size="small" type="primary" @click="onViewLog(row)">
               {{ $t('dataset.history.viewLog') }}
             </ShadcnButton>
+            <ShadcnButton v-if="row?.executorConfigure"
+                          size="small"
+                          type="default"
+                          @click="onViewConfigure(row)">
+              {{ $t('dataset.history.viewConfigure') }}
+            </ShadcnButton>
             <ShadcnButton v-if="isStoppable(row)"
                           size="small"
                           type="error"
@@ -55,6 +61,18 @@
                             :is-visible="loggerVisible"
                             :info="loggerInfo"
                             @close="onLoggerClose"/>
+
+      <ShadcnModal v-model="configureVisible"
+                   width="50%"
+                   :title="$t('dataset.history.configureTitle')"
+                   @on-close="configureVisible = false">
+        <pre class="text-xs whitespace-pre-wrap break-all p-2 bg-gray-50 dark:bg-gray-900 rounded">{{ formatJson(configureInfo) }}</pre>
+        <template #footer>
+          <ShadcnButton type="default" @click="configureVisible = false">
+            {{ $t('common.cancel') }}
+          </ShadcnButton>
+        </template>
+      </ShadcnModal>
 
       <ShadcnPagination v-if="data?.length > 0"
                         v-model="pageIndex"
@@ -133,7 +151,9 @@ export default defineComponent({
       dataCount: 0,
       loggerVisible: false,
       loggerInfo: null as any,
-      stoppingId: null as number | null
+      stoppingId: null as number | null,
+      configureVisible: false,
+      configureInfo: null as string | null
     }
   },
   created()
@@ -219,6 +239,21 @@ export default defineComponent({
     {
       // FAILURE / INTERRUPTED 都带 message，hover 显示原因
       return !!row?.message && (row?.state === 'FAILURE' || row?.state === 'INTERRUPTED')
+    },
+    onViewConfigure(row: any)
+    {
+      this.configureInfo = row?.executorConfigure || ''
+      this.configureVisible = true
+    },
+    formatJson(raw: string | null | undefined): string
+    {
+      if (!raw) return ''
+      try {
+        return JSON.stringify(JSON.parse(raw), null, 2)
+      }
+      catch {
+        return raw
+      }
     },
     onStop(row: any)
     {

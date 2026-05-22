@@ -61,6 +61,10 @@ public class DatasetHistoryEntity
     @Column(name = "work_home")
     private String workHome;
 
+    /** 本次同步实际生效的 executor 配置 JSON（DB 默认 + 本次临时覆盖后的合并结果） */
+    @Column(name = "executor_configure", columnDefinition = "TEXT")
+    private String executorConfigure;
+
     @Column(name = "query_mode")
     @Enumerated(EnumType.STRING)
     private QueryMode mode;

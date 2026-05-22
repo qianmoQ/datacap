@@ -1150,7 +1150,6 @@ public class DataSetServiceImpl
                                                                 // 把 taskName / workHome 落到 history，供 UI 定位日志文件
                                                                 history.setTaskName(taskName);
                                                                 history.setWorkHome(workHome);
-                                                                historyRepository.save(history);
 
                                                                 // 从 datacap_configure 取该 executor 的 effective 配置（DB 行覆盖 SPI schema 默认值）
                                                                 java.util.Map<String, String> executorCfg = runtimeConfigureService.getEffective(
@@ -1158,6 +1157,14 @@ public class DataSetServiceImpl
                                                                         executor.getName(),
                                                                         executor.configures()
                                                                 );
+                                                                // 把本次同步真正生效的配置 JSON 落到 history，便于事后审计 / UI 展示
+                                                                try {
+                                                                    history.setExecutorConfigure(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(executorCfg));
+                                                                }
+                                                                catch (Exception ex) {
+                                                                    log.warn("Serialize effective executor configure failed: {}", ex.getMessage());
+                                                                }
+                                                                historyRepository.save(history);
                                                                 int fetchSize = parseIntOrDefault(executorCfg.get("fetchSize"), 1000);
                                                                 int batchSize = parseIntOrDefault(executorCfg.get("batchSize"), 1000);
                                                                 boolean preCount = Boolean.parseBoolean(executorCfg.getOrDefault("preCount", "false"));
