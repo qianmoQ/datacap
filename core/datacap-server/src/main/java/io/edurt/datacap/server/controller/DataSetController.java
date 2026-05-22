@@ -50,9 +50,16 @@ public class DataSetController
     }
 
     @PutMapping(value = "syncData/{code}")
-    public CommonResponse<DataSetEntity> syncData(@PathVariable String code)
+    public CommonResponse<DataSetEntity> syncData(@PathVariable String code,
+            @RequestBody(required = false) java.util.Map<String, String> overrides)
     {
-        return service.syncData(code);
+        return service.syncData(code, overrides);
+    }
+
+    @GetMapping(value = "syncFields/{code}")
+    public CommonResponse<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>> syncFields(@PathVariable String code)
+    {
+        return service.getSyncFields(code);
     }
 
     @PutMapping(value = "clearData/{code}")

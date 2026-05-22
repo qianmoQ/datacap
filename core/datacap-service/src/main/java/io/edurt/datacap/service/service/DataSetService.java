@@ -22,6 +22,19 @@ public interface DataSetService
 
     CommonResponse<DataSetEntity> syncData(String code);
 
+    /**
+     * 同步并允许调用方临时覆盖一组 tunable 字段；非 tunable 的字段会被忽略。
+     * Trigger sync with optional per-invocation overrides; only tunable fields are honored.
+     */
+    CommonResponse<DataSetEntity> syncData(String code, java.util.Map<String, String> overrides);
+
+    /**
+     * 返回当前 executor 的可调字段（tunable=true），defaultValue 已替换为该数据集对应 executor 的 effective 值，
+     * 供同步对话框预填表单使用。
+     * Return the executor's tunable fields with defaultValue pre-populated from current effective config.
+     */
+    CommonResponse<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>> getSyncFields(String code);
+
     CommonResponse<Boolean> clearData(String code);
 
     CommonResponse<Response> adhoc(String code, Adhoc configure);

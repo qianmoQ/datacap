@@ -110,6 +110,10 @@ public class DataSetServiceImpl
     // Set of history ids whose sync has been asked to stop but hasn't reached its cancellation checkpoint yet.
     private static final java.util.Set<Long> stoppingHistoryIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
+    // 本次同步的 tunable 字段临时覆盖。由 syncData(code, overrides) 在异步线程入口写入，由内部 sync 体读取后清理。
+    // Per-invocation tunable overrides; set by the public syncData entry, read inside the async body.
+    private static final ThreadLocal<java.util.Map<String, String>> currentSyncOverrides = new ThreadLocal<>();
+
     public final DataSetColumnRepository columnRepository;
     private final DataSetRepository repository;
     private final DatasetHistoryRepository historyRepository;
@@ -735,27 +739,74 @@ public class DataSetServiceImpl
     @Override
     public CommonResponse<DataSetEntity> syncData(String code)
     {
+        return syncData(code, null);
+    }
+
+    @Override
+    public CommonResponse<DataSetEntity> syncData(String code, java.util.Map<String, String> overrides)
+    {
         return repository.findByCode(code)
                 .map(entity -> {
                     UserEntity currentUser = UserDetailsService.getUser();
                     java.util.concurrent.ExecutorService service = Executors.newSingleThreadExecutor();
+                    java.util.Map<String, String> safeOverrides = overrides == null
+                            ? java.util.Collections.emptyMap()
+                            : new java.util.HashMap<>(overrides);
 
                     service.submit(() -> {
                         // 在异步线程中设置用户上下文
                         setAuthenticationContext(currentUser);
-                        DataSetEntity result = syncData(entity, service);
-                        eventPublisher.publishNotificationEvent(
-                                result,
-                                null,
-                                "",
-                                EntityType.DATASET,
-                                NotificationType.SYNCDATA,
-                                new String[] {}
-                        );
+                        currentSyncOverrides.set(safeOverrides);
+                        try {
+                            DataSetEntity result = syncData(entity, service);
+                            eventPublisher.publishNotificationEvent(
+                                    result,
+                                    null,
+                                    "",
+                                    EntityType.DATASET,
+                                    NotificationType.SYNCDATA,
+                                    new String[] {}
+                            );
+                        }
+                        finally {
+                            currentSyncOverrides.remove();
+                        }
                     });
                     return CommonResponse.success(entity);
                 })
                 .orElseGet(() -> CommonResponse.failure(String.format("DataSet [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>> getSyncFields(String code)
+    {
+        return repository.findByCode(code)
+                .<CommonResponse<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>>>map(entity -> {
+                    return pluginManager.getPlugin(entity.getExecutor())
+                            .map(plugin -> {
+                                java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField> schema = plugin.configures();
+                                java.util.Map<String, String> effective = runtimeConfigureService.getEffective(
+                                        RuntimeConfigureService.CATEGORY_EXECUTOR,
+                                        plugin.getName(),
+                                        schema
+                                );
+                                java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField> tunable = schema.stream()
+                                        .filter(io.edurt.datacap.plugin.configure.PluginConfigureField::isTunable)
+                                        .map(f -> new io.edurt.datacap.plugin.configure.PluginConfigureField(
+                                                f.getName(),
+                                                f.getType(),
+                                                effective.getOrDefault(f.getName(), f.getDefaultValue()),
+                                                f.getDescription(),
+                                                true
+                                        ))
+                                        .collect(java.util.stream.Collectors.toList());
+                                return CommonResponse.success(tunable);
+                            })
+                            .orElseGet(() -> CommonResponse.<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>>failure(
+                                    String.format("Executor [ %s ] not found", entity.getExecutor())));
+                })
+                .orElseGet(() -> CommonResponse.<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>>failure(
+                        String.format("DataSet [ %s ] not found", code)));
     }
 
     /**
@@ -1157,6 +1208,19 @@ public class DataSetServiceImpl
                                                                         executor.getName(),
                                                                         executor.configures()
                                                                 );
+                                                                // 本次同步如有用户临时覆盖：只接受 tunable=true 的字段，其余忽略
+                                                                java.util.Map<String, String> overrides = currentSyncOverrides.get();
+                                                                if (overrides != null && !overrides.isEmpty()) {
+                                                                    java.util.Set<String> tunableKeys = executor.configures().stream()
+                                                                            .filter(io.edurt.datacap.plugin.configure.PluginConfigureField::isTunable)
+                                                                            .map(io.edurt.datacap.plugin.configure.PluginConfigureField::getName)
+                                                                            .collect(java.util.stream.Collectors.toSet());
+                                                                    overrides.forEach((k, v) -> {
+                                                                        if (tunableKeys.contains(k) && v != null) {
+                                                                            executorCfg.put(k, v);
+                                                                        }
+                                                                    });
+                                                                }
                                                                 // 把本次同步真正生效的配置 JSON 落到 history，便于事后审计 / UI 展示
                                                                 try {
                                                                     history.setExecutorConfigure(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(executorCfg));
