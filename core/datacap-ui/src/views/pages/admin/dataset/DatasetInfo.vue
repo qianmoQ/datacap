@@ -338,7 +338,7 @@ export default defineComponent({
         source: { code: null },
         expression: null as string | null,
         scheduler: 'Default',
-        executor: 'LocalExecutor',
+        executor: 'Local',
         lifeCycle: null as number | null,
         lifeCycleColumn: null as string | null,
         lifeCycleType: null as string | null

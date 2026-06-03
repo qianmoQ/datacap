@@ -27,10 +27,14 @@ export function useDatasetHeaders()
     const historyHeaders = computed(() => [
         { key: 'id', label: t('common.id') },
         { key: 'elapsed', label: t('common.elapsed') },
+        { key: 'totalCount', label: t('dataset.history.totalCount') },
+        { key: 'processedCount', label: t('dataset.history.processedCount') },
+        { key: 'progress', label: t('dataset.history.progress'), slot: 'progress' },
         { key: 'count', label: t('common.count') },
         { key: 'createTime', label: t('common.createTime') },
         { key: 'updateTime', label: t('common.updateTime') },
-        { key: 'state', label: t('common.state'), slot: 'state' }
+        { key: 'state', label: t('common.state'), slot: 'state' },
+        { key: 'action', label: t('common.action'), slot: 'action' }
     ])
 
     return {

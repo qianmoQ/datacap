@@ -171,7 +171,7 @@ export default defineComponent({
     return {
       configureVisible: false,
       contextData: null,
-      configure: { executor: 'SeatunnelExecutor', from: null, to: null, flow: null }
+      configure: { executor: 'Seatunnel', from: null, to: null, flow: null }
     }
   },
   methods: {

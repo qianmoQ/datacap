@@ -20,6 +20,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import java.math.BigDecimal;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -43,6 +45,25 @@ public class DatasetHistoryEntity
 
     @Column(name = "count")
     private int count;
+
+    @Column(name = "total_count")
+    private Long totalCount;
+
+    @Column(name = "processed_count")
+    private Long processedCount;
+
+    @Column(name = "progress")
+    private BigDecimal progress;
+
+    @Column(name = "task_name")
+    private String taskName;
+
+    @Column(name = "work_home")
+    private String workHome;
+
+    /** 本次同步实际生效的 executor 配置 JSON（DB 默认 + 本次临时覆盖后的合并结果） */
+    @Column(name = "executor_configure", columnDefinition = "TEXT")
+    private String executorConfigure;
 
     @Column(name = "query_mode")
     @Enumerated(EnumType.STRING)

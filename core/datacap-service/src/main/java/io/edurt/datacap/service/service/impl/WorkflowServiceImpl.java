@@ -22,6 +22,7 @@ import io.edurt.datacap.service.itransient.configuration.NodeConfiguration;
 import io.edurt.datacap.service.repository.BaseRepository;
 import io.edurt.datacap.service.repository.WorkflowRepository;
 import io.edurt.datacap.service.security.UserDetailsService;
+import io.edurt.datacap.service.service.RuntimeConfigureService;
 import io.edurt.datacap.service.service.WorkflowService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
@@ -42,7 +43,6 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -54,13 +54,15 @@ public class WorkflowServiceImpl
     private final PluginManager pluginManager;
     private final Environment environment;
     private final WorkflowRepository repository;
+    private final RuntimeConfigureService runtimeConfigureService;
 
-    public WorkflowServiceImpl(InitializerConfigure initializer, PluginManager pluginManager, Environment environment, WorkflowRepository repository)
+    public WorkflowServiceImpl(InitializerConfigure initializer, PluginManager pluginManager, Environment environment, WorkflowRepository repository, RuntimeConfigureService runtimeConfigureService)
     {
         this.initializer = initializer;
         this.pluginManager = pluginManager;
         this.environment = environment;
         this.repository = repository;
+        this.runtimeConfigureService = runtimeConfigureService;
     }
 
     @Override
@@ -147,10 +149,13 @@ public class WorkflowServiceImpl
                                         Sets.newHashSet()
                                 );
 
-                                String executorHome = environment.getProperty(
-                                        String.format("datacap.executor.%s.home",
-                                                configure.getExecutor().toLowerCase())
+                                // 从 datacap_configure 读 effective 配置
+                                java.util.Map<String, String> executorCfg = runtimeConfigureService.getEffective(
+                                        RuntimeConfigureService.CATEGORY_EXECUTOR,
+                                        plugin.getName(),
+                                        plugin.configures()
                                 );
+                                String executorHome = executorCfg.get("home");
                                 log.debug("Executor home directory: {}", executorHome);
 
                                 ExecutorRequest request = new ExecutorRequest(
@@ -160,10 +165,10 @@ public class WorkflowServiceImpl
                                         user.getUsername(),
                                         form,
                                         to,
-                                        RunMode.valueOf(requireNonNull(environment.getProperty("datacap.executor.mode"))),
-                                        RunWay.valueOf(requireNonNull(environment.getProperty("datacap.executor.way"))),
-                                        environment.getProperty("datacap.executor.startScript"),
-                                        RunEngine.valueOf(requireNonNull(environment.getProperty("datacap.executor.engine"))),
+                                        RunMode.valueOf(executorCfg.getOrDefault("mode", "CLIENT")),
+                                        RunWay.valueOf(executorCfg.getOrDefault("way", "LOCAL")),
+                                        executorCfg.get("startScript"),
+                                        RunEngine.valueOf(executorCfg.getOrDefault("engine", "SPARK")),
                                         transform
                                 );
                                 log.info("Created executor request for workflow: {}", configure.getCode());

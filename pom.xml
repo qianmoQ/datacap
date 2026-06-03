@@ -473,6 +473,9 @@
                 <version>${kotlin.version}</version>
                 <configuration>
                     <jvmTarget>11</jvmTarget>
+                    <args>
+                        <arg>-Xjvm-default=all</arg>
+                    </args>
                 </configuration>
                 <executions>
                     <execution>

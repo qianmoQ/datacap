@@ -60,14 +60,47 @@ export class DatasetService
     }
 
     /**
+     * Read the executor's task log of a given sync history record.
+     *
+     * @param {number} id - the dataset history id
+     * @return {Promise<ResponseModel>} response containing the log lines (List<String>)
+     */
+    getHistoryLog(id: number): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/history/log/${ id }`)
+    }
+
+    /**
+     * Stop a running sync task identified by the given history record id.
+     *
+     * @param {number} id - the dataset history id (must be RUNNING)
+     * @return {Promise<ResponseModel>} success when the cancel flag has been set
+     */
+    stopHistory(id: number): Promise<ResponseModel>
+    {
+        return new HttpUtils().put(`${ DEFAULT_PATH }/history/stop/${ id }`)
+    }
+
+    /**
      * Sync data with the server using the provided id.
+     * Optional `overrides` is a map of tunable executor fields the user wants to change for this run only.
      *
      * @param {string} code - The id of the data to sync
+     * @param {Record<string, string>} [overrides] - per-invocation overrides for tunable fields
      * @return {Promise<ResponseModel>} A promise that resolves with the response from the server
      */
-    syncData(code: string): Promise<ResponseModel>
+    syncData(code: string, overrides?: Record<string, string>): Promise<ResponseModel>
     {
-        return new HttpUtils().put(`${ DEFAULT_PATH }/syncData/${ code }`)
+        return new HttpUtils().put(`${ DEFAULT_PATH }/syncData/${ code }`, overrides || {})
+    }
+
+    /**
+     * Fetch the tunable executor fields for this dataset (with current effective values prefilled).
+     * Used by the sync dialog to render an editable form.
+     */
+    getSyncFields(code: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/syncFields/${ code }`)
     }
 
     /**

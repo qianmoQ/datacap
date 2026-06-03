@@ -18,7 +18,7 @@ import java.util.*
 class LocalExecutorServiceTest
 {
     private val pluginManager: PluginManager
-    private val pluginName = "LocalExecutor"
+    private val pluginName = "Local"
 
     init
     {

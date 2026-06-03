@@ -9,7 +9,7 @@ import org.junit.Test
 class SeatunnelExecutorPluginTest
 {
     private val pluginManager: PluginManager
-    private val pluginName = "SeatunnelExecutor"
+    private val pluginName = "Seatunnel"
 
     init
     {

@@ -22,6 +22,19 @@ public interface DataSetService
 
     CommonResponse<DataSetEntity> syncData(String code);
 
+    /**
+     * 同步并允许调用方临时覆盖一组 tunable 字段；非 tunable 的字段会被忽略。
+     * Trigger sync with optional per-invocation overrides; only tunable fields are honored.
+     */
+    CommonResponse<DataSetEntity> syncData(String code, java.util.Map<String, String> overrides);
+
+    /**
+     * 返回当前 executor 的可调字段（tunable=true），defaultValue 已替换为该数据集对应 executor 的 effective 值，
+     * 供同步对话框预填表单使用。
+     * Return the executor's tunable fields with defaultValue pre-populated from current effective config.
+     */
+    CommonResponse<java.util.List<io.edurt.datacap.plugin.configure.PluginConfigureField>> getSyncFields(String code);
+
     CommonResponse<Boolean> clearData(String code);
 
     CommonResponse<Response> adhoc(String code, Adhoc configure);
@@ -31,4 +44,16 @@ public interface DataSetService
     CommonResponse<DataSetEntity> getInfo(String code);
 
     CommonResponse<PageEntity<DatasetHistoryEntity>> getHistory(String code, FilterBody filter);
+
+    /**
+     * 读取指定同步历史的运行日志（独立任务日志文件，由 executor 写入 workHome）
+     * Read the executor's task log for the given sync history record
+     */
+    CommonResponse<List<String>> getHistoryLog(Long id);
+
+    /**
+     * 停止正在运行的同步任务。仅对 state=RUNNING 且当前进程持有该 taskName 的任务生效
+     * Stop a running sync task. Effective only when state=RUNNING and the task is held by this process
+     */
+    CommonResponse<Boolean> stopHistory(Long id);
 }

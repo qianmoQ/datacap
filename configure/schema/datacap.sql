@@ -164,7 +164,7 @@ CREATE TABLE `datacap_dataset` (
   `code` varchar(100) DEFAULT (uuid()),
   `column_mode` varchar(100) DEFAULT 'DIMENSION',
   `scheduler` varchar(100) DEFAULT 'LocalScheduler',
-  `executor` varchar(100) DEFAULT 'LocalExecutor',
+  `executor` varchar(100) DEFAULT 'Local',
   `total_rows` bigint DEFAULT '0',
   `total_size` varchar(100) DEFAULT NULL,
   `life_cycle` bigint DEFAULT '0',

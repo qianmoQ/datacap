@@ -25,6 +25,10 @@ public class BinaryMetadataCodec
     private static final byte[] MAGIC = {'C', 'M', 'T', 'A'};
     private static final short VERSION = 1;
 
+    private BinaryMetadataCodec()
+    {
+    }
+
     public static void write(Path metaPath, TableDefinition metadata)
             throws IOException
     {
