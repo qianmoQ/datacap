@@ -1,5 +1,6 @@
 package io.edurt.datacap.server.controller;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.common.response.CommonResponse;
 import io.edurt.datacap.plugin.Plugin;
 import io.edurt.datacap.plugin.PluginManager;
@@ -32,6 +33,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/configure/runtime")
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP2"})
 public class RuntimeConfigureController
 {
     private final PluginManager pluginManager;
@@ -112,6 +114,7 @@ public class RuntimeConfigureController
         return Collections.emptyList();
     }
 
+    @SuppressFBWarnings(value = {"URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"})
     public static class DetailView
     {
         public String category;
