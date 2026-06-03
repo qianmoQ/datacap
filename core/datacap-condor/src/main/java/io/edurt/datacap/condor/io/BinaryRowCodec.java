@@ -30,6 +30,10 @@ public class BinaryRowCodec
     private static final byte TYPE_STRING = 5;
     private static final byte TYPE_FLOAT = 6;
 
+    private BinaryRowCodec()
+    {
+    }
+
     public static void writeAll(Path dataPath, List<RowDefinition> rows)
             throws IOException
     {
