@@ -115,7 +115,7 @@ DataCap 可以从任何使用 SQL 的数据存储或数据引擎（ClickHouse、
 
 ---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=devlive-community/datacap&type=Timeline)](https://star-history.com/#devlive-community/datacap&Timeline)
+[![Star History Chart](https://star-history.dera.page/svg?repos=devlive-community/datacap&type=Timeline)](https://star-history.dera.page/#devlive-community/datacap&Timeline)
 
 ## 加入我们
 

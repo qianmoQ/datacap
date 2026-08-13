@@ -115,7 +115,7 @@ Here are some of the major database solutions that are supported:
 
 ---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=devlive-community/datacap&type=Timeline)](https://star-history.com/#devlive-community/datacap&Timeline)
+[![Star History Chart](https://star-history.dera.page/svg?repos=devlive-community/datacap&type=Timeline)](https://star-history.dera.page/#devlive-community/datacap&Timeline)
 
 ## Join Us
 
