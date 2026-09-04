@@ -11,6 +11,7 @@ import io.edurt.datacap.spi.PluginService
 import io.edurt.datacap.spi.model.Configure
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ScheduledFuture
 
 /**
  * 本地执行器：在 DataCap 进程内把“源查询结果”搬运到“目标表”，支持流式与回退两种同步策略、
@@ -35,6 +36,20 @@ class LocalExecutorService : ExecutorService
         {
             TaskRegistry.register(request.taskName, handle)
         }
+        // 整任务超时看门狗：timeout<=0 表示不限时（默认）。到点后触发一次“超时取消”。
+        val timeoutFuture: ScheduledFuture<*>? =
+            if (request.timeout > 0)
+            {
+                TaskRegistry.scheduleTimeout(request.timeout)
+                {
+                    taskLog.warn("Task [ {} ] exceeded timeout of {}s, cancelling", request.taskName, request.timeout)
+                    requestCancel(handle, request.taskName, CancelReason.TIMEOUT)
+                }
+            }
+            else
+            {
+                null
+            }
         try
         {
             taskLog.info("Local executor task starting: task={} user={}", request.taskName, request.userName)
@@ -108,11 +123,7 @@ class LocalExecutorService : ExecutorService
         }
         catch (ex: TaskCancelledException)
         {
-            taskLog.warn("Local executor task stopped by user: rows={} task={}", ex.processed, request.taskName)
-            response.count = if (ex.processed > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else ex.processed.toInt()
-            response.successful = false
-            response.state = RunState.STOPPED
-            response.message = "Stopped by user"
+            applyCancelled(response, handle, request, ex.processed, taskLog)
         }
         catch (ex: Exception)
         {
@@ -121,11 +132,7 @@ class LocalExecutorService : ExecutorService
             // 此时尚无已提交行数，count 记 0。
             if (handle.cancellation.isCancelled)
             {
-                taskLog.warn("Local executor task stopped by user (outside write loop): task={}", request.taskName)
-                response.count = 0
-                response.successful = false
-                response.state = RunState.STOPPED
-                response.message = "Stopped by user"
+                applyCancelled(response, handle, request, 0L, taskLog)
             }
             else
             {
@@ -137,6 +144,8 @@ class LocalExecutorService : ExecutorService
         }
         finally
         {
+            // 任务已结束：撤掉尚未触发的超时看门狗，避免事后误触发
+            timeoutFuture?.cancel(false)
             if (request.taskName.isNotBlank())
             {
                 TaskRegistry.unregister(request.taskName, handle)
@@ -182,12 +191,23 @@ class LocalExecutorService : ExecutorService
         {
             return ExecutorResponse(false, false, RunState.FAILURE, "Task [ $taskName ] is not running on this node")
         }
-        // 设标志位 + 写日志：纯内存操作，立即完成
-        handle.cancellation.cancel()
-        log.info("Cancel requested for task [ {} ]", taskName)
-        handle.taskLog?.warn("Stop requested by user for task [ {} ]", taskName)
-        // Statement.cancel() 实现里通常会新开一个 JDBC 连接发 KILL QUERY，
-        // 如果源 DB 网络异常会阻塞 HTTP 请求线程。所以放到独立线程，不让 HTTP 等
+        requestCancel(handle, taskName, CancelReason.USER)
+        return ExecutorResponse(false, true, RunState.STOPPED, null)
+    }
+
+    /**
+     * 触发取消：设标志位（纯内存、立即完成）+ 异步 cancel 源端 Statement。
+     * 用户停止与超时看门狗共用此逻辑，仅取消原因不同。
+     *
+     * Statement.cancel() 实现里通常会新开一个 JDBC 连接发 KILL QUERY，
+     * 如果源 DB 网络异常会阻塞调用线程，所以放到独立线程执行。
+     */
+    private fun requestCancel(handle: TaskHandle, taskName: String, reason: CancelReason)
+    {
+        handle.cancellation.cancel(reason)
+        val what = if (reason == CancelReason.TIMEOUT) "Timeout cancel" else "Cancel"
+        log.info("{} requested for task [ {} ]", what, taskName)
+        handle.taskLog?.warn("{} requested for task [ {} ]", what, taskName)
         val stmt = handle.sourceStatement
         if (stmt != null)
         {
@@ -207,7 +227,35 @@ class LocalExecutorService : ExecutorService
                 }
             }
         }
-        return ExecutorResponse(false, true, RunState.STOPPED, null)
+    }
+
+    /**
+     * 把“取消”落到 response 上：按取消原因区分 STOPPED（用户停止）与 TIMEOUT（超时）。
+     * processed 为已提交行数（committed）。
+     */
+    private fun applyCancelled(
+        response: ExecutorResponse,
+        handle: TaskHandle,
+        request: ExecutorRequest,
+        processed: Long,
+        taskLog: Logger
+    )
+    {
+        response.count = if (processed > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else processed.toInt()
+        response.successful = false
+        if (handle.cancellation.reason == CancelReason.TIMEOUT)
+        {
+            taskLog.warn("Local executor task timed out: rows={} task={}", processed, request.taskName)
+            response.state = RunState.TIMEOUT
+            response.timeout = true
+            response.message = "Timed out after ${request.timeout}s"
+        }
+        else
+        {
+            taskLog.warn("Local executor task stopped by user: rows={} task={}", processed, request.taskName)
+            response.state = RunState.STOPPED
+            response.message = "Stopped by user"
+        }
     }
 
     /**

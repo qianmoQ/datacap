@@ -197,6 +197,32 @@ class LocalExecutorCharacterizationTest
         assertEquals(2, response.count)
     }
 
+    @Test
+    fun streamingTimeoutIsReportedAsTimeout()
+    {
+        // 源端“慢”：每行前 sleep，使整体远超 timeout；看门狗到点后取消，报告 TIMEOUT
+        val source = FakePluginService(
+            streaming = true,
+            headers = listOf("id"),
+            streamRows = (1..200).map { listOf<Any?>(it) }
+        )
+        source.beforeRow = { Thread.sleep(50) }
+        val sink = FakePluginService(streaming = true)
+        val request = buildRequest(
+            source, sink,
+            taskName = "timeout-task",
+            originColumns = linkedSetOf(OriginColumn("id", "id"))
+        ).apply {
+            timeout = 1L
+        }
+
+        val response = LocalExecutorService().start(request)
+
+        assertFalse(response.successful)
+        assertEquals(RunState.TIMEOUT, response.state)
+        assertTrue(response.timeout)
+    }
+
     // ---------------------------------------------------------------------
     // Legacy 回退路径（源或汇任一不支持流式）
     // ---------------------------------------------------------------------

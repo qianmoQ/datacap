@@ -1232,6 +1232,9 @@ public class DataSetServiceImpl
                                                                 int fetchSize = parseIntOrDefault(executorCfg.get("fetchSize"), 1000);
                                                                 int batchSize = parseIntOrDefault(executorCfg.get("batchSize"), 1000);
                                                                 boolean preCount = Boolean.parseBoolean(executorCfg.getOrDefault("preCount", "false"));
+                                                                // timeout 由各 executor 自己的配置决定：LocalExecutor schema 默认 0（不限时），
+                                                                // 未声明该字段的 executor（如 Seatunnel）回退到 600 秒，保持原有行为
+                                                                int timeout = parseIntOrDefault(executorCfg.get("timeout"), 600);
                                                                 ExecutorRequest request = new ExecutorRequest(
                                                                         taskName,
                                                                         entity.getUser().getUsername(),
@@ -1240,7 +1243,7 @@ public class DataSetServiceImpl
                                                                         executorCfg.get("home"),
                                                                         workHome,
                                                                         this.pluginManager,
-                                                                        600,
+                                                                        timeout,
                                                                         RunWay.valueOf(executorCfg.getOrDefault("way", "LOCAL")),
                                                                         RunMode.valueOf(executorCfg.getOrDefault("mode", "CLIENT")),
                                                                         executorCfg.get("startScript"),
@@ -1355,8 +1358,9 @@ public class DataSetServiceImpl
                                                                     history.setProgress(java.math.BigDecimal.valueOf(100.0).setScale(2, java.math.RoundingMode.HALF_UP));
                                                                 }
                                                                 historyRepository.save(history);
-                                                                // STOPPED 是用户主动停止，已经把最终状态写入 history，无需当作异常抛出 / 也不刷 table metadata
-                                                                if (response.getState() == RunState.STOPPED) {
+                                                                // STOPPED（用户主动停止）与 TIMEOUT（超时取消）都是终态：已把最终状态写入 history，
+                                                                // 无需当作异常抛出 / 也不刷 table metadata
+                                                                if (response.getState() == RunState.STOPPED || response.getState() == RunState.TIMEOUT) {
                                                                     return;
                                                                 }
                                                                 Preconditions.checkArgument(response.getSuccessful(), response.getMessage());

@@ -4,24 +4,38 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import org.slf4j.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
+/** 取消原因：区分“用户主动停止”与“任务超时”，供 start() 映射成 STOPPED / TIMEOUT。 */
+internal enum class CancelReason
+{
+    USER,
+    TIMEOUT
+}
+
 /**
- * 单一取消信号源。stop() 只调 [cancel]，各 sync 策略只读 [isCancelled] / 调 [throwIfCancelled]。
- * 取消时统一抛 [TaskCancelledException]，并携带“已提交行数”（committed），由 start() 转成 STOPPED。
+ * 单一取消信号源。stop() / 超时看门狗调 [cancel]，各 sync 策略只读 [isCancelled] / 调 [throwIfCancelled]。
+ * 取消时统一抛 [TaskCancelledException]，并携带“已提交行数”（committed），由 start() 按 [reason] 转成 STOPPED / TIMEOUT。
  *
- * The single source of truth for cancellation. stop() calls [cancel]; strategies observe it via
- * [isCancelled] / [throwIfCancelled]. Cancellation always surfaces as a [TaskCancelledException]
- * carrying the committed row count.
+ * The single source of truth for cancellation. Cancellation always surfaces as a
+ * [TaskCancelledException] carrying the committed row count; [reason] tells USER stop from TIMEOUT.
  */
 internal class CancellationToken
 {
     private val cancelled: AtomicBoolean = AtomicBoolean(false)
 
+    /** 首个取消原因胜出（用户停止与超时若竞争，以先到者为准） */
+    @Volatile
+    var reason: CancelReason? = null
+        private set
+
     val isCancelled: Boolean
         get() = cancelled.get()
 
-    fun cancel()
+    fun cancel(reason: CancelReason = CancelReason.USER)
     {
-        cancelled.set(true)
+        if (cancelled.compareAndSet(false, true))
+        {
+            this.reason = reason
+        }
     }
 
     fun throwIfCancelled(processed: Long)
