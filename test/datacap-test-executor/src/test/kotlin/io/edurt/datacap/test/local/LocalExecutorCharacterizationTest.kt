@@ -263,38 +263,28 @@ class LocalExecutorCharacterizationTest
     }
 
     @Test
-    fun legacyBothNonStreamingBuildsInsertSql()
+    fun legacyNonStreamingOutputIsRejected()
     {
-        // 双端都不支持流式 -> 拼 INSERT 字符串，验证列名反引号、单引号转义、NULL、数字不加引号
-        val rows = listOf(
-            objectNode("id" to 1, "name" to "O'Brien"),
-            objectNode("id" to 2, "name" to null)
-        )
+        // Phase 3-C：目标端不支持流式写入时，不再静默拼接手写 INSERT（注入/转义隐患），
+        // 而是快速失败。（实运行中所有插件经 JDBC 转换后 supportsStreaming==true，此分支仅为兜底。）
         val source = FakePluginService(
             streaming = false,
-            executeHandler = { rowsResponse(rows) }
+            executeHandler = { rowsResponse(listOf(objectNode("id" to 1, "name" to "a"))) }
         )
-        val sink = FakePluginService(
-            streaming = false,
-            executeHandler = { Response.builder().isSuccessful(true).columns(emptyList<Any>()).build() }
-        )
+        val sink = FakePluginService(streaming = false)
         val request = buildRequest(
             source, sink,
-            originColumns = linkedSetOf(
-                OriginColumn("uid", "id"),
-                OriginColumn("full_name", "name")
-            )
+            originColumns = linkedSetOf(OriginColumn("uid", "id"))
         )
 
         val response = LocalExecutorService().start(request)
 
-        assertTrue(response.successful)
-        assertEquals(2, response.count)
-        val sql = sink.executedSql.joinToString("\n")
-        assertTrue("should build INSERT: $sql", sql.contains("INSERT INTO `target_db`.`target_tbl`"))
-        assertTrue("should quote columns: $sql", sql.contains("`uid`") && sql.contains("`full_name`"))
-        assertTrue("should escape single quote: $sql", sql.contains("'O''Brien'"))
-        assertTrue("should emit NULL literal: $sql", sql.contains("NULL"))
+        assertFalse(response.successful)
+        assertEquals(RunState.FAILURE, response.state)
+        assertNotNull(response.message)
+        assertTrue(response.message!!.contains("does not support batch write"))
+        // 没有拼接/下发任何 INSERT 语句
+        assertTrue(sink.executedSql.isEmpty())
     }
 
     // ---------------------------------------------------------------------
