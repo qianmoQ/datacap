@@ -38,14 +38,7 @@ public class SeatunnelExecutorService
     public ExecutorResponse start(ExecutorRequest request)
     {
         try {
-            SeaTunnelCommander commander = new SeaTunnelCommander(
-                    request.getExecutorHome() + "/bin",
-                    request.getStartScript(),
-                    request.getRunWay().name().toLowerCase(),
-                    request.getRunMode().name().toLowerCase(),
-                    String.join(File.separator, request.getWorkHome(), request.getTaskName() + ".configure"),
-                    request.getTaskName(),
-                    request.getRunEngine());
+            SeaTunnelCommander commander = buildCommander(request);
 
             LoggerExecutor loggerExecutor = new LogbackExecutor(request.getWorkHome(), request.getTaskName() + ".log");
             String result = before(request, loggerExecutor.getLogger());
@@ -81,6 +74,22 @@ public class SeatunnelExecutorService
     public ExecutorResponse stop(ExecutorRequest request)
     {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 从请求构造 SeaTunnel 命令。单独抽出以便测试“请求字段 -> 命令行”的映射，
+     * 这是 ExecutorRequest 结构调整时最容易出错、也最需要回归保护的一段。
+     */
+    SeaTunnelCommander buildCommander(ExecutorRequest request)
+    {
+        return new SeaTunnelCommander(
+                request.getExecutorHome() + "/bin",
+                request.getStartScript(),
+                request.getRunWay().name().toLowerCase(),
+                request.getRunMode().name().toLowerCase(),
+                String.join(File.separator, request.getWorkHome(), request.getTaskName() + ".configure"),
+                request.getTaskName(),
+                request.getRunEngine());
     }
 
     /**
