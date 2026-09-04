@@ -116,12 +116,13 @@ class LocalExecutorService : ExecutorService
         }
         catch (ex: Exception)
         {
-            // 取消可能以包装异常的形式抛出（例如 SQLException by Statement.cancel()），通过 handle 反向判别
-            if (handle.cancelled.get())
+            // 正常情况下取消都会被策略归一成 TaskCancelledException（见上）。
+            // 这里只兜底“取消发生在写入循环之外”（如 openBatchWriter / 全量读取阶段就被取消）：
+            // 此时尚无已提交行数，count 记 0。
+            if (handle.cancellation.isCancelled)
             {
-                val rows = handle.rowsAtStop
-                taskLog.warn("Local executor task stopped by user (via JDBC cancel): rows≈{} task={}", rows, request.taskName)
-                response.count = if (rows > Int.MAX_VALUE.toLong()) Int.MAX_VALUE else rows.toInt()
+                taskLog.warn("Local executor task stopped by user (outside write loop): task={}", request.taskName)
+                response.count = 0
                 response.successful = false
                 response.state = RunState.STOPPED
                 response.message = "Stopped by user"
@@ -182,7 +183,7 @@ class LocalExecutorService : ExecutorService
             return ExecutorResponse(false, false, RunState.FAILURE, "Task [ $taskName ] is not running on this node")
         }
         // 设标志位 + 写日志：纯内存操作，立即完成
-        handle.cancelled.set(true)
+        handle.cancellation.cancel()
         log.info("Cancel requested for task [ {} ]", taskName)
         handle.taskLog?.warn("Stop requested by user for task [ {} ]", taskName)
         // Statement.cancel() 实现里通常会新开一个 JDBC 连接发 KILL QUERY，

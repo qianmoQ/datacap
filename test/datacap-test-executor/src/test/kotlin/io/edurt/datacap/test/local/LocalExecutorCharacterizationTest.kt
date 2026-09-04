@@ -22,8 +22,9 @@ import java.util.concurrent.CopyOnWriteArrayList
  * LocalExecutorService 的“特性测试”（characterization test）：
  * 只依赖内存 fake，不连任何数据库，用来在重构前锁定当前可观测行为。
  *
- * 注意：这里断言的是【当前实际行为】，其中个别断言（见 TODO(phase2)）刻画的是已知的、
- * 计划在 Phase 2 修正的可疑行为。重构后如果这些断言需要修改，说明改动是有意为之、可见的。
+ * 注意：这里断言的是【当前实际行为】。Phase 2 已把“取消时上报已提交行数”落地，
+ * 相关断言（streamingDriverAbortAfterCancelIsReportedAsStopped）已从 count=0 更新为 count=2；
+ * 断言的每次变更都应对应一次有意为之、可见的行为调整。
  */
 class LocalExecutorCharacterizationTest
 {
@@ -191,9 +192,9 @@ class LocalExecutorCharacterizationTest
         assertEquals(RunState.STOPPED, response.state)
         // 前 2 行确实已落库
         assertEquals(2, sink.committedRows.size)
-        // TODO(phase2): 当前实现用 rowsAtStop 上报，而 rowsAtStop 每 1000 行才更新一次，
-        // 所以小数据量下 count=0（丢失了已处理行数）。这是计划在 Phase 2 修正的已知问题。
-        assertEquals(0, response.count)
+        // Phase 2 修正：取消统一携带“已提交行数”（writer.writtenCount()），
+        // 不再依赖每 1000 行才更新一次的 rowsAtStop，故这里能正确报告 count=2。
+        assertEquals(2, response.count)
     }
 
     // ---------------------------------------------------------------------

@@ -14,7 +14,8 @@ import io.edurt.datacap.spi.model.Configure
  * 但目标端按 batch 切片提交，避免一次性拼接巨大 SQL 字符串；同时修复 NULL、类型、转义问题。
  *
  * 内部再按“目标端是否支持流式”分两条子路：BatchWriter / 拼 INSERT 字符串。
- * 逻辑从 LocalExecutorService.runLegacy 原样迁移，行为不变。
+ * 取消处理与流式路径一致：BatchWriter 子路由 [runCancelable] 收敛为“已提交行数”；
+ * SQL 子路的 written 本身就是已 flush（已提交）行数。
  */
 @SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION", "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"])
 internal class LegacySyncStrategy : SyncStrategy
@@ -33,7 +34,7 @@ internal class LegacySyncStrategy : SyncStrategy
         val taskLog = context.taskLog
         val totalCount = context.totalCount
         val progressListener = context.progressListener
-        val handle = context.handle
+        val token = context.handle.cancellation
 
         taskLog.info("Legacy sync start: target=`{}`.`{}` batchSize={}", database, table, batchSize)
         val startNanos = System.nanoTime()
@@ -50,48 +51,44 @@ internal class LegacySyncStrategy : SyncStrategy
         // 目标端能流式：用 BatchWriter 安全 + 节省内存
         if (outputPlugin.supportsStreaming())
         {
-            val targetColumns = originColumns.map { it.name }
-            val sourceKeys = originColumns.map { it.original }
-            var written = 0L
+            val targetColumns = context.targetColumns
+            val sourceKeys = context.sourceKeys
+            var read = 0L
             val writer = outputPlugin.openBatchWriter(
                 outputConfigure, database, table, targetColumns, batchSize
             )
-            writer.use { writer ->
+            writer.runCancelable(token) { w ->
                 for (item in rows)
                 {
-                    if (handle.cancelled.get())
-                    {
-                        throw TaskCancelledException(written)
-                    }
+                    token.throwIfCancelled(w.writtenCount())
                     val node = item as? ObjectNode ?: continue
                     val projected = ArrayList<Any?>(sourceKeys.size)
                     for (key in sourceKeys)
                     {
                         projected.add(ValueCodec.jsonNodeToJdbcValue(node.get(key)))
                     }
-                    writer.addRow(projected)
-                    written ++
-                    if (written % PROGRESS_INTERVAL == 0L)
+                    w.addRow(projected)
+                    read ++
+                    if (read % PROGRESS_INTERVAL == 0L)
                     {
-                        taskLog.info("Legacy sync progress: written={} committed={}", written, writer.writtenCount())
-                        progressListener?.onProgress(writer.writtenCount(), effectiveTotal)
+                        taskLog.info("Legacy sync progress: read={} committed={}", read, w.writtenCount())
+                        progressListener?.onProgress(w.writtenCount(), effectiveTotal)
                     }
                 }
             }
+            val committed = writer.writtenCount()
             val totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0
-            taskLog.info("Legacy sync done: rows={} committed={} elapsed={}s", written, writer.writtenCount(), "%.1f".format(totalSeconds))
-            return written
+            taskLog.info("Legacy sync done: read={} committed={} elapsed={}s", read, committed, "%.1f".format(totalSeconds))
+            return committed
         }
 
-        // 双端都不支持流式：用 INSERT 字符串，但按 batch 提交，不再拼一个巨大字符串
+        // 双端都不支持流式：用 INSERT 字符串，但按 batch 提交，不再拼一个巨大字符串。
+        // written 只在 flush 成功后累加，因此它就是“已提交行数”。
         var written = 0L
         val batch = ArrayList<String>(batchSize)
         for (item in rows)
         {
-            if (handle.cancelled.get())
-            {
-                throw TaskCancelledException(written)
-            }
+            token.throwIfCancelled(written)
             val node = item as? ObjectNode ?: continue
             val sqlColumns = ArrayList<SqlColumn>(originColumns.size)
             for (col in originColumns)
