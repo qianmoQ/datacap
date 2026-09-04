@@ -1,5 +1,6 @@
 package io.edurt.datacap.test.local.support
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import io.edurt.datacap.spi.PluginService
 import io.edurt.datacap.spi.PluginType
 import io.edurt.datacap.spi.adapter.BatchWriter
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *   - streaming=true  -> openBatchWriter() 返回 [CapturingBatchWriter]，把落库行收集到 [committedRows]
  *   - streaming=false -> 走 execute()，[executedSql] 收集所有拼出来的 INSERT 语句
  */
+@SuppressFBWarnings(value = ["EI_EXPOSE_REP", "EI_EXPOSE_REP2"])
 class FakePluginService(
     private val streaming: Boolean = true,
     private val headers: List<String> = emptyList(),
@@ -139,6 +141,7 @@ class FakePluginService(
  * 内存版 BatchWriter：模拟 JdbcBatchWriter 的“攒够 batchSize 才 flush、close 时 flush 剩余”语义，
  * writtenCount() 只统计已 flush（已提交）的行数，与真实实现保持一致。
  */
+@SuppressFBWarnings(value = ["EI_EXPOSE_REP2"])
 class CapturingBatchWriter(
     private val columns: List<String>,
     private val batchSize: Int,

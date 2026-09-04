@@ -2,6 +2,7 @@ package io.edurt.datacap.test.local
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import io.edurt.datacap.executor.common.RunState
 import io.edurt.datacap.executor.configure.ExecutorConfigure
 import io.edurt.datacap.executor.configure.ExecutorProgressListener
@@ -26,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  * 相关断言（streamingDriverAbortAfterCancelIsReportedAsStopped）已从 count=0 更新为 count=2；
  * 断言的每次变更都应对应一次有意为之、可见的行为调整。
  */
+@SuppressFBWarnings(value = ["BC_BAD_CAST_TO_ABSTRACT_COLLECTION"])
 class LocalExecutorCharacterizationTest
 {
     private val mapper = ObjectMapper()
