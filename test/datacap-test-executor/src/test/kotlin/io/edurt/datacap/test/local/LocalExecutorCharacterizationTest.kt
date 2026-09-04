@@ -95,7 +95,7 @@ class LocalExecutorCharacterizationTest
             source, sink,
             originColumns = linkedSetOf(OriginColumn("id", "id"))
         ).apply {
-            preCount = true
+            options = mapOf("preCount" to "true")
             progressListener = ExecutorProgressListener { processed, total -> progress.add(processed to total) }
         }
 

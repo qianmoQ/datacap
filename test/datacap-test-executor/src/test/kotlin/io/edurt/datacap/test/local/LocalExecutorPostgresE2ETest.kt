@@ -131,7 +131,7 @@ class LocalExecutorPostgresE2ETest
                 OriginColumn("amt", "amount")
             )
         ).apply {
-            preCount = true
+            options = mapOf("preCount" to "true")
             progressListener = ExecutorProgressListener { processed, total -> progress.add(processed to total) }
         }
 

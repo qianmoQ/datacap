@@ -6,7 +6,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.edurt.datacap.executor.ExecutorService;
+import io.edurt.datacap.executor.common.RunEngine;
+import io.edurt.datacap.executor.common.RunMode;
 import io.edurt.datacap.executor.common.RunState;
+import io.edurt.datacap.executor.common.RunWay;
 import io.edurt.datacap.executor.configure.ExecutorConfigure;
 import io.edurt.datacap.executor.configure.ExecutorRequest;
 import io.edurt.datacap.executor.configure.ExecutorResponse;
@@ -82,14 +85,19 @@ public class SeatunnelExecutorService
      */
     SeaTunnelCommander buildCommander(ExecutorRequest request)
     {
+        // Seatunnel 专属项来自 request.options：home / startScript / way / mode / engine
+        Map<String, String> options = request.getOptions();
+        RunWay runWay = RunWay.valueOf(options.getOrDefault("way", RunWay.LOCAL.name()));
+        RunMode runMode = RunMode.valueOf(options.getOrDefault("mode", RunMode.CLIENT.name()));
+        RunEngine runEngine = RunEngine.valueOf(options.getOrDefault("engine", RunEngine.SPARK.name()));
         return new SeaTunnelCommander(
-                request.getExecutorHome() + "/bin",
-                request.getStartScript(),
-                request.getRunWay().name().toLowerCase(),
-                request.getRunMode().name().toLowerCase(),
+                options.get("home") + "/bin",
+                options.get("startScript"),
+                runWay.name().toLowerCase(),
+                runMode.name().toLowerCase(),
                 String.join(File.separator, request.getWorkHome(), request.getTaskName() + ".configure"),
                 request.getTaskName(),
-                request.getRunEngine());
+                runEngine);
     }
 
     /**

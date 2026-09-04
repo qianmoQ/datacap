@@ -71,21 +71,24 @@ class LocalExecutorService : ExecutorService
                 throw IllegalArgumentException("Input column mapping is empty")
             }
 
-            val fetchSize = if (request.fetchSize > 0) request.fetchSize else DEFAULT_FETCH_SIZE
-            val batchSize = if (request.batchSize > 0) request.batchSize else DEFAULT_BATCH_SIZE
+            // Local 专属可调项从 options 读取（调用方把 executor 的 effective 配置塞进 options）
+            val options = request.options
+            val fetchSize = (options["fetchSize"]?.toIntOrNull()?.takeIf { it > 0 }) ?: DEFAULT_FETCH_SIZE
+            val batchSize = (options["batchSize"]?.toIntOrNull()?.takeIf { it > 0 }) ?: DEFAULT_BATCH_SIZE
+            val preCountEnabled = options["preCount"]?.toBoolean() ?: false
             val progressListener = request.progressListener
 
             taskLog.info(
                     "Resolved input plugin={} output plugin={} streaming={}/{} fetchSize={} batchSize={} preCount={}",
                     inputPlugin.name(), outputPlugin.name(),
                     inputPlugin.supportsStreaming(), outputPlugin.supportsStreaming(),
-                    fetchSize, batchSize, request.preCount
+                    fetchSize, batchSize, preCountEnabled
             )
             taskLog.info("Source query: {}", query)
 
             // 可选：先跑 SELECT COUNT(*) 拿到源端总行数，作为进度分母
             // Optional: pre-count to populate the total row count used for progress percentage
-            val totalCount: Long = if (request.preCount) preCount(inputPlugin, inputConfigure, query, taskLog) else -1L
+            val totalCount: Long = if (preCountEnabled) preCount(inputPlugin, inputConfigure, query, taskLog) else -1L
             if (totalCount >= 0)
             {
                 taskLog.info("Pre-count: source total rows = {}", totalCount)

@@ -1,8 +1,5 @@
 package io.edurt.datacap.executor.seatunnel
 
-import io.edurt.datacap.executor.common.RunEngine
-import io.edurt.datacap.executor.common.RunMode
-import io.edurt.datacap.executor.common.RunWay
 import io.edurt.datacap.executor.configure.ExecutorConfigure
 import io.edurt.datacap.executor.configure.ExecutorRequest
 import org.junit.Assert.assertEquals
@@ -10,10 +7,11 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Seatunnel 安全网：锁定“ExecutorRequest 字段 -> seatunnel 命令行”的映射。
+ * Seatunnel 安全网：锁定“ExecutorRequest -> seatunnel 命令行”的映射。
  *
- * 这段映射在 ExecutorRequest 结构调整（把 executor 专属字段收敛进 options）时最易出错。
- * 断言的是最终命令字符串——只要重构后 buildCommander 仍读到等价的值，命令就不变、测试保持绿。
+ * ExecutorRequest 已把 executor 专属项收敛进 options（home/startScript/way/mode/engine）。
+ * 这里断言最终命令字符串——只要 buildCommander 从 options 读到等价的值，命令就不变、测试保持绿。
+ * 命令期望值与字段拆分前完全一致，用来证明拆分没有改变行为。
  */
 class SeatunnelCommanderMappingTest
 {
@@ -27,12 +25,14 @@ class SeatunnelCommanderMappingTest
             userName = "tester",
             input = ExecutorConfigure("Jdbc"),
             output = ExecutorConfigure("Jdbc"),
-            executorHome = "/opt/seatunnel",
             workHome = "/work",
-            runWay = RunWay.LOCAL,
-            runMode = RunMode.CLIENT,
-            startScript = "start-seatunnel-spark-connector-v2.sh",
-            runEngine = RunEngine.SPARK
+            options = mapOf(
+                "home" to "/opt/seatunnel",
+                "startScript" to "start-seatunnel-spark-connector-v2.sh",
+                "way" to "LOCAL",
+                "mode" to "CLIENT",
+                "engine" to "SPARK"
+            )
         )
 
         val config = "/work" + File.separator + "task1.configure"
@@ -51,12 +51,14 @@ class SeatunnelCommanderMappingTest
             userName = "tester",
             input = ExecutorConfigure("Jdbc"),
             output = ExecutorConfigure("Jdbc"),
-            executorHome = "/opt/seatunnel",
             workHome = "/work",
-            runWay = RunWay.LOCAL,
-            runMode = RunMode.CLIENT,
-            startScript = "seatunnel.sh",
-            runEngine = RunEngine.SEATUNNEL
+            options = mapOf(
+                "home" to "/opt/seatunnel",
+                "startScript" to "seatunnel.sh",
+                "way" to "LOCAL",
+                "mode" to "CLIENT",
+                "engine" to "SEATUNNEL"
+            )
         )
 
         val config = "/work" + File.separator + "task2.configure"
