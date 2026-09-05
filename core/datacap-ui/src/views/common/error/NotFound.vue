@@ -18,12 +18,8 @@
   </BaseLayout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
 import BaseLayout from '@/views/layouts/base/BaseLayout.vue'
 
-export default defineComponent({
-  name: 'NotFound',
-  components: { BaseLayout }
-})
+defineOptions({ name: 'NotFound' })
 </script>
