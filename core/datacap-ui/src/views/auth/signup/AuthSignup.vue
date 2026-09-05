@@ -101,8 +101,9 @@
   </BaseLayout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import CaptchaService from '@/services/captcha'
 import UserService from '@/services/user'
@@ -118,69 +119,61 @@ interface Props
   captcha: number
 }
 
-export default defineComponent({
-  name: 'AuthSignup',
-  components: { BaseLayout },
-  data()
-  {
-    return {
-      formState: {} as Props,
-      submitting: false,
-      loading: false,
-      showCaptcha: false,
-      captchaImage: null,
-      captchaLoading: false
-    }
-  },
-  created()
-  {
-    this.loading = true
-    this.initCaptcha()
-  },
-  methods: {
-    initCaptcha()
-    {
-      this.captchaLoading = true
-      this.formState.timestamp = Date.parse(new Date().toString())
-      CaptchaService.getCaptcha(this.formState.timestamp)
-                    .then(response => {
-                      if (response.data !== false) {
-                        this.showCaptcha = true
-                        this.captchaImage = response.data.image
-                      }
-                    })
-                    .finally(() => {
-                      this.captchaLoading = false
-                      this.loading = false
-                    })
-    },
-    validatePassword(_rule: any, value: string)
-    {
-      if (value !== this.formState.password) {
-        return Promise.reject(new Error(this.$t('user.auth.passwordNotMatchTip')))
-      }
-      return Promise.resolve(true)
-    },
-    onError(error: any)
-    {
-      const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
-      message.error(`Validation error field: [ ${ names.join(', ') } ]`)
-    },
-    async onSubmit()
-    {
-      this.submitting = true
-      UserService.signup(this.formState as any)
-                 .then(response => {
-                   if (response.status) {
-                     router.push('/auth/signin')
-                   }
-                   else {
-                     message.error(response.message)
-                     this.initCaptcha()
-                   }
-                 })
-                 .finally(() => this.submitting = false)
-    }
+defineOptions({ name: 'AuthSignup' })
+
+const { t } = useI18n()
+
+const formState = ref<Props>({} as Props)
+const submitting = ref(false)
+const loading = ref(false)
+const showCaptcha = ref(false)
+const captchaImage = ref<string | null>(null)
+const captchaLoading = ref(false)
+
+const initCaptcha = () => {
+  captchaLoading.value = true
+  formState.value.timestamp = Date.parse(new Date().toString())
+  CaptchaService.getCaptcha(formState.value.timestamp)
+                .then(response => {
+                  if (response.data !== false) {
+                    showCaptcha.value = true
+                    captchaImage.value = response.data.image
+                  }
+                })
+                .finally(() => {
+                  captchaLoading.value = false
+                  loading.value = false
+                })
+}
+
+const validatePassword = (_rule: any, value: string) => {
+  if (value !== formState.value.password) {
+    return Promise.reject(new Error(t('user.auth.passwordNotMatchTip')))
   }
-})
+  return Promise.resolve(true)
+}
+
+const onError = (error: any) => {
+  const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
+  message.error(`Validation error field: [ ${ names.join(', ') } ]`)
+}
+
+const onSubmit = async () => {
+  submitting.value = true
+  UserService.signup(formState.value as any)
+             .then(response => {
+               if (response.status) {
+                 router.push('/auth/signin')
+               }
+               else {
+                 message.error(response.message)
+                 initCaptcha()
+               }
+             })
+             .finally(() => (submitting.value = false))
+}
+
+// created 等价：setup 阶段立即初始化验证码
+loading.value = true
+initCaptcha()
 </script>

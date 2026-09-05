@@ -91,8 +91,8 @@
   </BaseLayout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useUserStore } from '@/stores/user'
 import UserService from '@/services/user'
@@ -110,90 +110,77 @@ interface Props
   captcha: number
 }
 
-export default defineComponent({
-  name: 'AuthSignin',
-  components: { BaseLayout },
-  setup()
-  {
-    const userStore = useUserStore()
-    return { userStore }
-  },
-  data()
-  {
-    return {
-      formState: {} as Props,
-      submitting: false,
-      loading: false,
-      showCaptcha: false,
-      captchaImage: null,
-      captchaLoading: false
+defineOptions({ name: 'AuthSignin' })
+
+const userStore = useUserStore()
+
+const formState = ref<Props>({} as Props)
+const submitting = ref(false)
+const loading = ref(false)
+const showCaptcha = ref(false)
+const captchaImage = ref<string | null>(null)
+const captchaLoading = ref(false)
+
+const initCaptcha = () => {
+  captchaLoading.value = true
+  formState.value.timestamp = Date.parse(new Date().toString())
+  CaptchaService.getCaptcha(formState.value.timestamp)
+                .then(response => {
+                  if (response.data !== false) {
+                    showCaptcha.value = true
+                    captchaImage.value = response.data.image
+                  }
+                })
+                .finally(() => {
+                  captchaLoading.value = false
+                  loading.value = false
+                })
+}
+
+const onError = (error: any) => {
+  const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
+  message.error(`Validation error field: [ ${ names.join(', ') } ]`)
+}
+
+const onSubmit = async () => {
+  try {
+    submitting.value = true
+    const loginResponse = await UserService.signin(formState.value as any)
+
+    if (loginResponse.status) {
+      localStorage.setItem(CommonUtils.token, JSON.stringify(loginResponse.data))
+
+      // 获取用户信息和菜单
+      const menuResponse = await UserService.getMenus()
+      if (menuResponse.status) {
+        userStore.updateMenu(menuResponse.data)
+        // 更新路由并跳转
+        createDefaultRouter(router)
+        router.push('/home')
+      }
+      else {
+        if (!menuResponse.status) {
+          message.error(menuResponse.message)
+        }
+        userStore.logout()
+      }
     }
-  },
-  created()
-  {
-    this.loading = true
-    this.initCaptcha()
-  },
-  methods: {
-    initCaptcha()
-    {
-      this.captchaLoading = true
-      this.formState.timestamp = Date.parse(new Date().toString())
-      CaptchaService.getCaptcha(this.formState.timestamp)
-                    .then(response => {
-                      if (response.data !== false) {
-                        this.showCaptcha = true
-                        this.captchaImage = response.data.image
-                      }
-                    })
-                    .finally(() => {
-                      this.captchaLoading = false
-                      this.loading = false
-                    })
-    },
-    onError(error: any)
-    {
-      const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
-      message.error(`Validation error field: [ ${ names.join(', ') } ]`)
-    },
-    async onSubmit()
-    {
-      try {
-        this.submitting = true
-        const loginResponse = await UserService.signin(this.formState as any)
-
-        if (loginResponse.status) {
-          localStorage.setItem(CommonUtils.token, JSON.stringify(loginResponse.data))
-
-          // 获取用户信息和菜单
-          const menuResponse = await UserService.getMenus()
-          if (menuResponse.status) {
-            this.userStore.updateMenu(menuResponse.data)
-            // 更新路由并跳转
-            createDefaultRouter(router)
-            router.push('/home')
-          }
-          else {
-            if (!menuResponse.status) {
-              message.error(menuResponse.message)
-            }
-            this.userStore.logout()
-          }
-        }
-        else {
-          message.error(loginResponse.message)
-          this.initCaptcha()
-        }
-      }
-      catch (error) {
-        console.error('Login error:', error)
-        message.error('Login failed')
-        this.initCaptcha()
-      }
-      finally {
-        this.submitting = false
-      }
+    else {
+      message.error(loginResponse.message)
+      initCaptcha()
     }
   }
-})
+  catch (error) {
+    console.error('Login error:', error)
+    message.error('Login failed')
+    initCaptcha()
+  }
+  finally {
+    submitting.value = false
+  }
+}
+
+// created 等价：setup 阶段立即初始化验证码
+loading.value = true
+initCaptcha()
 </script>
