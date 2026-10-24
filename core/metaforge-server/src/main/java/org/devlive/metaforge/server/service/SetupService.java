@@ -3,6 +3,7 @@ package org.devlive.metaforge.server.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.common.response.CommonResponse;
+import org.devlive.metaforge.service.initializer.DataSetConfigure;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,12 +31,14 @@ public class SetupService
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
     private final PasswordEncoder passwordEncoder;
+    private final DataSetConfigure dataSetConfigure;
 
-    public SetupService(JdbcTemplate jdbcTemplate, DataSource dataSource, PasswordEncoder passwordEncoder)
+    public SetupService(JdbcTemplate jdbcTemplate, DataSource dataSource, PasswordEncoder passwordEncoder, DataSetConfigure dataSetConfigure)
     {
         this.jdbcTemplate = jdbcTemplate;
         this.dataSource = dataSource;
         this.passwordEncoder = passwordEncoder;
+        this.dataSetConfigure = dataSetConfigure;
     }
 
     /**
@@ -106,6 +109,13 @@ public class SetupService
             executeScript("schema/setup-schema.sql");
             executeScript("schema/setup-data.sql");
             createAdministrator(body);
+            // 补跑被安装前跳过的运行时配置 seed，无需重启服务
+            try {
+                dataSetConfigure.reload();
+            }
+            catch (Exception e) {
+                log.warn("Reload dataset configure after setup failed: {}", e.getMessage());
+            }
             log.info("Setup finished, administrator [ {} ] created", body.getUsername());
             Map<String, Object> result = new HashMap<>();
             result.put("username", body.getUsername());

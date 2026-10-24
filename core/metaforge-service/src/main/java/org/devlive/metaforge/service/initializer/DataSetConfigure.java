@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.devlive.metaforge.service.configure.DatasetTargetSchema;
 import org.devlive.metaforge.service.service.RuntimeConfigureService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -41,6 +42,17 @@ public class DataSetConfigure
 
     @PostConstruct
     public void load()
+    {
+        try {
+            doLoad();
+        }
+        catch (DataAccessException e) {
+            // 未安装的空库：setup 向导完成并重载后才会写入配置
+            log.warn("DataSetConfigure skipped, storage tables missing (instance not installed?): {}", e.getMostSpecificCause().getMessage());
+        }
+    }
+
+    private void doLoad()
     {
         // 首次启动 seed：DB 行不存在则按 schema 默认值落一条，方便管理员后续从 UI 改
         runtimeConfigureService.seedIfAbsent(

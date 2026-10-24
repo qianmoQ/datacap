@@ -33,10 +33,11 @@ public class SchedulerRunner
     public void run(String... args)
     {
         log.info("Start scheduler initializer");
-        repository.findAllBySyncMode(SyncMode.TIMING)
-                .forEach(item -> {
-                    log.info("Dataset [ {} ] will be scheduled", item.getName());
-                    pluginManager.getPlugin(item.getScheduler())
+        try {
+            repository.findAllBySyncMode(SyncMode.TIMING)
+                    .forEach(item -> {
+                        log.info("Dataset [ {} ] will be scheduled", item.getName());
+                        pluginManager.getPlugin(item.getScheduler())
                             .ifPresentOrElse(
                                     plugin -> {
                                         SchedulerRequest request = SchedulerRequest.builder()
@@ -57,6 +58,11 @@ public class SchedulerRunner
                                     () -> log.error("Scheduler [ {} ] not found", item.getScheduler())
                             );
                 });
+        }
+        catch (Exception e) {
+            // 未安装的空库：等待 setup 向导完成并重启后再次调度
+            log.warn("Scheduler initializer skipped, dataset tables missing (instance not installed?): {}", e.getMessage());
+        }
         log.info("End scheduler initializer");
     }
 }
