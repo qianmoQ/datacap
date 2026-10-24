@@ -16,3 +16,11 @@ export const FOCUS_RING = 'outline-none focus-visible:ring-2 focus-visible:ring-
 export const TRANSITION = 'transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-(--mf-duration-base) ease-(--mf-easing)'
 
 export const DISABLED = 'disabled:pointer-events-none disabled:opacity-50'
+
+export interface MfSelectOption {
+    label: string
+    value: string | number
+    disabled?: boolean
+    /** Group heading; options sharing it render under one label. */
+    group?: string
+}

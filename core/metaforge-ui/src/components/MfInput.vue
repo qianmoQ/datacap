@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import clsx from 'clsx'
 import { CONTROL_SIZES, FOCUS_RING, TRANSITION, type MfControlSize } from './common'
 
@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<{
     size?: MfControlSize
     placeholder?: string
     clearable?: boolean
+    showPassword?: boolean
     disabled?: boolean
     readonly?: boolean
     invalid?: boolean
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<{
     type: 'text',
     size: 'md',
     clearable: false,
+    showPassword: false,
     disabled: false,
     readonly: false,
     invalid: false,
@@ -29,8 +31,13 @@ const emit = defineEmits<{
     enter: [event: KeyboardEvent]
 }>()
 
+const passwordVisible = ref(false)
+const actualType = computed(() => props.showPassword || props.type === 'password'
+    ? (passwordVisible.value ? 'text' : 'password')
+    : props.type)
+
 const wrapperClass = computed(() => clsx(
-    'inline-flex items-center w-full rounded-mf-md border bg-surface',
+    'mf-invalidable inline-flex items-center w-full rounded-mf-md border bg-surface',
     CONTROL_SIZES[props.size],
     'px-0!',
     TRANSITION,
@@ -54,17 +61,33 @@ function clear(): void {
         </span>
         <input
             :value="modelValue"
-            :type="type"
+            :type="actualType"
             :placeholder="placeholder"
             :disabled="disabled"
             :readonly="readonly"
             :maxlength="maxlength"
-            class="min-w-0 flex-1 bg-transparent px-3 text-sm text-content placeholder:text-content-tertiary outline-none"
+            class="min-w-0 flex-1 bg-transparent px-3 text-sm text-content placeholder:text-content-placeholder outline-none"
             :class="[FOCUS_RING, readonly ? 'cursor-default' : '']"
+            autocomplete="off"
             @input="onInput"
             @blur="emit('blur', $event)"
             @keyup.enter="emit('enter', $event)"
         >
+        <button
+            v-if="showPassword && !disabled"
+            type="button"
+            class="mr-2 inline-flex size-5 items-center justify-center rounded-mf-full text-content-tertiary hover:bg-surface-hover hover:text-content"
+            :aria-label="passwordVisible ? 'hide password' : 'show password'"
+            @click="passwordVisible = !passwordVisible"
+        >
+            <svg v-if="passwordVisible" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3 3l18 18M10.5 10.7a2.5 2.5 0 003.4 3.4M7.4 7.5C5.2 8.8 3.7 10.8 3 12c1.5 2.7 4.8 6 9 6 1.6 0 3-.4 4.3-1.1M10 6.2A9.8 9.8 0 0112 6c4.2 0 7.5 3.3 9 6-.5.9-1.4 2.1-2.6 3.2" stroke-linecap="round" />
+            </svg>
+            <svg v-else class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3 12c1.5-2.7 4.8-6 9-6s7.5 3.3 9 6c-1.5 2.7-4.8 6-9 6s-7.5-3.3-9-6z" />
+                <circle cx="12" cy="12" r="2.5" />
+            </svg>
+        </button>
         <button
             v-if="clearable && modelValue && !disabled && !readonly"
             type="button"

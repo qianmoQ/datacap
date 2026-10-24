@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { TRANSITION } from './common'
 
 const props = withDefaults(defineProps<{
-    modelValue?: boolean | string[] | number[]
+    modelValue?: boolean | (string | number)[]
     value?: string | number
     label?: string
     disabled?: boolean

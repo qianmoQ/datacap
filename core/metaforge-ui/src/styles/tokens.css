@@ -10,6 +10,7 @@
  *                        utility-generating tokens (`bg-primary`, ...)
  *
  * Components only ever use semantic utilities, never raw palette classes.
+ * Palette source: design/ui-color-system.md (MetaForge green identity).
  */
 
 /* ------------------------------------------------------------------ */
@@ -17,45 +18,46 @@
 /* ------------------------------------------------------------------ */
 :root {
     /* brand */
-    --mf-color-primary: #2563eb;
-    --mf-color-primary-hover: #3b82f6;
-    --mf-color-primary-active: #1d4ed8;
+    --mf-color-primary: #0A8F67;
+    --mf-color-primary-hover: #087A59;
+    --mf-color-primary-active: #086247;
     --mf-color-on-primary: #ffffff;
 
     /* feedback */
-    --mf-color-success: #16a34a;
-    --mf-color-success-subtle: #dcfce7;
-    --mf-color-warning: #d97706;
-    --mf-color-warning-subtle: #fef3c7;
-    --mf-color-danger: #dc2626;
-    --mf-color-danger-subtle: #fee2e2;
-    --mf-color-info: #0284c7;
-    --mf-color-info-subtle: #e0f2fe;
+    --mf-color-success: #16A66A;
+    --mf-color-success-subtle: #EAF8F1;
+    --mf-color-warning: #E5A11A;
+    --mf-color-warning-subtle: #FFF8E6;
+    --mf-color-danger: #DC5656;
+    --mf-color-danger-subtle: #FFF1F1;
+    --mf-color-info: #3B82F6;
+    --mf-color-info-subtle: #EFF6FF;
 
     /* surfaces & content */
-    --mf-color-page: #f8fafc;
+    --mf-color-page: #F6FAF9;
     --mf-color-surface: #ffffff;
-    --mf-color-surface-hover: #f1f5f9;
-    --mf-color-surface-active: #e2e8f0;
-    --mf-color-content: #0f172a;
-    --mf-color-content-secondary: #475569;
-    --mf-color-content-tertiary: #94a3b8;
-    --mf-color-content-disabled: #cbd5e1;
+    --mf-color-surface-hover: #F0F7F4;
+    --mf-color-surface-active: #DDF5EC;
+    --mf-color-content: #14201C;
+    --mf-color-content-secondary: #465A52;
+    --mf-color-content-tertiary: #7D8D87;
+    --mf-color-content-placeholder: #A8B3AF;
+    --mf-color-content-disabled: #BDC6C2;
     --mf-color-content-inverse: #ffffff;
-    --mf-color-line: #e2e8f0;
-    --mf-color-line-strong: #cbd5e1;
-    --mf-color-overlay: rgb(15 23 42 / 0.45);
+    --mf-color-line: #E3EAE7;
+    --mf-color-line-strong: #C9D8D2;
+    --mf-color-overlay: rgb(20 32 28 / 0.45);
 
     /* radii */
     --mf-radius-sm: 4px;
-    --mf-radius-md: 6px;
-    --mf-radius-lg: 8px;
+    --mf-radius-md: 8px;
+    --mf-radius-lg: 12px;
     --mf-radius-full: 9999px;
 
     /* elevation */
-    --mf-shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
-    --mf-shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.06);
-    --mf-shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.06);
+    --mf-shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04);
+    --mf-shadow-md: 0 1px 2px rgb(15 23 42 / 0.02), 0 4px 16px rgb(15 23 42 / 0.035);
+    --mf-shadow-lg: 0 4px 10px rgb(15 23 42 / 0.03), 0 12px 30px rgb(15 23 42 / 0.05);
 
     /* motion */
     --mf-duration-fast: 120ms;
@@ -75,32 +77,33 @@
 /* Dark theme                                                          */
 /* ------------------------------------------------------------------ */
 [data-theme='dark'] {
-    --mf-color-primary: #3b82f6;
-    --mf-color-primary-hover: #60a5fa;
-    --mf-color-primary-active: #2563eb;
+    --mf-color-primary: #18A779;
+    --mf-color-primary-hover: #49C399;
+    --mf-color-primary-active: #12805E;
     --mf-color-on-primary: #ffffff;
 
-    --mf-color-success: #4ade80;
-    --mf-color-success-subtle: rgb(74 222 128 / 0.14);
-    --mf-color-warning: #fbbf24;
-    --mf-color-warning-subtle: rgb(251 191 36 / 0.14);
-    --mf-color-danger: #f87171;
-    --mf-color-danger-subtle: rgb(248 113 113 / 0.14);
-    --mf-color-info: #38bdf8;
-    --mf-color-info-subtle: rgb(56 189 248 / 0.14);
+    --mf-color-success: #3FBF8A;
+    --mf-color-success-subtle: rgb(63 191 138 / 0.14);
+    --mf-color-warning: #E8B84A;
+    --mf-color-warning-subtle: rgb(232 184 74 / 0.14);
+    --mf-color-danger: #E57272;
+    --mf-color-danger-subtle: rgb(229 114 114 / 0.14);
+    --mf-color-info: #6CA5F8;
+    --mf-color-info-subtle: rgb(108 165 248 / 0.14);
 
-    --mf-color-page: #0b1120;
-    --mf-color-surface: #111a2e;
-    --mf-color-surface-hover: #1c2740;
-    --mf-color-surface-active: #24304d;
-    --mf-color-content: #f1f5f9;
-    --mf-color-content-secondary: #94a3b8;
-    --mf-color-content-tertiary: #64748b;
-    --mf-color-content-disabled: #475569;
-    --mf-color-content-inverse: #0f172a;
-    --mf-color-line: #1e293b;
-    --mf-color-line-strong: #334155;
-    --mf-color-overlay: rgb(2 6 23 / 0.6);
+    --mf-color-page: #0C1412;
+    --mf-color-surface: #111B18;
+    --mf-color-surface-hover: #1A2823;
+    --mf-color-surface-active: #1F3A30;
+    --mf-color-content: #E8F0ED;
+    --mf-color-content-secondary: #9FB2AB;
+    --mf-color-content-tertiary: #6F817A;
+    --mf-color-content-placeholder: #6F817A;
+    --mf-color-content-disabled: #4C5A55;
+    --mf-color-content-inverse: #0C1412;
+    --mf-color-line: #22302B;
+    --mf-color-line-strong: #33473F;
+    --mf-color-overlay: rgb(0 8 5 / 0.6);
 
     --mf-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
     --mf-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.35);
