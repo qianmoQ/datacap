@@ -1,28 +1,29 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
            :title="$t('workflow.text.logger')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-spin :spinning="loading">
-      <LogViewer v-if="!loading"
+           @close="onCancel">
+    <div v-if="loading" class="flex items-center justify-center py-10">
+      <MfSpinner size="lg" label="Loading..."/>
+    </div>
+
+    <LogViewer v-else-if="!loading"
                     height="380"
                     toolbar
                     :items="logs"
                     :custom-patterns="customPatterns"/>
-    </a-spin>
 
     <template #footer>
-      <a-button @click="onCancel">
+      <MfButton @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { WorkflowModel } from '@/model/workflow'
 import WorkflowService from '@/services/workflow'
 import LogViewer from '@/views/components/logger/LogViewer.vue'
@@ -62,7 +63,7 @@ const handleInitialize = () => {
                        logs.value = response.data
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))

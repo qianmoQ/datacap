@@ -1,27 +1,27 @@
 <template>
-  <a-card :bordered="false" :title="$t('user.common.info')">
+  <MfCard :bordered="false" :title="$t('user.common.info')">
     <div class="text-sm text-gray-500">{{ $t('user.tip.info') }}</div>
-    <a-divider class="my-2"/>
+    <MfDivider class="my-2"/>
 
-    <a-row :gutter="16">
-      <a-col :span="12">
-        <a-card :title="$t('user.common.contribution')" :loading="loading">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <MfCard :title="$t('user.common.contribution')">
+        <MfSkeleton :loading="loading">
           <div class="text-sm text-gray-500">{{ $t('user.tip.contribution') }}</div>
           <div class="p-2">
             <Contribution :data="heatmap.data"/>
           </div>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card :title="$t('user.common.radar7Days')" :loading="loading">
+        </MfSkeleton>
+      </MfCard>
+      <MfCard :title="$t('user.common.radar7Days')">
+        <MfSkeleton :loading="loading">
           <div class="text-sm text-gray-500">{{ $t('user.tip.radar7Days') }}</div>
           <div class="p-2">
             <VisualPie v-if="radar.configuration" :configuration="radar.configuration as any" height="200px" :submitted="false"/>
           </div>
-        </a-card>
-      </a-col>
-    </a-row>
-  </a-card>
+        </MfSkeleton>
+      </MfCard>
+    </div>
+  </MfCard>
 </template>
 
 <script setup lang="ts">

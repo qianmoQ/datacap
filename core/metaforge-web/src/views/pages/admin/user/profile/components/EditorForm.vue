@@ -1,27 +1,27 @@
 <template>
   <div class="relative">
-    <a-spin :spinning="defaultLoading">
-      <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-form-item name="fontSize"
+    <MfSkeleton :loading="defaultLoading">
+      <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+        <MfFormItem name="fontSize"
                      class="w-[40%]"
                      :label="$t('user.common.fontSize')"
-                     :extra="$t('user.tip.fontSize')"
                      :rules="[{ pattern: /^[0-9]*$/, message: 'Please enter number!' }]">
-          <a-input v-model:value="formState.fontSize"/>
-        </a-form-item>
+          <MfInput v-model="formState.fontSize"/>
+          <div class="text-xs text-content-tertiary">{{ $t('user.tip.fontSize') }}</div>
+        </MfFormItem>
 
-        <a-button type="primary" html-type="submit" :loading="submitting" :disabled="submitting">
+        <MfButton variant="primary" type="submit" :loading="submitting" :disabled="submitting">
           {{ $t('common.save') }}
-        </a-button>
-      </a-form>
-    </a-spin>
+        </MfButton>
+      </MfForm>
+    </MfSkeleton>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import UserService from '@/services/user'
 import { UserEditor } from '@/model/user'
 import Common from '@/utils/common'
@@ -53,11 +53,11 @@ const onSubmit = () => {
   UserService.changeEditor(formState.value as UserEditor)
              .then((response) => {
                if (response.status) {
-                 message.success(t('common.successfully') as string)
+                 MfMessage.success(t('common.successfully') as string)
                  localStorage.setItem(Common.userEditorConfigure, JSON.stringify(formState.value))
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (submitting.value = false))

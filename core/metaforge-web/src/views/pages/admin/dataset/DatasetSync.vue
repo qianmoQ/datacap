@@ -1,6 +1,6 @@
 <template>
-  <a-modal v-model:open="visible" :title="`[ ${ info?.name } ] ${ $t('dataset.common.syncData') }`">
-    <a-alert type="error" :message="$t('dataset.tip.syncData')"/>
+  <MfModal v-model:open="visible" :title="`[ ${ info?.name } ] ${ $t('dataset.common.syncData') }`">
+    <MfAlert variant="danger" :title="$t('dataset.tip.syncData')"/>
 
     <div v-if="loadingFields" class="py-2 text-xs text-gray-500">{{ $t('common.loading') }}</div>
 
@@ -10,30 +10,30 @@
         <label class="text-xs">{{ field.name }}</label>
         <div v-if="field.description" class="text-xs text-gray-500">{{ field.description }}</div>
 
-        <a-input v-if="field.type === 'STRING'" v-model:value="overrides[field.name]"/>
-        <a-input-number v-else-if="field.type === 'NUMBER'" v-model:value="overrides[field.name]" :style="{ width: '100%' }"/>
-        <a-switch v-else-if="field.type === 'BOOLEAN'"
-                  v-model:checked="booleanProxies[field.name]"
-                  @change="(v: boolean) => onBoolChange(field.name, v)"/>
-        <a-input-password v-else-if="field.type === 'PASSWORD'" v-model:value="overrides[field.name]"/>
+        <MfInput v-if="field.type === 'STRING'" v-model="overrides[field.name]"/>
+        <MfInputNumber v-else-if="field.type === 'NUMBER'" v-model="overrides[field.name]" :style="{ width: '100%' }"/>
+        <MfSwitch v-else-if="field.type === 'BOOLEAN'"
+                  v-model="booleanProxies[field.name]"
+                  @update:model-value="(v: boolean) => onBoolChange(field.name, v)"/>
+        <MfInput v-else-if="field.type === 'PASSWORD'" v-model="overrides[field.name]" type="password" show-password/>
       </div>
     </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">{{ $t('common.cancel') }}</a-button>
-        <a-button type="primary" :disabled="loading" :loading="loading" @click="onSubmit">
+      <MfSpace>
+        <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="primary" :disabled="loading" :loading="loading" @click="onSubmit">
           {{ $t('dataset.common.syncData') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import DatasetService from '@/services/dataset'
 import { DatasetModel } from '@/model/dataset'
 
@@ -106,11 +106,11 @@ const onSubmit = () => {
     DatasetService.syncData(props.info.code, overrides.value)
                   .then(response => {
                     if (response.status) {
-                      message.success(`${ t('dataset.common.syncData') } [ ${ props.info?.name } ] ${ t('common.successfully') }`)
+                      MfMessage.success(`${ t('dataset.common.syncData') } [ ${ props.info?.name } ] ${ t('common.successfully') }`)
                       onCancel()
                     }
                     else {
-                      message.error(`${ t('dataset.common.syncData') } [ ${ props.info?.name } ] ${ t('common.fail') }`)
+                      MfMessage.error(`${ t('dataset.common.syncData') } [ ${ props.info?.name } ] ${ t('common.fail') }`)
                     }
                   })
                   .finally(() => (loading.value = false))

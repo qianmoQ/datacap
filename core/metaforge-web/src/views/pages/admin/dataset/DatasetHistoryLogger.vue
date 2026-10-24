@@ -1,12 +1,10 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
-           :title="$t('dataset.history.logger')"
-           :footer="null"
-           :body-style="{ maxHeight: '60vh', overflow: 'auto' }">
-    <a-spin :spinning="loading">
+           :title="$t('dataset.history.logger')">
+    <div class="max-h-[60vh] overflow-auto relative">
       <div class="flex items-center gap-3 pb-2">
-        <a-switch v-model:checked="autoRefresh" :disabled="!isRunning" @change="onAutoRefreshChange"/>
+        <MfSwitch v-model="autoRefresh" :disabled="!isRunning" @update:model-value="onAutoRefreshChange"/>
         <span class="text-xs">{{ $t('dataset.history.autoRefresh') }}</span>
         <span v-if="isRunning && autoRefresh" class="text-xs text-gray-500">
           ({{ $t('dataset.history.refreshInterval', { seconds: refreshSeconds }) }})
@@ -17,13 +15,17 @@
                     toolbar
                     :items="logs"
                     :custom-patterns="customPatterns"/>
-    </a-spin>
-  </a-modal>
+
+      <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
+        <MfSpinner size="lg" label="Loading..."/>
+      </div>
+    </div>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import DatasetService from '@/services/dataset'
 import LogViewer from '@/views/components/logger/LogViewer.vue'
 
@@ -82,7 +84,7 @@ const handleInitialize = (showSpin: boolean) => {
                     logs.value = response.data || []
                   }
                   else if (showSpin) {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => {

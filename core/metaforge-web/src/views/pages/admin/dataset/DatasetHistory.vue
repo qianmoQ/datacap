@@ -1,79 +1,77 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
-           :title="`[ ${ info?.name } ] ${ $t('dataset.common.history') }`"
-           :footer="null">
-    <a-spin :spinning="loading">
-      <a-table size="small"
-               :columns="historyHeaders"
+           :title="`[ ${ info?.name } ] ${ $t('dataset.common.history') }`">
+    <div class="relative">
+      <MfTable :columns="historyHeaders as any"
                :data-source="data"
-               :pagination="false"
+               :loading="loading"
                row-key="id"
-               :scroll="{ x: 'max-content' }">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'state'">
-            <a-popover v-if="hasMessage(record)">
-              <template #content>
-                <div class="p-2 w-full overflow-x-auto">{{ record?.message }}</div>
-              </template>
-              <a-tag :color="Common.getColor(record?.state)">{{ getStateText(record?.state) }}</a-tag>
-            </a-popover>
-            <a-tag v-else :color="Common.getColor(record?.state)">{{ getStateText(record?.state) }}</a-tag>
-          </template>
-
-          <template v-else-if="column.key === 'progress'">
-            <a-progress :percent="toPercent(record?.progress)" size="small" style="min-width: 120px;"/>
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <div class="flex gap-1">
-              <a-button size="small" type="primary" @click="onViewLog(record)">
-                {{ $t('dataset.history.viewLog') }}
-              </a-button>
-              <a-button v-if="record?.executorConfigure" size="small" @click="onViewConfigure(record)">
-                {{ $t('dataset.history.viewConfigure') }}
-              </a-button>
-              <a-button v-if="isStoppable(record)"
-                        size="small"
-                        danger
-                        :loading="stoppingId === record.id"
-                        @click="onStop(record)">
-                {{ $t('dataset.history.stop') }}
-              </a-button>
-            </div>
-          </template>
+               :empty-text="$t('common.noData')">
+        <template #cell-state="{ record }">
+          <MfPopover v-if="hasMessage(record)">
+            <template #content>
+              <div class="p-2 w-full overflow-x-auto">{{ record?.message }}</div>
+            </template>
+            <MfTag :style="{ color: Common.getColor(record?.state), borderColor: Common.getColor(record?.state) }">{{ getStateText(record?.state) }}</MfTag>
+          </MfPopover>
+          <MfTag v-else :style="{ color: Common.getColor(record?.state), borderColor: Common.getColor(record?.state) }">{{ getStateText(record?.state) }}</MfTag>
         </template>
-      </a-table>
+
+        <template #cell-progress="{ record }">
+          <div class="h-2 w-full min-w-[120px] rounded-mf-full bg-surface-active">
+            <div class="h-2 rounded-mf-full bg-primary transition-[width]"
+                 :style="{ width: toPercent(record?.progress) + '%' }"/>
+          </div>
+        </template>
+
+        <template #cell-action="{ record }">
+          <div class="flex gap-1">
+            <MfButton size="sm" variant="primary" @click="onViewLog(record)">
+              {{ $t('dataset.history.viewLog') }}
+            </MfButton>
+            <MfButton v-if="record?.executorConfigure" size="sm" @click="onViewConfigure(record)">
+              {{ $t('dataset.history.viewConfigure') }}
+            </MfButton>
+            <MfButton v-if="isStoppable(record)"
+                      size="sm"
+                      variant="danger"
+                      :loading="stoppingId === record.id"
+                      @click="onStop(record)">
+              {{ $t('dataset.history.stop') }}
+            </MfButton>
+          </div>
+        </template>
+      </MfTable>
 
       <div v-if="data.length > 0" class="py-2 flex justify-end">
-        <a-pagination :current="pageIndex"
+        <MfPagination :current="pageIndex"
                       :page-size="pageSize"
                       :total="dataCount"
-                      show-size-changer
-                      :page-size-options="['10', '20', '50']"
+                      show-size
+                      :page-sizes="[10, 20, 50]"
                       @change="onPageChange"
-                      @show-size-change="onSizeChange"/>
+                      @update:page-size="(size: number) => onSizeChange(1, size)"/>
       </div>
-    </a-spin>
+    </div>
 
     <DatasetHistoryLogger v-if="loggerVisible"
                           :is-visible="loggerVisible"
                           :info="loggerInfo"
                           @close="onLoggerClose"/>
 
-    <a-modal v-model:open="configureVisible"
+    <MfModal v-model:open="configureVisible"
              width="50%"
-             :title="$t('dataset.history.configureTitle')"
-             :footer="null">
+             :title="$t('dataset.history.configureTitle')">
       <pre class="text-xs whitespace-pre-wrap break-all p-2 bg-gray-50 dark:bg-gray-900 rounded">{{ formatJson(configureInfo) }}</pre>
-    </a-modal>
-  </a-modal>
+    </MfModal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { FilterModel } from '@/model/filter'
 import { useDatasetHeaders } from './DatasetUtils'
 import { DatasetModel } from '@/model/dataset'
@@ -183,11 +181,11 @@ const onStop = (row: any) => {
   DatasetService.stopHistory(row.id)
                 .then((response: any) => {
                   if (response.status) {
-                    message.success(t('dataset.history.stopRequested'))
+                    MfMessage.success(t('dataset.history.stopRequested'))
                     handleInitialize()
                   }
                   else {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => (stoppingId.value = null))

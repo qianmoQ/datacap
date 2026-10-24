@@ -1,27 +1,28 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
            :title="$t('workflow.text.configure')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-spin :spinning="loading">
-      <WorkflowView v-if="!loading && configuration"
+           @close="onCancel">
+    <div v-if="loading" class="flex items-center justify-center py-10">
+      <MfSpinner size="lg" label="Loading..."/>
+    </div>
+
+    <WorkflowView v-else-if="!loading && configuration"
                           :nodes="configuration.nodes"
                           :canvas="{ height: 500 }"
                           :data="data"/>
-    </a-spin>
 
     <template #footer>
-      <a-button @click="onCancel">
+      <MfButton @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import ConfigurationService from '@/services/configure.ts'
 import WorkflowService from '@/services/workflow.ts'
 import HttpUtils from '@/utils/http.ts'
@@ -63,11 +64,11 @@ HttpUtils.all([ConfigurationService.getExecutor(), WorkflowService.getByCode(pro
              data.value = workflow.data.configure
            }
            else {
-             message.error(workflow.message)
+             MfMessage.error(workflow.message)
            }
          }))
          .catch((error: any) => {
-           message.error(error.message || 'Failed to initialize workflow')
+           MfMessage.error(error.message || 'Failed to initialize workflow')
          })
          .finally(() => {
            loading.value = false

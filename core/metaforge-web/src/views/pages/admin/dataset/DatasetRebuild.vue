@@ -1,19 +1,19 @@
 <template>
-  <a-modal v-model:open="visible" :title="$t('dataset.common.rebuild') + ' [ ' + data?.name + ' ]'">
-    <a-alert :message="$t('dataset.tip.rebuildProgress')"/>
+  <MfModal v-model:open="visible" :title="$t('dataset.common.rebuild') + ' [ ' + data?.name + ' ]'">
+    <MfAlert :title="$t('dataset.tip.rebuildProgress')"/>
 
     <template #footer>
-      <a-button type="primary" :disabled="loading" :loading="loading" @click="onRebuild">
+      <MfButton variant="primary" :disabled="loading" :loading="loading" @click="onRebuild">
         {{ $t('dataset.common.rebuild') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import DatasetService from '@/services/dataset'
 import { DatasetModel } from '@/model/dataset'
 
@@ -44,11 +44,11 @@ const onRebuild = () => {
     DatasetService.rebuild(props.data.code)
                   .then((response) => {
                     if (response.status) {
-                      message.success(`${ t('dataset.common.rebuild') } [ ${ props.data?.name } ] ${ t('common.successfully') }`)
+                      MfMessage.success(`${ t('dataset.common.rebuild') } [ ${ props.data?.name } ] ${ t('common.successfully') }`)
                       onCancel()
                     }
                     else {
-                      message.error(response.message)
+                      MfMessage.error(response.message)
                     }
                   })
                   .finally(() => (loading.value = false))

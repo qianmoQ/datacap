@@ -12,95 +12,95 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'source'">
-          <a-tooltip :title="record?.source.type">
-            <a-avatar size="small" :src="'/static/images/plugin/' + record?.source.type.toLowerCase() + '.svg'" :alt="record?.source.type"/>
-          </a-tooltip>
+          <MfTooltip :content="record?.source.type">
+            <MfAvatar size="sm" :src="'/static/images/plugin/' + record?.source.type.toLowerCase() + '.svg'" :alt="record?.source.type"/>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'syncMode'">
-          <a-tag v-if="record?.syncMode === 'MANUAL'">{{ $t('dataset.common.syncModeManual') }}</a-tag>
-          <a-tag v-else-if="record?.syncMode === 'TIMING'">{{ $t('dataset.common.syncModeTiming') }}</a-tag>
-          <a-tag v-else-if="record?.syncMode === 'OUT_SYNC'">{{ $t('dataset.common.syncModeOutSync') }}</a-tag>
+          <MfTag v-if="record?.syncMode === 'MANUAL'">{{ $t('dataset.common.syncModeManual') }}</MfTag>
+          <MfTag v-else-if="record?.syncMode === 'TIMING'">{{ $t('dataset.common.syncModeTiming') }}</MfTag>
+          <MfTag v-else-if="record?.syncMode === 'OUT_SYNC'">{{ $t('dataset.common.syncModeOutSync') }}</MfTag>
         </template>
         <template v-else-if="column.key === 'state'">
-          <a-popover>
+          <MfPopover>
             <template #content>
               <DatasetState :states="record?.state"/>
             </template>
             <span class="cursor-pointer">{{ getState(record?.state) }}</span>
-          </a-popover>
+          </MfPopover>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('dataset.common.adhoc')">
+          <MfSpace>
+            <MfTooltip :content="$t('dataset.common.adhoc')">
               <router-link v-if="isSuccess(record?.state)" :to="`/admin/dataset/adhoc/${ record?.code }`" target="_blank">
-                <a-button type="text" shape="circle" size="small">
+                <MfButton variant="ghost" size="sm">
                   <BarChartOutlined :style="{ fontSize: '15px' }"/>
-                </a-button>
+                </MfButton>
               </router-link>
-              <a-button type="text" v-else shape="circle" size="small" disabled>
+              <MfButton v-else variant="ghost" size="sm" disabled>
                 <BarChartOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click" placement="bottomRight">
-              <a-button type="text" shape="circle" size="small">
+            <MfDropdown trigger="click" placement="bottomRight">
+              <MfButton variant="ghost" size="sm">
                 <SettingOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
+                <MfMenu>
+                  <MfMenuItem key_="info">
                     <router-link :to="`/admin/dataset/info/${ record?.code }`" target="_blank" class="flex items-center">
                       <InfoCircleOutlined :style="{ fontSize: '15px' }"/>
                       <span class="ml-2">{{ $t('dataset.common.info') }}</span>
                     </router-link>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="!isSuccess(record?.state)" @click="visibleSyncData(record, true)">
+                  <MfMenuItem key_="sync" :disabled="!isSuccess(record?.state)" @click="visibleSyncData(record, true)">
                     <div class="flex items-center space-x-2">
                       <SyncOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.syncData') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleHistory(record, true)">
+                  <MfMenuItem key_="history" @click="visibleHistory(record, true)">
                     <div class="flex items-center space-x-2">
                       <HistoryOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.history') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="isSuccess(record?.state)" @click="visibleError(record, true)">
+                  <MfMenuItem key_="error" :disabled="isSuccess(record?.state)" @click="!isSuccess(record?.state) && visibleError(record, true)">
                     <div class="flex items-center space-x-2">
                       <WarningOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.error') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="isSuccess(record?.state)" @click="visibleRebuild(record, true)">
+                  <MfMenuItem key_="rebuild" :disabled="isSuccess(record?.state)" @click="visibleRebuild(record, true)">
                     <div class="flex items-center space-x-2">
                       <component :is="record?.state === 'SUCCESS' ? PlayCircleOutlined : PauseCircleOutlined" :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.rebuild') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="!(record?.totalRows > 0)" @click="visibleClearData(record, true)">
+                  <MfMenuItem key_="clear" :disabled="!(record?.totalRows > 0)" @click="visibleClearData(record, true)">
                     <div class="flex items-center space-x-2">
                       <CloseSquareOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.clearData') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleDelete(record, true)">
+                  <MfMenuItem key_="delete" @click="visibleDelete(record, true)">
                     <div class="flex items-center space-x-2">
                       <DeleteOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('dataset.common.delete') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

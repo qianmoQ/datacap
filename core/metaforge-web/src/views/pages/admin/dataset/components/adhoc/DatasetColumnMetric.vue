@@ -2,21 +2,21 @@
   <span>{{ element?.aliasName ? element?.aliasName : element?.name }}</span>
   <span v-if="element?.expression">
       (
-      <Text strong v-if="element.expression === Expression.SUM">
+      <span v-if="element.expression === Expression.SUM" class="font-semibold">
         {{ $t('dataset.common.columnExpressionSum') }}
-      </Text>
-      <Text strong v-else-if="element.expression === Expression.COUNT">
+      </span>
+      <span v-else-if="element.expression === Expression.COUNT" class="font-semibold">
         {{ $t('dataset.common.columnExpressionCount') }}
-      </Text>
-      <Text strong v-else-if="element.expression === Expression.MAX">
+      </span>
+      <span v-else-if="element.expression === Expression.MAX" class="font-semibold">
         {{ $t('dataset.common.columnExpressionMax') }}
-      </Text>
-      <Text strong v-else-if="element.expression === Expression.MIN">
+      </span>
+      <span v-else-if="element.expression === Expression.MIN" class="font-semibold">
         {{ $t('dataset.common.columnExpressionMin') }}
-      </Text>
-      <Text strong v-else-if="element.expression === Expression.AVG">
+      </span>
+      <span v-else-if="element.expression === Expression.AVG" class="font-semibold">
         {{ $t('dataset.common.columnExpressionAvg') }}
-      </Text>
+      </span>
       )
     </span>
 </template>

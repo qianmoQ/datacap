@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-screen min-h-screen" style="height: 100%;">
-    <a-card>
-      <template #title>
+    <MfCard>
+      <template #header>
         <div class="ml-2">{{ $t('workflow.text.create') }}</div>
       </template>
 
@@ -10,57 +10,55 @@
           <div class="flex items-center space-x-2">
             <span class="text-sm">{{ $t('common.executor') }}</span>
 
-            <a-select v-model:value="formState.executor" :style="{ minWidth: '160px' }">
-              <a-select-option v-for="executor in installedExecutors"
-                               :key="executor.name"
-                               :value="executor.name">
-                {{ executor.name }}
-              </a-select-option>
-            </a-select>
+            <MfSelect v-model="formState.executor"
+                      :style="{ minWidth: '160px' }"
+                      :options="installedExecutors.map((executor: any) => ({ label: executor.name, value: executor.name }))"/>
           </div>
 
-          <a-button type="primary" :disabled="!(workflowState?.validation?.length === 0)" @click="visible = true">
+          <MfButton variant="primary" :disabled="!(workflowState?.validation?.length === 0)" @click="visible = true">
             {{ $t('common.publish') }}
-          </a-button>
+          </MfButton>
         </div>
       </template>
 
       <div class="relative h-screen">
-        <a-spin :spinning="loading">
-          <WorkflowEditor v-if="configuration && !loading"
-                                v-model="workflowState"
-                                :categories="configuration.categories"
-                                :nodes="configuration.nodes"
-                                :connections="[]"
-                                :configureWidth="380">
-          </WorkflowEditor>
-        </a-spin>
+        <WorkflowEditor v-if="configuration && !loading"
+                            v-model="workflowState"
+                            :categories="configuration.categories"
+                            :nodes="configuration.nodes"
+                            :connections="[]"
+                            :configureWidth="380">
+        </WorkflowEditor>
+
+        <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
+          <MfSpinner size="lg" label="Loading..."/>
+        </div>
       </div>
-    </a-card>
+    </MfCard>
   </div>
 
-  <a-modal v-model:open="visible" :title="$t('workflow.text.configure')" :footer="null">
-    <a-form :model="formState" layout="vertical" @finish="onSubmit">
-      <a-form-item name="name"
-                   :label="$t('workflow.text.name')"
-                   :rules="[
-                       { required: true, message: $t('workflow.validator.name.required') },
-                   ]">
-        <a-input v-model:value="formState.name" :placeholder="$t('workflow.placeholder.name')"/>
-      </a-form-item>
+  <MfModal v-model:open="visible" :title="$t('workflow.text.configure')">
+    <MfForm :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('workflow.text.name')"
+                  :rules="[
+                      { required: true, message: $t('workflow.validator.name.required') },
+                  ]">
+        <MfInput v-model="formState.name" :placeholder="$t('workflow.placeholder.name')"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-button type="primary" html-type="submit">{{ $t('common.submit') }}</a-button>
+        <MfButton variant="primary" type="submit">{{ $t('common.submit') }}</MfButton>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import ConfigurationService from '@/services/configure'
 import WorkflowService from '@/services/workflow'
 import PluginService from '@/services/plugin'
@@ -135,12 +133,12 @@ const handleInitialize = () => {
                  formState.value.code = workflow.data.code || null
                }
                else {
-                 message.error(workflow.message)
+                 MfMessage.error(workflow.message)
                }
              }
            }))
            .catch((error: any) => {
-             message.error(error.message || 'Failed to initialize workflow')
+             MfMessage.error(error.message || 'Failed to initialize workflow')
            })
            .finally(() => {
              loading.value = false
@@ -152,12 +150,12 @@ const onSubmit = () => {
   WorkflowService.saveOrUpdate(formState.value)
                  .then((response) => {
                    if (response.status) {
-                     message.success(`${ t('workflow.tip.publishSuccess').replace('$VALUE', response.data.name) }`)
+                     MfMessage.success(`${ t('workflow.tip.publishSuccess').replace('$VALUE', response.data.name) }`)
                      router.push('/admin/workflow')
                      visible.value = false
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
 }

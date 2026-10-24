@@ -1,36 +1,32 @@
 <template>
-  <a-modal v-model:open="visible" :title="`[ ${ info?.name } ] ${ $t('dataset.common.clearData') }`">
-    <a-alert :message="$t('dataset.tip.clearData')"/>
+  <MfModal v-model:open="visible" :title="`[ ${ info?.name } ] ${ $t('dataset.common.clearData') }`">
+    <MfAlert :title="$t('dataset.tip.clearData')"/>
 
-    <a-row class="mt-2.5" :gutter="8">
-      <a-col :span="12">
-        <a-card :title="$t('dataset.common.totalRows')">
-          <div class="mt-3 flex items-center p-4 text-center">{{ info?.totalRows }}</div>
-        </a-card>
-      </a-col>
+    <div class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <MfCard :title="$t('dataset.common.totalRows')">
+        <div class="mt-3 flex items-center p-4 text-center">{{ info?.totalRows }}</div>
+      </MfCard>
 
-      <a-col :span="12">
-        <a-card :title="$t('dataset.common.totalSize')">
-          <div class="mt-3 flex items-center p-4 text-center">{{ info?.totalSize }}</div>
-        </a-card>
-      </a-col>
-    </a-row>
+      <MfCard :title="$t('dataset.common.totalSize')">
+        <div class="mt-3 flex items-center p-4 text-center">{{ info?.totalSize }}</div>
+      </MfCard>
+    </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">{{ $t('common.cancel') }}</a-button>
-        <a-button type="primary" danger :disabled="loading" :loading="loading" @click="onSubmit">
+      <MfSpace>
+        <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="danger" :disabled="loading" :loading="loading" @click="onSubmit">
           {{ $t('dataset.common.clearData') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import DatasetService from '@/services/dataset'
 import { DatasetModel } from '@/model/dataset'
 
@@ -61,11 +57,11 @@ const onSubmit = () => {
     DatasetService.clearData(props.info.code)
                   .then((response: { status: boolean }) => {
                     if (response.status) {
-                      message.success(`${ t('dataset.common.clearData') } [ ${ props.info?.name } ] ${ t('common.successfully') }`)
+                      MfMessage.success(`${ t('dataset.common.clearData') } [ ${ props.info?.name } ] ${ t('common.successfully') }`)
                       onCancel()
                     }
                     else {
-                      message.error(`${ t('dataset.common.clearData') } [ ${ props.info?.name } ] ${ t('common.fail') }`)
+                      MfMessage.error(`${ t('dataset.common.clearData') } [ ${ props.info?.name } ] ${ t('common.fail') }`)
                     }
                   })
                   .finally(() => (loading.value = false))

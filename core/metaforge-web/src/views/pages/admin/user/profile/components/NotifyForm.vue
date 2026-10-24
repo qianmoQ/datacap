@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <a-spin :spinning="loading">
+      <MfSkeleton :loading="loading">
         <div class="dc-notify__channel-grid">
           <div v-for="channel in channels"
                :key="channel.type"
@@ -42,15 +42,15 @@
                 <MinusCircleFilled v-else/>
                 {{ channel.enabled ? $t('notify.state.enabled') : $t('notify.state.disabled') }}
               </span>
-              <a-button v-if="!channel.enabled"
-                        size="small"
+              <MfButton v-if="!channel.enabled"
+                        size="sm"
                         @click="toggleChannel(channel, true)">
                 {{ $t('notify.common.enable') }}
-              </a-button>
+              </MfButton>
             </div>
           </div>
         </div>
-      </a-spin>
+      </MfSkeleton>
     </div>
 
     <!-- 触发场景 -->
@@ -63,14 +63,12 @@
           <div class="dc-notify__section-title">{{ $t('notify.common.scenarios') }}</div>
           <div class="dc-notify__section-sub">{{ $t('notify.tip.scenarios') }}</div>
         </div>
-        <a-button type="primary"
+        <MfButton variant="primary"
                   style="margin-left: auto"
                   @click="openBatch">
-          <template #icon>
-            <SettingOutlined/>
-          </template>
+          <SettingOutlined/>
           {{ $t('notify.common.batch') }}
-        </a-button>
+        </MfButton>
       </div>
 
       <div class="dc-notify__rows">
@@ -84,79 +82,65 @@
             <div class="dc-notify__row-name">{{ $t(scenario.nameKey) }}</div>
             <div class="dc-notify__row-desc">{{ $t(scenario.tipKey) }}</div>
           </div>
-          <a-switch :checked="isScenarioOn(scenario.key)"
+          <MfSwitch :model-value="isScenarioOn(scenario.key)"
                     :disabled="saving"
-                    @change="checked => toggleScenario(scenario.key, checked)"/>
-          <a-button type="text" shape="circle" size="small" @click="openScenarioChannels(scenario.key)">
-            <template #icon>
-              <SettingOutlined :style="{ fontSize: '15px', color: 'var(--dc-text-secondary)' }"/>
-            </template>
-          </a-button>
+                    @update:model-value="checked => toggleScenario(scenario.key, checked)"/>
+          <MfButton variant="ghost" size="sm" @click="openScenarioChannels(scenario.key)">
+            <SettingOutlined :style="{ fontSize: '15px', color: 'var(--dc-text-secondary)' }"/>
+          </MfButton>
         </div>
       </div>
     </div>
 
     <!-- 批量设置：发送渠道 × 触发场景 -->
-    <a-modal v-model:open="batchVisible"
+    <MfModal v-model:open="batchVisible"
              :title="$t('notify.common.batch')"
-             :width="480">
+             width="480px">
       <div class="dc-notify__batch-section">
         <div class="dc-notify__batch-label">{{ $t('notify.common.sendChannels') }}</div>
-        <a-checkbox-group v-model:value="batchChannels" class="dc-notify__batch-group">
-          <a-checkbox v-for="channel in channels"
-                      :key="channel.type"
-                      :value="channel.type">
-            {{ channelName(channel.type) }}
-          </a-checkbox>
-        </a-checkbox-group>
+        <MfCheckboxGroup v-model="batchChannels"
+                         class="dc-notify__batch-group"
+                         :options="channels.map((channel: any) => ({ label: channelName(channel.type), value: channel.type }))"/>
       </div>
 
       <div class="dc-notify__batch-section">
         <div class="dc-notify__batch-label">{{ $t('notify.common.scenarios') }}</div>
-        <a-checkbox-group v-model:value="batchScenarios" class="dc-notify__batch-group">
-          <a-checkbox v-for="scenario in scenarios"
-                      :key="scenario.key"
-                      :value="scenario.key">
-            {{ $t(scenario.nameKey) }}
-          </a-checkbox>
-        </a-checkbox-group>
+        <MfCheckboxGroup v-model="batchScenarios"
+                         class="dc-notify__batch-group"
+                         :options="scenarios.map((scenario: any) => ({ label: $t(scenario.nameKey), value: scenario.key }))"/>
       </div>
 
       <div class="dc-notify__batch-tip">{{ $t('notify.tip.batch') }}</div>
 
       <template #footer>
-        <a-button @click="batchVisible = false">{{ $t('common.cancel') }}</a-button>
-        <a-button type="primary" :loading="saving" @click="applyBatch">{{ $t('common.apply') }}</a-button>
+        <MfButton @click="batchVisible = false">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="primary" :loading="saving" @click="applyBatch">{{ $t('common.apply') }}</MfButton>
       </template>
-    </a-modal>
+    </MfModal>
 
     <!-- 单场景配置：选择接收该场景通知的渠道 -->
-    <a-modal v-model:open="scenarioVisible"
+    <MfModal v-model:open="scenarioVisible"
              :title="scenarioName(scenarioKey)"
-             :width="440">
+             width="440px">
       <div class="dc-notify__batch-section">
         <div class="dc-notify__batch-label">{{ $t('notify.common.sendChannels') }}</div>
-        <a-checkbox-group v-model:value="scenarioChannels" class="dc-notify__batch-group">
-          <a-checkbox v-for="channel in channels"
-                      :key="channel.type"
-                      :value="channel.type">
-            {{ channelName(channel.type) }}
-          </a-checkbox>
-        </a-checkbox-group>
+        <MfCheckboxGroup v-model="scenarioChannels"
+                         class="dc-notify__batch-group"
+                         :options="channels.map((channel: any) => ({ label: channelName(channel.type), value: channel.type }))"/>
       </div>
 
       <template #footer>
-        <a-button @click="scenarioVisible = false">{{ $t('common.cancel') }}</a-button>
-        <a-button type="primary" :loading="saving" @click="applyScenarioChannels">{{ $t('common.confirm') }}</a-button>
+        <MfButton @click="scenarioVisible = false">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="primary" :loading="saving" @click="applyScenarioChannels">{{ $t('common.confirm') }}</MfButton>
       </template>
-    </a-modal>
+    </MfModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import {
   ApiOutlined,
   CheckCircleFilled,
@@ -280,7 +264,7 @@ const handlerInitialize = () => {
            }
          }
          else if (infoResponse.message) {
-           message.error(infoResponse.message)
+           MfMessage.error(infoResponse.message)
          }
        }))
        .finally(() => (loading.value = false))
@@ -292,11 +276,11 @@ const save = (silent = false) => {
              .then(response => {
                if (response.status) {
                  if (!silent) {
-                   message.success(t('common.successfully') as string)
+                   MfMessage.success(t('common.successfully') as string)
                  }
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (saving.value = false))

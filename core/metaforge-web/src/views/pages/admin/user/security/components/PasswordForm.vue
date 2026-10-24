@@ -8,28 +8,32 @@
       </div>
     </div>
 
-    <a-row :gutter="16">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- 表单区 -->
-      <a-col :span="16">
+      <div class="lg:col-span-2">
         <div class="dc-password__card">
-          <a-form layout="vertical" class="dc-password__form">
-            <a-form-item :label="$t('user.common.currentPassword')" :required="true">
-              <a-input-password v-model:value="formState.oldPassword"
-                                :placeholder="$t('user.placeholder.currentPassword')">
+          <MfForm layout="vertical" class="dc-password__form">
+            <MfFormItem name="oldPassword" required-mark :label="$t('user.common.currentPassword')">
+              <MfInput v-model="formState.oldPassword"
+                       type="password"
+                       show-password
+                       :placeholder="$t('user.placeholder.currentPassword')">
                 <template #prefix>
                   <LockOutlined :style="{ fontSize: '14px', color: 'var(--dc-text-secondary)' }"/>
                 </template>
-              </a-input-password>
+              </MfInput>
               <div class="dc-password__hint">{{ $t('user.tip.currentPasswordLive') }}</div>
-            </a-form-item>
+            </MfFormItem>
 
-            <a-form-item :label="$t('user.common.newPassword')" :required="true">
-              <a-input-password v-model:value="formState.newPassword"
-                                :placeholder="$t('user.placeholder.newPassword')">
+            <MfFormItem name="newPassword" required-mark :label="$t('user.common.newPassword')">
+              <MfInput v-model="formState.newPassword"
+                       type="password"
+                       show-password
+                       :placeholder="$t('user.placeholder.newPassword')">
                 <template #prefix>
                   <LockOutlined :style="{ fontSize: '14px', color: 'var(--dc-text-secondary)' }"/>
                 </template>
-              </a-input-password>
+              </MfInput>
               <div class="dc-password__hint">{{ $t('user.tip.newPasswordFormat') }}</div>
 
               <!-- 强度条 -->
@@ -55,35 +59,37 @@
                   <span>{{ $t(rule.nameKey) }}</span>
                 </div>
               </div>
-            </a-form-item>
+            </MfFormItem>
 
-            <a-form-item :label="$t('user.common.confirmPassword')" :required="true">
-              <a-input-password v-model:value="formState.confirmPassword"
-                                :placeholder="$t('user.placeholder.confirmNewPassword')">
+            <MfFormItem name="confirmPassword" required-mark :label="$t('user.common.confirmPassword')">
+              <MfInput v-model="formState.confirmPassword"
+                       type="password"
+                       show-password
+                       :placeholder="$t('user.placeholder.confirmNewPassword')">
                 <template #prefix>
                   <LockOutlined :style="{ fontSize: '14px', color: 'var(--dc-text-secondary)' }"/>
                 </template>
-              </a-input-password>
+              </MfInput>
               <div class="dc-password__hint">{{ $t('user.tip.confirmNewPassword') }}</div>
-            </a-form-item>
-          </a-form>
+            </MfFormItem>
+          </MfForm>
 
           <div class="dc-password__actions">
-            <a-button type="primary"
+            <MfButton variant="primary"
                       :loading="loading"
                       :disabled="!canSubmit"
                       @click="onSubmit">
               {{ $t('user.common.saveChanges') }}
-            </a-button>
-            <a-button :disabled="loading" @click="onReset">
+            </MfButton>
+            <MfButton :disabled="loading" @click="onReset">
               {{ $t('common.cancel') }}
-            </a-button>
+            </MfButton>
           </div>
         </div>
-      </a-col>
+      </div>
 
       <!-- 安全提示 -->
-      <a-col :span="8">
+      <div>
         <div class="dc-password__card dc-password__tips">
           <div class="dc-password__section-head">
             <div class="dc-password__section-icon">
@@ -111,15 +117,15 @@
             </div>
           </div>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import {
   LockOutlined,
   SafetyCertificateOutlined
@@ -189,20 +195,20 @@ const canSubmit = computed(() => {
 
 const onSubmit = () => {
   if (formState.newPassword !== formState.confirmPassword) {
-    message.error(t('user.auth.passwordNotMatchTip') as string)
+    MfMessage.error(t('user.auth.passwordNotMatchTip') as string)
     return
   }
   loading.value = true
   UserService.changePassword(formState as unknown as UserPasswordModel)
              .then((response) => {
                if (response.status) {
-                 message.success(t('user.tip.changePasswordSuccessfully') as string)
+                 MfMessage.success(t('user.tip.changePasswordSuccessfully') as string)
                  localStorage.removeItem(Common.token)
                  localStorage.removeItem(Common.menu)
                  router.push('/auth/signin')
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (loading.value = false))
@@ -243,10 +249,6 @@ const onReset = () => {
     box-shadow: var(--dc-shadow-card);
     padding: 20px;
     margin-bottom: 16px;
-}
-
-.dc-password__form :deep(.ant-form-item) {
-    margin-bottom: 18px;
 }
 
 .dc-password__hint {

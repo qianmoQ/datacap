@@ -12,7 +12,10 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'state'">
-          <a-badge :status="record.state === 'SUCCESS' ? 'success' : 'error'" :text="record.state"/>
+          <span class="inline-flex items-center gap-2">
+            <MfBadge :variant="record.state === 'SUCCESS' ? 'success' : 'danger'" dot/>
+            {{ record.state }}
+          </span>
         </template>
       </template>
     </DataTable>

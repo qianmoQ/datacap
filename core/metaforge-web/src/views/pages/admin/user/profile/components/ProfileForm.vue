@@ -15,11 +15,11 @@
     <!-- 资料头部卡：头像 + 名称/徽标 + 上传头像 -->
     <div class="dc-profile__card dc-profile__hero">
       <div class="dc-profile__avatar-wrap" @click="triggerUpload">
-        <a-avatar :size="88"
+        <MfAvatar :size="88"
                   :src="formState?.avatarConfigure?.path || formState?.avatar"
                   class="dc-profile__avatar">
           {{ (formState?.username || '?').charAt(0).toUpperCase() }}
-        </a-avatar>
+        </MfAvatar>
         <span class="dc-profile__avatar-badge">
           <CameraOutlined :style="{ fontSize: '13px' }"/>
         </span>
@@ -43,18 +43,16 @@
       </div>
 
       <div class="dc-profile__hero-actions">
-        <a-button @click="triggerUpload">
-          <template #icon>
-            <CameraOutlined/>
-          </template>
+        <MfButton @click="triggerUpload">
+          <CameraOutlined/>
           {{ $t('user.common.uploadAvatar') }}
-        </a-button>
+        </MfButton>
       </div>
     </div>
 
-    <a-row :gutter="16">
+    <div class="grid grid-cols-1 lg:grid-cols-[7fr_5fr] gap-4">
       <!-- 基本信息 -->
-      <a-col :span="14">
+      <div>
         <div class="dc-profile__card dc-profile__section">
           <div class="dc-profile__section-head">
             <div class="dc-profile__section-icon dc-profile__section-icon--primary">
@@ -66,28 +64,30 @@
             </div>
           </div>
 
-          <a-form v-if="formState" layout="vertical" class="dc-profile__form">
-            <a-form-item :label="$t('user.common.username')" :extra="$t('user.tip.username')">
-              <a-input :value="formState.username" disabled/>
-            </a-form-item>
+          <MfForm v-if="formState" layout="vertical" class="dc-profile__form">
+            <MfFormItem name="" :label="$t('user.common.username')">
+              <MfInput :model-value="formState.username" disabled/>
+              <div class="text-xs text-content-tertiary">{{ $t('user.tip.username') }}</div>
+            </MfFormItem>
 
-            <a-form-item :label="$t('common.role')">
-              <a-input :value="(formState.roles || []).map(role => role.name).join(', ')" disabled/>
-            </a-form-item>
+            <MfFormItem name="" :label="$t('common.role')">
+              <MfInput :model-value="(formState.roles || []).map(role => role.name).join(', ')" disabled/>
+            </MfFormItem>
 
-            <a-form-item :label="$t('user.common.createTime')" :extra="$t('user.tip.createTime')">
-              <a-input :value="formState.createTime" disabled/>
-            </a-form-item>
+            <MfFormItem name="" :label="$t('user.common.createTime')">
+              <MfInput :model-value="formState.createTime" disabled/>
+              <div class="text-xs text-content-tertiary">{{ $t('user.tip.createTime') }}</div>
+            </MfFormItem>
 
-            <a-form-item :label="$t('common.updateTime')">
-              <a-input :value="formState.updateTime" disabled/>
-            </a-form-item>
-          </a-form>
+            <MfFormItem name="" :label="$t('common.updateTime')">
+              <MfInput :model-value="formState.updateTime" disabled/>
+            </MfFormItem>
+          </MfForm>
         </div>
-      </a-col>
+      </div>
 
       <!-- 偏好 + 概览 -->
-      <a-col :span="10">
+      <div>
         <div class="dc-profile__card dc-profile__section">
           <div class="dc-profile__section-head">
             <div class="dc-profile__section-icon dc-profile__section-icon--primary">
@@ -104,12 +104,13 @@
               <GlobalOutlined class="dc-profile__pref-icon"/>
               <span>{{ $t('user.common.language') }}</span>
             </div>
-            <a-select :value="language"
+            <MfSelect :model-value="language"
                       class="dc-profile__pref-control"
-                      @change="onChangeLanguage">
-              <a-select-option value="language_zh-cn">{{ $t('region.common.asia.chineseSimple') }}</a-select-option>
-              <a-select-option value="language_en">{{ $t('region.common.northAmerica.english') }}</a-select-option>
-            </a-select>
+                      :options="[
+                        { label: $t('region.common.asia.chineseSimple'), value: 'language_zh-cn' },
+                        { label: $t('region.common.northAmerica.english'), value: 'language_en' }
+                      ]"
+                      @change="onChangeLanguage"/>
           </div>
           <div class="dc-profile__pref-tip">{{ $t('user.tip.language') }}</div>
         </div>
@@ -177,26 +178,25 @@
             </div>
           </div>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
 
     <!-- 头像裁剪弹窗 -->
-    <a-modal v-model:open="cropVisible"
+    <MfModal v-model:open="cropVisible"
              :title="$t('common.cropper')"
-             :footer="null"
-             :width="520">
+             width="520px">
       <VuePictureCropper style="max-height: 400px"
                          :boxStyle="{ width: '100%', height: '320px', backgroundColor: '#f8f8f8', margin: 'auto' }"
                          :options="{ viewMode: 1, dragMode: 'crop' }"
                          :img="cropImage"
                          @ready="() => ({})"/>
       <div class="flex justify-end gap-2 mt-3">
-        <a-button size="small" @click="cropVisible = false">{{ $t('common.cancel') }}</a-button>
-        <a-button size="small" type="primary" :loading="uploading" @click="onCropConfirm">
+        <MfButton size="sm" @click="cropVisible = false">{{ $t('common.cancel') }}</MfButton>
+        <MfButton size="sm" variant="primary" :loading="uploading" @click="onCropConfirm">
           {{ $t('common.cropper') }}
-        </a-button>
+        </MfButton>
       </div>
-    </a-modal>
+    </MfModal>
 
     <input ref="uploadInput"
            type="file"
@@ -209,7 +209,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import VuePictureCropper, { cropper } from 'vue-picture-cropper'
 import {
   BarChartOutlined,
@@ -312,12 +312,12 @@ const onCropConfirm = async () => {
                  if (formState.value) {
                    formState.value.avatar = response.data
                  }
-                 message.success(t('common.successfully'))
+                 MfMessage.success(t('common.successfully'))
                  cropVisible.value = false
                  handlerInitialize()
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (uploading.value = false))
@@ -481,10 +481,6 @@ handlerInitialize()
     font-size: 12px;
     color: var(--dc-text-secondary);
     margin-top: 2px;
-}
-
-.dc-profile__form :deep(.ant-form-item) {
-    margin-bottom: 14px;
 }
 
 .dc-profile__pref {

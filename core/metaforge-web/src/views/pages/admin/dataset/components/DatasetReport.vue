@@ -1,38 +1,38 @@
 <template>
-  <a-modal v-model:open="localVisible" :title="$t('common.configure')" :footer="null" @cancel="onCancel">
-    <a-form :model="formState" layout="vertical" @finish="onSubmit" @finishFailed="(e: any) => console.log(e)">
-      <a-form-item name="name"
-                   :label="$t('common.name')"
-                   :rules="[{ required: true, message: $t('common.name') }]">
-        <a-input v-model:value="formState.name"/>
-      </a-form-item>
+  <MfModal v-model:open="localVisible" :title="$t('common.configure')" @close="onCancel">
+    <MfForm :model="formState" layout="vertical" @finish="onSubmit" @finish-failed="(e: any) => console.log(e)">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[{ required: true, message: $t('common.name') }]">
+        <MfInput v-model="formState.name"/>
+      </MfFormItem>
 
-      <a-form-item name="description" :label="$t('common.description')">
-        <a-textarea v-model:value="formState.description"/>
-      </a-form-item>
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
 
-      <a-form-item name="build" :label="$t('dataset.common.continuousBuild')">
-        <a-switch v-model:checked="formState.build"/>
-      </a-form-item>
+      <MfFormItem name="build" :label="$t('dataset.common.continuousBuild')">
+        <MfSwitch v-model="formState.build"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
-          <a-button type="primary" html-type="submit" :disabled="published" :loading="published">
+          </MfButton>
+          <MfButton variant="primary" type="submit" :disabled="published" :loading="published">
             {{ $t('common.publish') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import router from '@/router'
 import ReportService from '@/services/report.ts'
 
@@ -79,7 +79,7 @@ const onSubmit = () => {
   ReportService.saveOrUpdate(configure)
                .then(response => {
                  if (response.status) {
-                   message.success(t('report.tip.publishSuccess').replace('$VALUE', String(formState.value.name)))
+                   MfMessage.success(t('report.tip.publishSuccess').replace('$VALUE', String(formState.value.name)))
                    if (formState.value.build) {
                      router.push('/admin/report')
                    }

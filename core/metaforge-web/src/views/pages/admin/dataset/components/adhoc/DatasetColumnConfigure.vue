@@ -1,78 +1,83 @@
 <template>
-  <a-modal v-model:open="visible" :title="title" :footer="null" @cancel="onCancel">
-    <a-form :model="formState" layout="vertical" @finish="onCommit">
+  <MfModal v-model:open="visible" :title="title" @close="onCancel">
+    <MfForm :model="formState" layout="vertical" @finish="onCommit">
       <div v-if="String(columnType) === 'FILTER'">
-        <a-form-item name="expression" :label="$t('common.expression')">
-          <a-select v-model:value="formState.expression" :placeholder="$t('dataset.tip.selectExpression')">
-            <a-select-option :value="Expression.IS_NULL">{{ $t('dataset.common.columnExpressionIsNull') }}</a-select-option>
-            <a-select-option :value="Expression.IS_NOT_NULL">{{ $t('dataset.common.columnExpressionIsNotNull') }}</a-select-option>
-            <a-select-option :value="Expression.IS_LIKE">{{ $t('dataset.common.columnExpressionIsLike') }}</a-select-option>
-            <a-select-option :value="Expression.IS_NOT_LIKE">{{ $t('dataset.common.columnExpressionIsNotLike') }}</a-select-option>
-            <a-select-option :value="Expression.EQ">{{ $t('dataset.common.columnExpressionEquals') }}</a-select-option>
-            <a-select-option :value="Expression.NE">{{ $t('dataset.common.columnExpressionNotEquals') }}</a-select-option>
-            <a-select-option :value="Expression.GT">{{ $t('dataset.common.columnExpressionGreaterThan') }}</a-select-option>
-            <a-select-option :value="Expression.GTE">{{ $t('dataset.common.columnExpressionGreaterThanOrEquals') }}</a-select-option>
-            <a-select-option :value="Expression.LT">{{ $t('dataset.common.columnExpressionLessThan') }}</a-select-option>
-            <a-select-option :value="Expression.LTE">{{ $t('dataset.common.columnExpressionLessThanOrEquals') }}</a-select-option>
-          </a-select>
-        </a-form-item>
+        <MfFormItem name="expression" :label="$t('common.expression')">
+          <MfSelect v-model="formState.expression"
+                    :placeholder="$t('dataset.tip.selectExpression')"
+                    :options="[
+                      { label: $t('dataset.common.columnExpressionIsNull'), value: Expression.IS_NULL },
+                      { label: $t('dataset.common.columnExpressionIsNotNull'), value: Expression.IS_NOT_NULL },
+                      { label: $t('dataset.common.columnExpressionIsLike'), value: Expression.IS_LIKE },
+                      { label: $t('dataset.common.columnExpressionIsNotLike'), value: Expression.IS_NOT_LIKE },
+                      { label: $t('dataset.common.columnExpressionEquals'), value: Expression.EQ },
+                      { label: $t('dataset.common.columnExpressionNotEquals'), value: Expression.NE },
+                      { label: $t('dataset.common.columnExpressionGreaterThan'), value: Expression.GT },
+                      { label: $t('dataset.common.columnExpressionGreaterThanOrEquals'), value: Expression.GTE },
+                      { label: $t('dataset.common.columnExpressionLessThan'), value: Expression.LT },
+                      { label: $t('dataset.common.columnExpressionLessThanOrEquals'), value: Expression.LTE }
+                    ]"/>
+        </MfFormItem>
 
-        <a-form-item v-if="formState.expression && formState.expression !== Expression.IS_NULL && formState.expression !== Expression.IS_NOT_NULL"
-                     name="value"
-                     :label="$t('common.value')">
-          <a-input v-model:value="formState.value"/>
-        </a-form-item>
+        <MfFormItem v-if="formState.expression && formState.expression !== Expression.IS_NULL && formState.expression !== Expression.IS_NOT_NULL"
+                    name="value"
+                    :label="$t('common.value')">
+          <MfInput v-model="formState.value"/>
+        </MfFormItem>
       </div>
 
       <div v-else>
-        <a-space direction="vertical" :style="{ width: '100%' }">
-          <a-form-item v-if="String(columnType) === 'METRIC'"
+        <MfSpace direction="vertical" fill>
+          <MfFormItem v-if="String(columnType) === 'METRIC'"
                        class="w-full"
                        name="expression"
                        :label="$t('common.expression')">
-            <a-select v-model:value="formState.expression" :placeholder="$t('dataset.tip.selectExpression')" @change="onUpdateAlias">
-              <a-select-option v-if="formState.type === ColumnType.NUMBER" :value="Expression.SUM">{{ $t('dataset.common.columnExpressionSum') }}</a-select-option>
-              <a-select-option :value="Expression.COUNT">{{ $t('dataset.common.columnExpressionCount') }}</a-select-option>
-              <a-select-option :value="Expression.MAX">{{ $t('dataset.common.columnExpressionMax') }}</a-select-option>
-              <a-select-option :value="Expression.MIN">{{ $t('dataset.common.columnExpressionMin') }}</a-select-option>
-              <a-select-option v-if="formState.type === ColumnType.NUMBER" :value="Expression.AVG">{{ $t('dataset.common.columnExpressionAvg') }}</a-select-option>
-            </a-select>
-          </a-form-item>
+            <MfSelect v-model="formState.expression"
+                      :placeholder="$t('dataset.tip.selectExpression')"
+                      :options="[
+                        ...(formState.type === ColumnType.NUMBER ? [{ label: $t('dataset.common.columnExpressionSum'), value: Expression.SUM }] : []),
+                        { label: $t('dataset.common.columnExpressionCount'), value: Expression.COUNT },
+                        { label: $t('dataset.common.columnExpressionMax'), value: Expression.MAX },
+                        { label: $t('dataset.common.columnExpressionMin'), value: Expression.MIN },
+                        ...(formState.type === ColumnType.NUMBER ? [{ label: $t('dataset.common.columnExpressionAvg'), value: Expression.AVG }] : [])
+                      ]"
+                      @change="onUpdateAlias"/>
+          </MfFormItem>
 
-          <a-form-item class="w-full" name="alias" :label="$t('common.alias')">
-            <a-input v-model:value="formState.alias"/>
-          </a-form-item>
+          <MfFormItem class="w-full" name="alias" :label="$t('common.alias')">
+            <MfInput v-model="formState.alias"/>
+          </MfFormItem>
 
-          <a-form-item class="w-full" name="order" :label="$t('common.sort')">
-            <a-radio-group v-model:value="formState.order" @change="onChangeToggle">
-              <a-radio-button value="">{{ $t('dataset.common.columnSortNone') }}</a-radio-button>
-              <a-radio-button value="ASC">{{ $t('dataset.common.columnOrderAsc') }}</a-radio-button>
-              <a-radio-button value="DESC">{{ $t('dataset.common.columnOrderDesc') }}</a-radio-button>
-            </a-radio-group>
-          </a-form-item>
+          <MfFormItem class="w-full" name="order" :label="$t('common.sort')">
+            <MfRadioGroup v-model="formState.order" variant="button" @change="onChangeToggle">
+              <MfRadio value="">{{ $t('dataset.common.columnSortNone') }}</MfRadio>
+              <MfRadio value="ASC">{{ $t('dataset.common.columnOrderAsc') }}</MfRadio>
+              <MfRadio value="DESC">{{ $t('dataset.common.columnOrderDesc') }}</MfRadio>
+            </MfRadioGroup>
+          </MfFormItem>
 
-          <a-form-item v-if="String(columnType) === 'DIMENSION'"
+          <MfFormItem v-if="String(columnType) === 'DIMENSION'"
                        class="w-full"
                        name="function"
                        :label="$t('dataset.common.customFunction')">
-            <a-input v-model:value="formState.function"/>
-          </a-form-item>
-        </a-space>
+            <MfInput v-model="formState.function"/>
+          </MfFormItem>
+        </MfSpace>
       </div>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" html-type="submit">
+          <MfButton variant="primary" type="submit">
             {{ $t('common.save') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

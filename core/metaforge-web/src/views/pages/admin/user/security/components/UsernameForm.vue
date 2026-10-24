@@ -8,58 +8,52 @@
       </div>
     </div>
 
-    <a-row :gutter="16">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- 表单区 -->
-      <a-col :span="16">
+      <div class="lg:col-span-2">
         <div class="dc-rename__card">
-          <a-spin :spinning="defaultLoading">
-            <a-form v-if="formState" layout="vertical" class="dc-rename__form">
-              <a-form-item :label="$t('user.common.currentUsername')">
-                <a-input :value="formState.oldUsername" disabled/>
-              </a-form-item>
+          <MfSkeleton :loading="defaultLoading">
+            <MfForm v-if="formState" layout="vertical" class="dc-rename__form">
+              <MfFormItem name="oldUsername" :label="$t('user.common.currentUsername')">
+                <MfInput :model-value="formState.oldUsername" disabled/>
+              </MfFormItem>
 
-              <a-form-item :required="true">
-                <template #label>
-                  <span class="dc-rename__required">{{ $t('user.common.newUsername') }}</span>
-                </template>
-                <a-input v-model:value="formState.newUsername"
+              <MfFormItem name="newUsername" required-mark :label="$t('user.common.newUsername')">
+                <MfInput v-model="formState.newUsername"
                          @input="onUsernameInput">
                   <template #suffix>
                     <CheckCircleFilled v-if="checkState === 'success'" class="dc-rename__check--success"/>
                     <CloseCircleFilled v-else-if="checkState === 'error'" class="dc-rename__check--error"/>
                     <LoadingOutlined v-else-if="checkState === 'loading'" class="dc-rename__check--loading"/>
                   </template>
-                </a-input>
+                </MfInput>
                 <div v-if="checkState === 'error'" class="dc-rename__field-error">{{ checkMessage }}</div>
                 <div v-else class="dc-rename__field-hint">{{ $t('user.tip.newUsernameFormat') }}</div>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-form-item :required="true">
-                <template #label>
-                  <span class="dc-rename__required">{{ $t('user.common.currentPassword') }}</span>
-                </template>
-                <a-input-password v-model:value="formState.password"/>
+              <MfFormItem name="password" required-mark :label="$t('user.common.currentPassword')">
+                <MfInput v-model="formState.password" type="password" show-password/>
                 <div class="dc-rename__field-hint">{{ $t('user.tip.passwordConfirm') }}</div>
-              </a-form-item>
-            </a-form>
+              </MfFormItem>
+            </MfForm>
 
             <div class="dc-rename__actions">
-              <a-button type="primary"
+              <MfButton variant="primary"
                         :loading="submitting"
                         :disabled="checkState !== 'success' || !formState?.password"
                         @click="onSubmit">
                 {{ $t('user.common.saveChanges') }}
-              </a-button>
-              <a-button :disabled="submitting" @click="onReset">
+              </MfButton>
+              <MfButton :disabled="submitting" @click="onReset">
                 {{ $t('common.cancel') }}
-              </a-button>
+              </MfButton>
             </div>
-          </a-spin>
+          </MfSkeleton>
         </div>
-      </a-col>
+      </div>
 
       <!-- 说明卡 -->
-      <a-col :span="8">
+      <div>
         <div class="dc-rename__card dc-rename__info">
           <div class="dc-rename__info-head">
             <div class="dc-rename__info-icon">
@@ -77,8 +71,8 @@
             </div>
           </div>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,7 +80,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -173,13 +167,13 @@ const onSubmit = () => {
   UserService.changeUsername(formState.value as UsernameModel)
              .then((response) => {
                if (response.status) {
-                 message.success(t('user.tip.changeUsernameSuccessfully') as string)
+                 MfMessage.success(t('user.tip.changeUsernameSuccessfully') as string)
                  localStorage.removeItem(Common.token)
                  localStorage.removeItem(Common.menu)
                  router.push('/auth/signin')
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (submitting.value = false))
@@ -224,10 +218,6 @@ handlerInitialize()
     border-radius: var(--dc-radius-lg);
     box-shadow: var(--dc-shadow-card);
     padding: 20px;
-}
-
-.dc-rename__form :deep(.ant-form-item) {
-    margin-bottom: 18px;
 }
 
 .dc-rename__check--success {

@@ -1,44 +1,43 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="40%"
-           :mask-closable="false"
+           :close-on-overlay="false"
            :title="$t('workflow.text.stop')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-space direction="vertical" :style="{ width: '100%' }">
-      <a-alert type="error" :message="$t('workflow.tip.stopAlert1')"/>
-      <a-alert type="error" :message="$t('workflow.tip.stopAlert2')"/>
-      <a-alert :message="$t('workflow.tip.stopAlert3').replace('$VALUE', String(info?.name))"/>
-    </a-space>
+           @close="onCancel">
+    <MfSpace direction="vertical" fill>
+      <MfAlert variant="danger" :title="$t('workflow.tip.stopAlert1')"/>
+      <MfAlert variant="danger" :title="$t('workflow.tip.stopAlert2')"/>
+      <MfAlert :title="$t('workflow.tip.stopAlert3').replace('$VALUE', String(info?.name))"/>
+    </MfSpace>
 
-    <a-form :model="formState" class="mt-3" @finish="onSubmit">
-      <a-form-item name="name"
-                   :rules="[
-                         { required: true, message: $t('workflow.validator.name.required') },
-                         { validator: validateMatch }
-                   ]">
-        <a-input v-model:value="formState.name" :placeholder="$t('workflow.placeholder.name')"/>
-      </a-form-item>
+    <MfForm :model="formState" class="mt-3" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :rules="[
+                        { required: true, message: $t('workflow.validator.name.required') },
+                        { validator: validateMatch }
+                  ]">
+        <MfInput v-model="formState.name" :placeholder="$t('workflow.placeholder.name')"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" danger html-type="submit" :disabled="loading" :loading="loading">
+          <MfButton variant="danger" type="submit" :disabled="loading" :loading="loading">
             {{ $t('workflow.text.stop') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import WorkflowService from '@/services/workflow'
 import { WorkflowModel } from '@/model/workflow'
 
@@ -60,11 +59,11 @@ const visible = computed({
 const loading = ref(false)
 const formState = ref({ name: '' })
 
-const validateMatch = (_rule: any, value: string) => {
+const validateMatch = (value: string) => {
   if (value !== String(props.info?.name)) {
-    return Promise.reject(new Error(t('workflow.validator.name.match').replace('$VALUE', String(props.info?.name))))
+    return t('workflow.validator.name.match').replace('$VALUE', String(props.info?.name))
   }
-  return Promise.resolve(true)
+  return true
 }
 
 const onCancel = () => {
@@ -77,11 +76,11 @@ const onSubmit = () => {
     WorkflowService.stop(props.info.code!)
                    .then((response) => {
                      if (response.status) {
-                       message.success(t('workflow.tip.stopSuccess').replace('$VALUE', String(props.info?.name)))
+                       MfMessage.success(t('workflow.tip.stopSuccess').replace('$VALUE', String(props.info?.name)))
                        onCancel()
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))

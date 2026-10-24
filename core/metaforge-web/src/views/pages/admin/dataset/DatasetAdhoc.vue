@@ -1,6 +1,6 @@
 <template>
-  <a-row :gutter="8">
-    <a-col :span="4">
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_5fr] gap-2">
+    <div>
       <div class="dc-adhoc__side">
         <div class="dc-adhoc__dataset">
           <div class="dc-adhoc__dataset-icon">
@@ -12,11 +12,11 @@
           </div>
         </div>
 
-        <a-input v-model:value="fieldSearch" class="dc-adhoc__search" :placeholder="$t('dataset.search.fields')">
+        <MfInput v-model="fieldSearch" class="dc-adhoc__search" :placeholder="$t('dataset.search.fields')">
           <template #prefix>
             <SearchOutlined :style="{ fontSize: '13px', color: 'var(--dc-text-secondary)' }"/>
           </template>
-        </a-input>
+        </MfInput>
 
         <div class="dc-adhoc__field-tabs">
           <span class="dc-adhoc__field-tab"
@@ -36,7 +36,7 @@
           </span>
         </div>
 
-        <a-spin :spinning="initialize">
+        <div class="relative">
           <div v-if="!initialize && showMetrics" class="dc-adhoc__group">
             <div class="dc-adhoc__group-title">
               <BarChartOutlined class="dc-adhoc__group-icon"/>
@@ -78,11 +78,15 @@
             </Draggable>
             <div v-if="!visibleDimensions.length" class="dc-adhoc__field-empty">{{ $t('common.noData') }}</div>
           </div>
-        </a-spin>
-      </div>
-    </a-col>
 
-    <a-col :span="20">
+          <div v-if="initialize" class="absolute inset-0 z-10 flex items-center justify-center">
+            <MfSpinner size="lg" label="Loading..."/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
         <div class="dc-adhoc__main">
           <div class="dc-adhoc__head">
             <div class="min-w-0">
@@ -90,36 +94,36 @@
               <div class="dc-adhoc__desc">{{ $t('dataset.adhoc.desc') }}</div>
             </div>
             <div class="dc-adhoc__head-actions">
-              <a-button @click="onClear">
-                <template #icon><ClearOutlined/></template>
+              <MfButton @click="onClear">
+                <ClearOutlined/>
                 {{ $t('dataset.adhoc.clear') }}
-              </a-button>
-              <a-button :disabled="!showSql.content || loading" @click="visibleShowSql(true)">
-                <template #icon><EyeOutlined/></template>
+              </MfButton>
+              <MfButton :disabled="!showSql.content || loading" @click="visibleShowSql(true)">
+                <EyeOutlined/>
                 {{ $t('dataset.adhoc.preview') }}
-              </a-button>
-              <a-button type="primary" :disabled="loading" :loading="loading" @click="onApplyAdhoc">
-                <template #icon><PlayCircleOutlined/></template>
+              </MfButton>
+              <MfButton variant="primary" :disabled="loading" :loading="loading" @click="onApplyAdhoc">
+                <PlayCircleOutlined/>
                 {{ $t('dataset.adhoc.query') }}
-              </a-button>
-              <a-dropdown>
-                <a-button><EllipsisOutlined/></a-button>
+              </MfButton>
+              <MfDropdown placement="bottomRight">
+                <MfButton><EllipsisOutlined/></MfButton>
                 <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="publishVisible = true">{{ $t('common.publish') }}</a-menu-item>
-                    <a-menu-item>
+                  <MfMenu>
+                    <MfMenuItem key_="publish" @click="publishVisible = true">{{ $t('common.publish') }}</MfMenuItem>
+                    <MfMenuItem key_="limit">
                       <div class="flex items-center gap-2" @click.stop>
                         <span>{{ $t('dataset.common.showPageSize') }}</span>
-                        <a-input-number v-model:value="configure.limit" :min="1" size="small" style="width: 90px;"/>
+                        <MfInputNumber v-model="configure.limit" :min="1" size="sm" style="width: 90px;"/>
                       </div>
-                    </a-menu-item>
-                  </a-menu>
+                    </MfMenuItem>
+                  </MfMenu>
                 </template>
-              </a-dropdown>
+              </MfDropdown>
             </div>
           </div>
 
-          <a-spin :spinning="loading">
+          <div class="relative">
             <div class="dc-adhoc__zone dc-adhoc__zone--metric"
                  :class="{ 'dc-adhoc__zone--highlight': highlight.active && highlight.type === ColumnType.METRIC }">
               <div class="dc-adhoc__zone-head dc-adhoc__zone-head--green">
@@ -130,17 +134,17 @@
               <div class="dc-adhoc__zone-body">
                 <Draggable group="metrics" item-key="id" :list="metrics" class="flex flex-wrap gap-2">
                   <template #item="{ element, index }">
-                    <a-tag class="dc-adhoc__chip">
+                    <MfTag class="dc-adhoc__chip">
                       <span class="flex items-center">
                         <DatasetColumnMetric :element="element"/>
                       </span>
                       <span class="ml-2 flex items-center space-x-1">
-                        <a-tooltip :title="$t('common.configure')">
+                        <MfTooltip :content="$t('common.configure')">
                           <SettingOutlined class="cursor-pointer hover:text-primary" @click="onColumnConfigure(true, element, ColumnType.METRIC)" :style="{ fontSize: '13px' }"/>
-                        </a-tooltip>
+                        </MfTooltip>
                         <CloseOutlined class="cursor-pointer text-red-400 hover:text-red-500" @click="onRemove(index, metrics)" :style="{ fontSize: '11px' }"/>
                       </span>
-                    </a-tag>
+                    </MfTag>
                   </template>
                 </Draggable>
               </div>
@@ -156,17 +160,17 @@
               <div class="dc-adhoc__zone-body">
                 <Draggable group="dimensions" item-key="id" :list="dimensions" class="flex flex-wrap gap-2">
                   <template #item="{ element, index }">
-                    <a-tag class="dc-adhoc__chip">
+                    <MfTag class="dc-adhoc__chip">
                       <span class="flex items-center">
                         {{ element.aliasName ? element.aliasName : element.name }}
                       </span>
                       <span class="ml-2 flex items-center space-x-1">
-                        <a-tooltip :title="$t('common.configure')">
+                        <MfTooltip :content="$t('common.configure')">
                           <SettingOutlined class="cursor-pointer hover:text-primary" @click="onColumnConfigure(true, element, ColumnType.DIMENSION)" :style="{ fontSize: '13px' }"/>
-                        </a-tooltip>
+                        </MfTooltip>
                         <CloseOutlined class="cursor-pointer text-red-400 hover:text-red-500" @click="onRemove(index, dimensions)" :style="{ fontSize: '11px' }"/>
                       </span>
-                    </a-tag>
+                    </MfTag>
                   </template>
                 </Draggable>
               </div>
@@ -182,44 +186,48 @@
               <div class="dc-adhoc__zone-body">
                 <Draggable group="dimensions" item-key="id" :list="filters" class="flex flex-wrap gap-2">
                   <template #item="{ element, index }">
-                    <a-tag class="dc-adhoc__chip">
+                    <MfTag class="dc-adhoc__chip">
                       <span class="flex items-center">
                         {{ element.aliasName ? element.aliasName : element.name }}
                       </span>
                       <span class="ml-2 flex items-center space-x-1">
-                        <a-tooltip :title="$t('common.configure')">
+                        <MfTooltip :content="$t('common.configure')">
                           <SettingOutlined class="cursor-pointer hover:text-primary" @click="onColumnConfigure(true, element, ColumnType.FILTER)" :style="{ fontSize: '13px' }"/>
-                        </a-tooltip>
+                        </MfTooltip>
                         <CloseOutlined class="cursor-pointer text-red-400 hover:text-red-500" @click="onRemove(index, filters)" :style="{ fontSize: '11px' }"/>
                       </span>
-                    </a-tag>
+                    </MfTag>
                   </template>
                 </Draggable>
               </div>
             </div>
-          </a-spin>
+
+            <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
+              <MfSpinner size="lg" label="Loading..."/>
+            </div>
+          </div>
 
           <div class="dc-adhoc__result">
-            <a-tabs v-model:activeKey="resultTab" class="dc-adhoc__result-tabs">
-              <a-tab-pane key="result" :tab="$t('dataset.adhoc.resultTab')">
+            <MfTabs v-model:active-key="resultTab" class="dc-adhoc__result-tabs">
+              <MfTabPane item-key="result" :tab="$t('dataset.adhoc.resultTab')">
                 <VisualEditor :loading="loading" :configuration="configuration as any" @commitOptions="visibleCommitOptions"/>
-              </a-tab-pane>
-              <a-tab-pane key="log" :tab="$t('dataset.adhoc.logTab')">
+              </MfTabPane>
+              <MfTabPane item-key="log" :tab="$t('dataset.adhoc.logTab')">
                 <pre class="dc-adhoc__log">{{ showSql.content || $t('common.noData') }}</pre>
-              </a-tab-pane>
-            </a-tabs>
+              </MfTabPane>
+            </MfTabs>
 
             <div class="dc-adhoc__result-footer">
               <span class="dc-adhoc__result-total">{{ $t('dataset.adhoc.totalRows', { limit: configure.limit }) }}</span>
-              <a-button size="small" @click="exportResults">
-                <template #icon><DownloadOutlined/></template>
+              <MfButton size="sm" @click="exportResults">
+                <DownloadOutlined/>
                 {{ $t('dataset.adhoc.export') }}
-              </a-button>
+              </MfButton>
             </div>
           </div>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+  </div>
 
     <SqlInfo v-if="showSql.visible"
              :is-visible="showSql.visible"
@@ -248,7 +256,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import Draggable from 'vuedraggable'
 import DatasetService from '@/services/dataset'
 import { Type as ColumnType } from './Type'
@@ -366,7 +374,7 @@ const onAdhoc = () => {
                     }
                   }
                   else {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => (loading.value = false))
@@ -426,7 +434,7 @@ const handleInitialize = () => {
                       }
                     }
                     else {
-                      message.error(response.message)
+                      MfMessage.error(response.message)
                     }
                   })
                   .finally(() => (initialize.value = false))
@@ -507,7 +515,7 @@ const onClear = () => {
 
 const exportResults = () => {
   if (!configuration.value || !configuration.value.headers.length) {
-    message.error(t('common.noData') as string)
+    MfMessage.error(t('common.noData') as string)
     return
   }
   const headers = configuration.value.headers

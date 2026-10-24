@@ -11,54 +11,48 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-tooltip :title="$t('workflow.text.create')">
+        <MfTooltip :content="$t('workflow.text.create')">
           <router-link to="/admin/workflow/info" target="_blank">
-            <a-button type="primary" shape="circle" size="small">
-              <template #icon>
-                <PlusOutlined :style="{ fontSize: '15px' }"/>
-              </template>
-            </a-button>
+            <MfButton variant="primary" size="sm">
+              <PlusOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
           </router-link>
-        </a-tooltip>
+        </MfTooltip>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'executor'">
-          <a-tooltip :title="record.executor">
-            <a-avatar size="small" :src="`/static/images/executor/${record.executor.replace('Executor', '').toLowerCase()}.svg`"/>
-          </a-tooltip>
+          <MfTooltip :content="record.executor">
+            <MfAvatar size="sm" :src="`/static/images/executor/${record.executor.replace('Executor', '').toLowerCase()}.svg`"/>
+          </MfTooltip>
         </template>
 
         <template v-else-if="column.key === 'state'">
-          <a-tag class="w-20" :color="Common.getColor(record.state)">
+          <MfTag class="w-20" :style="{ color: Common.getColor(record.state), borderColor: Common.getColor(record.state) }">
             {{ getText(record.state) }}
-          </a-tag>
+          </MfTag>
         </template>
 
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('common.error')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        danger
+          <MfSpace>
+            <MfTooltip :content="$t('common.error')">
+              <MfButton variant="ghost"
+                        size="sm"
+                        class="text-danger"
                         :disabled="record.state !== 'FAILURE' && !(record.state == 'STOPPED' && record.message)"
                         @click="visibleShowMessage(true, record)">
-                <template #icon>
-                  <WarningOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+                <WarningOutlined :style="{ fontSize: '15px' }"/>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click" placement="bottomRight">
-              <a-button type="text" shape="circle" size="small">
-                <template #icon>
-                  <SettingOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
+            <MfDropdown trigger="click" placement="bottomRight">
+              <MfButton variant="ghost" size="sm">
+                <SettingOutlined :style="{ fontSize: '15px' }"/>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item :disabled="record.state === 'RUNNING'">
+                <MfMenu>
+                  <MfMenuItem key_="modify" :disabled="record.state === 'RUNNING'">
                     <template v-if="record.state !== 'RUNNING'">
                       <router-link :to="`/admin/workflow/info/${record.code}`" target="_blank" class="flex items-center">
                         <InfoCircleOutlined :style="{ fontSize: '15px' }"/>
@@ -69,46 +63,46 @@
                       <InfoCircleOutlined :style="{ fontSize: '15px' }"/>
                       <span class="ml-2">{{ $t('workflow.text.modify') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="record.state !== 'RUNNING'" @click="visibleStop(true, record)">
+                  <MfMenuItem key_="stop" :disabled="record.state !== 'RUNNING'" @click="record.state === 'RUNNING' && visibleStop(true, record)">
                     <div class="flex items-center space-x-2">
                       <PauseCircleOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('workflow.text.stop') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="record.state === 'RUNNING'" @click="visibleRestart(true, record)">
+                  <MfMenuItem key_="restart" :disabled="record.state === 'RUNNING'" @click="record.state !== 'RUNNING' && visibleRestart(true, record)">
                     <div class="flex items-center space-x-2">
                       <PlayCircleOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('workflow.text.restart') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleLogger(true, record)">
+                  <MfMenuItem key_="logger" @click="visibleLogger(true, record)">
                     <div class="flex items-center space-x-2">
                       <DeploymentUnitOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('workflow.text.logger') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="record.state === 'RUNNING'" @click="visibleDelete(true, record)">
+                  <MfMenuItem key_="delete" :disabled="record.state === 'RUNNING'" @click="record.state !== 'RUNNING' && visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
                       <DeleteOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('workflow.text.delete') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleFlow(true, record)">
+                  <MfMenuItem key_="flow" @click="visibleFlow(true, record)">
                     <div class="flex items-center space-x-2">
                       <ClusterOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('workflow.text.flow') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

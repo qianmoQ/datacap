@@ -1,280 +1,259 @@
 <template>
-  <a-card :title="$t('common.dataset')" :bordered="false">
+  <MfCard :title="$t('common.dataset')" :bordered="false">
     <template #extra>
-      <a-button :disabled="!data?.data.columns" @click="configureVisible = true">
+      <MfButton :disabled="!data?.data.columns" @click="configureVisible = true">
         {{ $t('common.configure') }}
-      </a-button>
+      </MfButton>
     </template>
 
     <div class="relative h-full space-y-4" style="min-height: 200px;">
-      <a-spin :spinning="loading">
-        <a-card v-if="sourceInfo" class="w-full">
-          <template #title>
-            <a-button type="primary" :loading="running" :disabled="running" @click="onRun()">
+      <div class="relative">
+        <MfCard v-if="sourceInfo" class="w-full">
+          <template #header>
+            <MfButton variant="primary" :loading="running" :disabled="running" @click="onRun()">
               {{ $t('query.common.execute') }}
-            </a-button>
+            </MfButton>
           </template>
 
           <div class="relative">
-            <a-spin :spinning="running">
-              <AceEditor :value="value" @update:value="value = $event"/>
-            </a-spin>
+            <AceEditor :value="value" @update:value="value = $event"/>
+            <div v-if="running" class="absolute inset-0 z-10 flex items-center justify-center">
+              <MfSpinner size="lg" label="Loading..."/>
+            </div>
           </div>
-        </a-card>
+        </MfCard>
 
         <div v-if="data || code" class="relative">
-          <a-spin :spinning="running">
-            <AgGridVue v-if="data?.data.columns"
-                       :style="{height: '300px'}"
-                       class="ag-theme-metaforge"
-                       :pagination="true"
-                       :columnDefs="columnDefs"
-                       :rowData="data.data.columns"
-                       :gridOptions="gridOptions as any"/>
-          </a-spin>
+          <AgGridVue v-if="data?.data.columns"
+                     :style="{height: '300px'}"
+                     class="ag-theme-metaforge"
+                     :pagination="true"
+                     :columnDefs="columnDefs"
+                     :rowData="data.data.columns"
+                     :gridOptions="gridOptions as any"/>
+          <div v-if="running" class="absolute inset-0 z-10 flex items-center justify-center">
+            <MfSpinner size="lg" label="Loading..."/>
+          </div>
         </div>
 
         <div v-if="!sourceInfo" class="mt-3 justify-center items-center">
           <div class="flex flex-col items-center space-y-4">
-            <a-alert :message="i18n.t('dataset.common.onlyPreviewCreate')"/>
+            <MfAlert :title="i18n.t('dataset.common.onlyPreviewCreate')"/>
 
-            <a-button>
+            <MfButton>
               <router-link to="/admin/query">
                 {{ i18n.t('dataset.common.returnQuery') }}
               </router-link>
-            </a-button>
+            </MfButton>
           </div>
         </div>
-      </a-spin>
-    </div>
-  </a-card>
 
-  <a-drawer v-model:open="configureVisible"
-            height="70%"
+        <div v-if="loading" class="absolute inset-0 z-20 flex items-center justify-center">
+          <MfSpinner size="lg" label="Loading..."/>
+        </div>
+      </div>
+    </div>
+  </MfCard>
+
+  <MfDrawer v-model:open="configureVisible"
             placement="bottom"
-            :closable="false"
+            :style="{ height: '70%' }"
             :title="$t('common.configure')">
     <template #extra>
       <div class="flex items-center justify-end space-x-2">
-        <a-button type="primary" @click="onSubmit">
+        <MfButton variant="primary" @click="onSubmit">
           {{ code ? $t('dataset.common.modify') : $t('dataset.common.create') }}
-        </a-button>
+        </MfButton>
 
-        <a-button @click="configureVisible = false">
+        <MfButton @click="configureVisible = false">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
       </div>
     </template>
 
-    <a-alert v-if="validator" type="error" class="mt-2" :message="validatorMessage"/>
+    <MfAlert v-if="validator" variant="danger" class="mt-2" :title="validatorMessage"/>
 
-    <a-tabs v-model:activeKey="activeTab" class="mt-1">
-      <a-tab-pane key="columns" :tab="$t('dataset.common.dataColumn')" class="space-y-2">
-        <a-spin :spinning="loading">
-          <a-row :gutter="8">
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnName') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnAlias') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnType') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnMode') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnDefaultValue') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnIsNullable') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnIsOrderByKey') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnIsPartitionKey') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnIsPrimaryKey') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnIsSampling') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('dataset.common.columnLength') }}</a-col>
-            <a-col :span="2" class="text-center">{{ $t('common.action') }}</a-col>
-          </a-row>
+    <MfTabs v-model:active-key="activeTab" class="mt-1">
+      <MfTabPane item-key="columns" :tab="$t('dataset.common.dataColumn')" class="space-y-2">
+        <div class="relative">
+          <div class="grid grid-cols-12 gap-2">
+            <div class="text-center">{{ $t('dataset.common.columnName') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnAlias') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnType') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnMode') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnDefaultValue') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnIsNullable') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnIsOrderByKey') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnIsPartitionKey') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnIsPrimaryKey') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnIsSampling') }}</div>
+            <div class="text-center">{{ $t('dataset.common.columnLength') }}</div>
+            <div class="text-center">{{ $t('common.action') }}</div>
+          </div>
 
-          <a-row :gutter="8">
-            <template v-for="(item, index) in formState.columns" :key="index">
-              <a-col :span="2" class="flex justify-center">
-                <a-input v-model:value="item.name"/>
-              </a-col>
+          <div v-for="(item, index) in formState.columns" :key="index" class="grid grid-cols-12 gap-2">
+            <div class="flex justify-center">
+              <MfInput v-model="item.name"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center">
-                <a-input v-model:value="item.aliasName"/>
-              </a-col>
+            <div class="flex justify-center">
+              <MfInput v-model="item.aliasName"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center">
-                <a-select v-model:value="item.type" placeholder="Options" class="w-full">
-                  <a-select-option value="STRING">{{ $t('dataset.common.columnTypeString') }}</a-select-option>
-                  <a-select-option value="NUMBER">{{ $t('dataset.common.columnTypeNumber') }}</a-select-option>
-                  <a-select-option value="NUMBER_SIGNED">{{ $t('dataset.common.columnTypeNumberSigned') }}</a-select-option>
-                  <a-select-option value="BOOLEAN">{{ $t('dataset.common.columnTypeBoolean') }}</a-select-option>
-                  <a-select-option value="DATETIME">{{ $t('dataset.common.columnTypeDateTime') }}</a-select-option>
-                </a-select>
-              </a-col>
+            <div class="flex justify-center">
+              <MfSelect v-model="item.type" placeholder="Options" class="w-full"
+                        :options="[
+                          { label: $t('dataset.common.columnTypeString'), value: 'STRING' },
+                          { label: $t('dataset.common.columnTypeNumber'), value: 'NUMBER' },
+                          { label: $t('dataset.common.columnTypeNumberSigned'), value: 'NUMBER_SIGNED' },
+                          { label: $t('dataset.common.columnTypeBoolean'), value: 'BOOLEAN' },
+                          { label: $t('dataset.common.columnTypeDateTime'), value: 'DATETIME' }
+                        ]"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.mode" checked-value="METRIC" un-checked-value="DIMENSION">
-                  <template #checkedChildren>{{ $t('dataset.common.columnModeDimension') }}</template>
-                  <template #unCheckedChildren>{{ $t('dataset.common.columnModeMetric') }}</template>
-                </a-switch>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch :model-value="item.mode === 'METRIC'"
+                        @update:model-value="item.mode = $event ? 'METRIC' : 'DIMENSION'"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center">
-                <a-input v-model:value="item.defaultValue" :disabled="item.virtualColumn"/>
-              </a-col>
+            <div class="flex justify-center">
+              <MfInput v-model="item.defaultValue" :disabled="item.virtualColumn"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.nullable" :disabled="item.virtualColumn" @change="setNullable(item, $event)"/>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch v-model="item.nullable" :disabled="item.virtualColumn" @update:model-value="setNullable(item, $event)"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.orderByKey" :disabled="item.virtualColumn" @change="setOrderByKey(item, $event)"/>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch v-model="item.orderByKey" :disabled="item.virtualColumn" @update:model-value="setOrderByKey(item, $event)"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.partitionKey" :disabled="item.virtualColumn" @change="setPartitionKey(item, $event)"/>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch v-model="item.partitionKey" :disabled="item.virtualColumn" @update:model-value="setPartitionKey(item, $event)"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.primaryKey" :disabled="item.virtualColumn" @change="setPrimaryKey(item, $event)"/>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch v-model="item.primaryKey" :disabled="item.virtualColumn" @update:model-value="setPrimaryKey(item, $event)"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center">
-                <a-switch v-model:checked="item.samplingKey" :disabled="item.virtualColumn" @change="setSamplingKey(item, $event)"/>
-              </a-col>
+            <div class="flex justify-center items-center">
+              <MfSwitch v-model="item.samplingKey" :disabled="item.virtualColumn" @update:model-value="setSamplingKey(item, $event)"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center">
-                <a-input-number v-model:value="item.length" :disabled="item.type === 'BOOLEAN' || item.type === 'DATETIME' || item.virtualColumn"/>
-              </a-col>
+            <div class="flex justify-center">
+              <MfInputNumber v-model="item.length" :disabled="item.type === 'BOOLEAN' || item.type === 'DATETIME' || item.virtualColumn"/>
+            </div>
 
-              <a-col :span="2" class="flex justify-center items-center space-x-1">
-                <a-popover placement="bottom">
-                  <template #content>
-                    <div class="p-2 space-y-2">
-                      <div class="text-base font-medium">{{ $t('dataset.common.columnComment') }}</div>
-                      <a-textarea v-model:value="item.comment"/>
-                    </div>
-                  </template>
+            <div class="flex justify-center items-center space-x-1">
+              <MfPopover placement="bottom">
+                <template #content>
+                  <div class="p-2 space-y-2">
+                    <div class="text-base font-medium">{{ $t('dataset.common.columnComment') }}</div>
+                    <MfTextarea v-model="item.comment"/>
+                  </div>
+                </template>
 
-                  <a-button type="text" shape="circle" size="small">
-                    <template #icon>
-                      <EditOutlined :style="{ fontSize: '10px' }"/>
-                    </template>
-                  </a-button>
-                </a-popover>
+                <MfButton variant="ghost" size="sm">
+                  <EditOutlined :style="{ fontSize: '10px' }"/>
+                </MfButton>
+              </MfPopover>
 
-                <a-button type="text" shape="circle"
-                          danger
-                          size="small"
-                          :disabled="!item.customColumn"
-                          @click="onRemoveColumn(index)">
-                  <template #icon>
-                    <DeleteOutlined :style="{ fontSize: '10px' }"/>
-                  </template>
-                </a-button>
+              <MfButton variant="ghost"
+                        size="sm"
+                        class="text-danger"
+                        :disabled="!item.customColumn"
+                        @click="onRemoveColumn(index)">
+                <DeleteOutlined :style="{ fontSize: '10px' }"/>
+              </MfButton>
 
-                <a-button type="text" shape="circle" size="small" @click="onAddColumn(index)">
-                  <template #icon>
-                    <PlusOutlined :style="{ fontSize: '10px' }"/>
-                  </template>
-                </a-button>
-              </a-col>
-            </template>
-          </a-row>
-        </a-spin>
-      </a-tab-pane>
+              <MfButton variant="ghost" size="sm" @click="onAddColumn(index)">
+                <PlusOutlined :style="{ fontSize: '10px' }"/>
+              </MfButton>
+            </div>
+          </div>
 
-      <a-tab-pane key="configure" :tab="$t('dataset.common.dataConfigure')">
-        <a-form class="w-[40%] mx-auto items-center" :model="formState" layout="vertical">
-          <a-row :gutter="8">
-            <a-col :span="12">
-              <a-form-item name="name" :label="$t('common.name')" :rules="[{ required: true, message: $t('common.name') }]">
-                <a-input v-model:value="formState.name"/>
-              </a-form-item>
-            </a-col>
+          <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
+            <MfSpinner size="lg" label="Loading..."/>
+          </div>
+        </div>
+      </MfTabPane>
 
-            <a-col :span="12">
-              <a-form-item name="executor" :label="$t('common.executor')">
-                <a-select v-model:value="formState.executor">
-                  <a-select-option v-for="item in executors" :key="item.name" :value="item.name">{{ item.name }}</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
+      <MfTabPane item-key="configure" :tab="$t('dataset.common.dataConfigure')">
+        <MfForm class="w-[40%] mx-auto items-center" :model="formState" layout="vertical">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <MfFormItem name="name" :label="$t('common.name')" :rules="[{ required: true, message: $t('common.name') }]">
+              <MfInput v-model="formState.name"/>
+            </MfFormItem>
 
-            <a-col :span="12">
-              <a-form-item name="syncMode" :label="$t('dataset.common.syncMode')">
-                <a-select v-model:value="formState.syncMode">
-                  <a-select-option value="MANUAL">{{ $t('dataset.common.syncModeManual') }}</a-select-option>
-                  <a-select-option value="TIMING">{{ $t('dataset.common.syncModeTiming') }}</a-select-option>
-                  <a-select-option value="OUT_SYNC">{{ $t('dataset.common.syncModeOutSync') }}</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
+            <MfFormItem name="executor" :label="$t('common.executor')">
+              <MfSelect v-model="formState.executor"
+                        :options="executors.map((item: any) => ({ label: item.name, value: item.name }))"/>
+            </MfFormItem>
 
-            <a-col :span="12">
-              <a-form-item name="expression" :label="$t('dataset.common.columnExpression')">
-                <a-input v-model:value="formState.expression" :disabled="formState.syncMode !== 'TIMING'"/>
-              </a-form-item>
-            </a-col>
+            <MfFormItem name="syncMode" :label="$t('dataset.common.syncMode')">
+              <MfSelect v-model="formState.syncMode"
+                        :options="[
+                          { label: $t('dataset.common.syncModeManual'), value: 'MANUAL' },
+                          { label: $t('dataset.common.syncModeTiming'), value: 'TIMING' },
+                          { label: $t('dataset.common.syncModeOutSync'), value: 'OUT_SYNC' }
+                        ]"/>
+            </MfFormItem>
 
-            <a-col :span="12">
-              <a-form-item name="scheduler" :label="$t('common.scheduler')">
-                <a-select v-model:value="formState.scheduler" :disabled="formState.syncMode !== 'TIMING'">
-                  <a-select-option v-for="item in schedulers" :key="item.name" :value="item.name">{{ item.name }}</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
+            <MfFormItem name="expression" :label="$t('dataset.common.columnExpression')">
+              <MfInput v-model="formState.expression" :disabled="formState.syncMode !== 'TIMING'"/>
+            </MfFormItem>
 
-            <a-col :span="24">
-              <a-divider/>
-            </a-col>
+            <MfFormItem name="scheduler" :label="$t('common.scheduler')">
+              <MfSelect v-model="formState.scheduler"
+                        :disabled="formState.syncMode !== 'TIMING'"
+                        :options="schedulers.map((item: any) => ({ label: item.name, value: item.name }))"/>
+            </MfFormItem>
+          </div>
 
-            <a-col :span="24">
-              <a-alert v-if="formState.columns.filter(item => item.type === 'DATETIME').length === 0" type="error"
-                       :message="$t('dataset.tip.lifeCycleMustDateColumn')"/>
-            </a-col>
+          <MfDivider/>
 
-            <a-col :span="24">
-              <a-form-item name="lifeCycleColumn" :label="$t('dataset.common.lifeCycleColumn')" :extra="$t('dataset.tip.lifeCycle')">
-                <a-select v-model:value="formState.lifeCycleColumn"
-                          :disabled="formState.columns.filter(item => item.type === 'DATETIME').length === 0">
-                  <a-select-option v-for="item in formState.columns.filter(v => v.type === 'DATETIME')" :key="item.name" :value="item.name">{{ item.name }}</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
+          <MfAlert v-if="formState.columns.filter(item => item.type === 'DATETIME').length === 0"
+                   variant="danger"
+                   :title="$t('dataset.tip.lifeCycleMustDateColumn')"/>
 
-            <a-col :span="12">
-              <a-form-item name="lifeCycleType" :label="$t('dataset.common.lifeCycleType')">
-                <a-select v-model:value="formState.lifeCycleType" :disabled="!formState.lifeCycleColumn">
-                  <a-select-option value="MONTH">{{ $t('dataset.common.lifeCycleMonth') }}</a-select-option>
-                  <a-select-option value="WEEK">{{ $t('dataset.common.lifeCycleWeek') }}</a-select-option>
-                  <a-select-option value="DAY">{{ $t('dataset.common.lifeCycleDay') }}</a-select-option>
-                  <a-select-option value="HOUR">{{ $t('dataset.common.lifeCycleHour') }}</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
+          <MfFormItem name="lifeCycleColumn" :label="$t('dataset.common.lifeCycleColumn')">
+            <MfSelect v-model="formState.lifeCycleColumn"
+                      :disabled="formState.columns.filter(item => item.type === 'DATETIME').length === 0"
+                      :options="formState.columns.filter(v => v.type === 'DATETIME').map((v: any) => ({ label: v.name, value: v.name }))"/>
+            <div class="text-xs text-content-tertiary mt-1">{{ $t('dataset.tip.lifeCycle') }}</div>
+          </MfFormItem>
 
-            <a-col :span="12">
-              <a-form-item name="lifeCycle" :label="$t('dataset.common.lifeCycleNumber')">
-                <a-input-number v-model:value="formState.lifeCycle" :min="1" :disabled="!formState.lifeCycleColumn" :style="{ width: '100%' }"/>
-              </a-form-item>
-            </a-col>
+          <MfFormItem name="lifeCycleType" :label="$t('dataset.common.lifeCycleType')">
+            <MfSelect v-model="formState.lifeCycleType"
+                      :disabled="!formState.lifeCycleColumn"
+                      :options="[
+                        { label: $t('dataset.common.lifeCycleMonth'), value: 'MONTH' },
+                        { label: $t('dataset.common.lifeCycleWeek'), value: 'WEEK' },
+                        { label: $t('dataset.common.lifeCycleDay'), value: 'DAY' },
+                        { label: $t('dataset.common.lifeCycleHour'), value: 'HOUR' }
+                      ]"/>
+          </MfFormItem>
 
-            <a-col :span="24">
-              <a-divider/>
-            </a-col>
+          <MfFormItem name="lifeCycle" :label="$t('dataset.common.lifeCycleNumber')">
+            <MfInputNumber v-model="formState.lifeCycle" :min="1" :disabled="!formState.lifeCycleColumn" :style="{ width: '100%' }"/>
+          </MfFormItem>
 
-            <a-col :span="24">
-              <a-form-item name="description" :label="$t('common.description')">
-                <a-textarea v-model:value="formState.description"/>
-              </a-form-item>
-            </a-col>
-          </a-row>
-        </a-form>
-      </a-tab-pane>
-    </a-tabs>
-  </a-drawer>
+          <MfDivider/>
+
+          <MfFormItem name="description" :label="$t('common.description')">
+            <MfTextarea v-model="formState.description"/>
+          </MfFormItem>
+        </MfForm>
+      </MfTabPane>
+    </MfTabs>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import GridOptions from '@/views/components/grid/GridOptions'
 import DatasetService from '@/services/dataset'
 import { HttpUtils } from '@/utils/http'
@@ -373,7 +352,7 @@ const onRun = () => {
                     }
                   }
                   else {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => (running.value = false))
@@ -482,7 +461,7 @@ const onSubmit = () => {
     DatasetService.saveOrUpdate(formState.value as unknown as DatasetModel)
                   .then((response) => {
                     if (response.status) {
-                      message.success(i18n.t('dataset.tip.publishSuccess').replace('$VALUE', formState.value.name as string))
+                      MfMessage.success(i18n.t('dataset.tip.publishSuccess').replace('$VALUE', formState.value.name as string))
                       router.push('/admin/dataset')
                     }
                   })

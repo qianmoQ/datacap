@@ -9,9 +9,9 @@
       <div class="dc-ai__slogan">AI for Better Data</div>
     </div>
 
-    <a-row :gutter="16">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- 基础配置 -->
-      <a-col :span="16">
+      <div class="lg:col-span-2">
         <div class="dc-ai__card">
           <div class="dc-ai__section-head">
             <div class="dc-ai__section-icon">
@@ -23,57 +23,61 @@
             </div>
           </div>
 
-          <a-spin :spinning="loading">
-            <a-form v-if="formState" layout="vertical" class="dc-ai__form">
-              <a-form-item :label="$t('user.common.host')" :required="true">
-                <a-input v-model:value="formState.host"
+          <div class="relative">
+            <MfForm v-if="formState" layout="vertical" class="dc-ai__form">
+              <MfFormItem name="host" required-mark :label="$t('user.common.host')">
+                <MfInput v-model="formState.host"
                          :placeholder="$t('user.placeholder.host')"/>
                 <div class="dc-ai__hint">{{ $t('user.tip.host') }}</div>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-form-item :label="$t('user.common.apiToken')" :required="true">
-                <a-input-password v-model:value="formState.token">
+              <MfFormItem name="token" required-mark :label="$t('user.common.apiToken')">
+                <MfInput v-model="formState.token" type="password" show-password>
                   <template #suffix>
                     <span class="dc-ai__kbd">🔑</span>
                   </template>
-                </a-input-password>
+                </MfInput>
                 <div class="dc-ai__hint">{{ $t('user.tip.token') }}</div>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-form-item :label="$t('user.common.timeoutSeconds')" :required="true">
-                <a-input-number v-model:value="formState.timeout"
+              <MfFormItem name="timeout" required-mark :label="$t('user.common.timeoutSeconds')">
+                <MfInputNumber v-model="formState.timeout"
                                 class="w-full"
                                 :min="1"
                                 :max="600"/>
                 <div class="dc-ai__hint">{{ $t('user.tip.timeout') }}</div>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-form-item :label="$t('user.common.contextCount')" :required="true">
-                <a-input-number v-model:value="formState.contentCount"
+              <MfFormItem name="contentCount" required-mark :label="$t('user.common.contextCount')">
+                <MfInputNumber v-model="formState.contentCount"
                                 class="w-full"
                                 :min="1"
                                 :max="20"/>
                 <div class="dc-ai__hint">{{ $t('user.tip.contentCount') }}</div>
-              </a-form-item>
-            </a-form>
+              </MfFormItem>
+            </MfForm>
 
             <div class="dc-ai__actions">
-              <a-button type="primary"
+              <MfButton variant="primary"
                         :loading="loading.submitting"
                         :disabled="!canSubmit"
                         @click="onSubmit">
                 {{ $t('user.common.saveConfig') }}
-              </a-button>
-              <a-button :loading="testing" @click="onTestConnection">
+              </MfButton>
+              <MfButton :loading="testing" @click="onTestConnection">
                 {{ $t('user.common.testConnection') }}
-              </a-button>
+              </MfButton>
             </div>
-          </a-spin>
+
+            <div v-if="loading.default" class="absolute inset-0 z-10 flex items-center justify-center">
+              <MfSpinner size="lg" label="Loading..."/>
+            </div>
+          </div>
         </div>
-      </a-col>
+      </div>
 
       <!-- 右列：配置说明 + 快速配置 -->
-      <a-col :span="8">
+      <div>
         <div class="dc-ai__card">
           <div class="dc-ai__section-head">
             <div class="dc-ai__section-icon">
@@ -123,15 +127,15 @@
             <span>{{ $t('user.tip.quickConfigHint') }}</span>
           </div>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import {
   ApiOutlined,
   BookOutlined,
@@ -195,11 +199,11 @@ const onSubmit = () => {
   UserService.changeChart(formState.value as UserChatModel)
              .then((response) => {
                if (response.status) {
-                 message.success(t('common.successfully') as string)
+                 MfMessage.success(t('common.successfully') as string)
                  localStorage.setItem(Common.userEditorConfigure, JSON.stringify(formState.value))
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (loading.submitting = false))
@@ -210,10 +214,10 @@ const onTestConnection = () => {
   UserService.testChat(formState.value as UserChatModel)
              .then((response) => {
                if (response.status && response.data === true) {
-                 message.success(t('user.tip.testSuccess') as string)
+                 MfMessage.success(t('user.tip.testSuccess') as string)
                }
                else {
-                 message.error(`${ t('user.tip.testFailed') }: ${ response.message }`)
+                 MfMessage.error(`${ t('user.tip.testFailed') }: ${ response.message }`)
                }
              })
              .finally(() => (testing.value = false))
@@ -300,10 +304,6 @@ handlerInitialize()
     font-size: 12px;
     color: var(--dc-text-secondary);
     margin-top: 2px;
-}
-
-.dc-ai__form :deep(.ant-form-item) {
-    margin-bottom: 18px;
 }
 
 .dc-ai__hint {
