@@ -1,33 +1,31 @@
 <template>
-  <a-card>
-    <template #title>
-      <a-space>
-        <a-button>
+  <MfCard>
+    <template #header>
+      <MfSpace>
+        <MfButton>
           <router-link :to="`/admin/dataset/info/source/${configure.code}?tempId=${tempId}`" target="_blank">
               <span class="flex items-center">
                 <PlusOutlined :style="{ fontSize: '15px' }"/>
                 <span>{{ $t('common.dataset') }}</span>
               </span>
           </router-link>
-        </a-button>
+        </MfButton>
 
-        <a-button @click="visualVisible = true">
+        <MfButton @click="visualVisible = true">
           <BarChartOutlined :style="{ fontSize: '15px' }"/>
           <span>{{ $t('dataset.common.visual') }}</span>
-        </a-button>
+        </MfButton>
 
-        <a-tooltip class="mt-1" :title="$t('query.tip.pageShow')">
-          <a-switch v-model:checked="isPage" @change="onChange"/>
-        </a-tooltip>
+        <MfTooltip class="mt-1" :content="$t('query.tip.pageShow')">
+          <MfSwitch v-model="isPage" @change="onChange"/>
+        </MfTooltip>
 
-        <a-tooltip :title="$t('query.tip.smallTips')">
-          <a-button type="text" shape="circle">
-            <template #icon>
-              <QuestionCircleOutlined :style="{ fontSize: '15px' }"/>
-            </template>
-          </a-button>
-        </a-tooltip>
-      </a-space>
+        <MfTooltip :content="$t('query.tip.smallTips')">
+          <MfButton variant="ghost" shape="circle">
+            <QuestionCircleOutlined :style="{ fontSize: '15px' }"/>
+          </MfButton>
+        </MfTooltip>
+      </MfSpace>
     </template>
 
     <ag-grid-vue v-if="type === 'table'"
@@ -38,7 +36,7 @@
                  :columnDefs="columnDefs"
                  :rowData="configure.columns"
                  :gridOptions="gridOptions as any"/>
-  </a-card>
+  </MfCard>
 
   <GridVisual :is-visible="visualVisible" :configure="configure" @close="visualVisible = $event"/>
 </template>

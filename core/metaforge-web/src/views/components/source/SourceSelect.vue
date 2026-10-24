@@ -3,6 +3,7 @@
     <MfSelect v-model="applySource"
               :options="options as any"
               :loading="loading"
+              searchable
               :style="{ width: '100%' }"
               :placeholder="$t('source.tip.selectSource')"
               @change="onChange">

@@ -1,47 +1,46 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="80%"
            :title="$t('dataset.common.visual')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-alert v-if="message" type="error" :message="message" class="mb-3"/>
+           @close="onCancel">
+    <MfAlert v-if="message" variant="danger" :title="message" class="mb-3"/>
 
-    <a-form :model="formState" layout="vertical" @finish="onSubmit">
-      <a-form-item name="name"
-                   :label="$t('common.name')"
-                   :rules="[
-                         { required: true, message: $t('report.validator.name.required') }
-                   ]">
-        <a-input v-model:value="formState.name" :placeholder="$t('report.placeholder.name')"/>
-      </a-form-item>
+    <MfForm :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[
+                        { required: true, message: $t('report.validator.name.required') }
+                  ]">
+        <MfInput v-model="formState.name" :placeholder="$t('report.placeholder.name')"/>
+      </MfFormItem>
 
-      <a-form-item name="description" :label="$t('common.description')">
-        <a-textarea v-model:value="formState.description" :placeholder="$t('report.placeholder.description')"/>
-      </a-form-item>
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description" :placeholder="$t('report.placeholder.description')"/>
+      </MfFormItem>
 
-      <a-form-item>
+      <MfFormItem>
         <VisualEditor :loading="loading" :configuration="configuration as any" @commitOptions="onCommitOptions"/>
-      </a-form-item>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" html-type="submit" :disabled="published" :loading="published">
+          <MfButton variant="primary" type="submit" :disabled="published" :loading="published">
             {{ $t('common.publish') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message as antdMessage } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import VisualEditor from '@/views/components/visual/VisualEditor.vue'
 import { Configuration } from '@/views/components/visual/Configuration.ts'
 import { GridConfigure } from '@/views/components/grid/GridConfigure.ts'
@@ -109,11 +108,11 @@ const onSubmit = () => {
     ReportService.saveOrUpdate(formState.value)
                  .then((response) => {
                    if (response.status) {
-                     antdMessage.success(t('report.tip.publishSuccess').replace('$VALUE', formState.value.name))
+                     MfMessage.success(t('report.tip.publishSuccess').replace('$VALUE', formState.value.name))
                      router.push('/admin/report')
                    }
                    else {
-                     antdMessage.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => (published.value = false))

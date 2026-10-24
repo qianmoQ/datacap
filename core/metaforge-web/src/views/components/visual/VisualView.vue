@@ -1,14 +1,17 @@
 <template>
   <div class="relative h-full w-full" :style="{ width: width, height: height }">
-    <a-spin :spinning="loading">
-      <div v-if="localConfiguration && !loading">
-        <div v-if="localConfiguration.message" class="p-4">
-          <a-alert type="error" :message="localConfiguration.message"/>
-        </div>
+    <div v-if="loading" class="flex items-center justify-center absolute inset-0">
+      <MfSpinner size="lg"/>
+    </div>
 
-        <div v-else-if="hasError && message" class="flex items-center justify-center absolute inset-0">
-          <a-alert type="error" show-icon :message="message"/>
-        </div>
+    <div v-if="localConfiguration && !loading">
+      <div v-if="localConfiguration.message" class="p-4">
+        <MfAlert variant="danger" :title="localConfiguration.message"/>
+      </div>
+
+      <div v-else-if="hasError && message" class="flex items-center justify-center absolute inset-0">
+        <MfAlert variant="danger" :title="message"/>
+      </div>
 
         <div v-else>
           <VisualTable v-if="configuration?.type === Type.TABLE"
@@ -83,14 +86,13 @@
                       :width="width"
                       :height="height"/>
         </div>
-      </div>
-    </a-spin>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { message as antdMessage } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
 import { Type } from '@/views/components/visual/Type'
 import VisualWordCloud from '@/views/components/visual/components/VisualWordCloud.vue'
@@ -171,7 +173,7 @@ const handleInitialize = () => {
                         formatRaw(response)
                       }
                       else {
-                        antdMessage.error(response.message)
+                        MfMessage.error(response.message)
                       }
                     })
                     .finally(() => (loading.value = false))

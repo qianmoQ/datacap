@@ -8,11 +8,13 @@ const props = withDefaults(defineProps<{
     width?: string
     placement?: 'right' | 'left' | 'top' | 'bottom'
     closeOnOverlay?: boolean
+    closable?: boolean
 }>(), {
     open: false,
     width: '480px',
     placement: 'right',
     closeOnOverlay: true,
+    closable: true,
 })
 
 const emit = defineEmits<{
@@ -73,6 +75,7 @@ const panelPos = computed(() => clsx(
                             <div class="flex items-center gap-2">
                                 <slot name="extra" />
                                 <button
+                                    v-if="closable"
                                     type="button"
                                     class="inline-flex size-7 items-center justify-center rounded-mf-md text-content-tertiary hover:bg-surface-hover hover:text-content"
                                     aria-label="close"

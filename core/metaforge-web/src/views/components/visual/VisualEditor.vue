@@ -1,13 +1,16 @@
 <template>
-  <a-row :gutter="8">
-    <a-col :span="20">
+  <div class="grid grid-cols-6 gap-2">
+    <div class="col-span-5">
       <div class="relative" style="min-height: 300px;">
-        <a-spin :spinning="loading">
-          <a-alert v-if="configuration?.headers.length === 0 && !configuration?.message" class="mt-20" :message="$t('dataset.tip.adhocDnd')"/>
+        <div v-if="loading" class="flex items-center justify-center absolute inset-0">
+          <MfSpinner size="lg"/>
+        </div>
 
-          <a-alert v-else-if="configuration?.message" class="mt-20" :message="configuration.message" type="error"/>
+        <MfAlert v-if="configuration?.headers.length === 0 && !configuration?.message" class="mt-20" :title="$t('dataset.tip.adhocDnd')"/>
 
-          <div v-else-if="!loading">
+        <MfAlert v-else-if="configuration?.message" class="mt-20" :title="configuration.message" variant="danger"/>
+
+        <div v-else-if="!loading">
             <VisualTable v-if="configuration?.type === Type.TABLE" :configuration="configuration" @change="handlerCommit"/>
             <VisualLine v-else-if="configuration?.type === Type.LINE" :configuration="configuration" @change="handlerCommit"/>
             <VisualBar v-else-if="configuration?.type === Type.BAR" :configuration="configuration" @change="handlerCommit"/>
@@ -21,36 +24,37 @@
             <VisualGauge v-else-if="configuration?.type === Type.GAUGE" :configuration="configuration" @change="handlerCommit"/>
             <VisualRose v-else-if="configuration?.type === Type.ROSE" :configuration="configuration" @change="handlerCommit"/>
           </div>
-        </a-spin>
       </div>
-    </a-col>
+    </div>
 
-    <a-col :span="4">
-      <a-card :title="$t('dataset.common.visualType')">
+    <div class="col-span-1">
+      <MfCard :title="$t('dataset.common.visualType')">
         <div class="relative p-2 flex items-center">
-          <a-spin :spinning="localLoading">
-            <div v-if="configuration" @click.stop.prevent>
-              <a-radio-group v-model:value="configuration.type">
-                <a-space class="items-center" wrap>
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.TABLE">
-                    <a-tooltip :title="$t('dataset.common.visualTypeTable')">
+          <div v-if="localLoading" class="flex items-center justify-center absolute inset-0 z-10">
+            <MfSpinner/>
+          </div>
+          <div v-if="configuration" @click.stop.prevent>
+            <MfRadioGroup v-model="configuration.type" variant="button">
+              <MfSpace class="items-center" wrap>
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.TABLE">
+                    <MfTooltip :content="$t('dataset.common.visualTypeTable')">
                       <TableOutlined :style="{ fontSize: '20px' }"/>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.LINE">
-                    <a-tooltip :title="$t('dataset.common.visualTypeLine')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.LINE">
+                    <MfTooltip :content="$t('dataset.common.visualTypeLine')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="lineChart"
                            style="width: 24px;">
                         <path d="M4 4.5V18.5C4 19.0523 4.44772 19.5 5 19.5H20" stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
                         <path d="M8 14.5L12.4982 9.91029C12.5716 9.83537 12.6889 9.82567 12.7737 9.88752L15.812 12.1051C15.8933 12.1644 16.0051 12.1582 16.0793 12.0903L20 8.5"
                               stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.BAR">
-                    <a-tooltip :title="$t('dataset.common.visualTypeBar')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.BAR">
+                    <MfTooltip :content="$t('dataset.common.visualTypeBar')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="barChart"
                            style="width: 24px;">
                         <path d="M4 4.5V18.5C4 19.0523 4.44772 19.5 5 19.5H20" stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
@@ -58,11 +62,11 @@
                         <path d="M8.5 10V16" stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
                         <path d="M17.5 12V16" stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.AREA">
-                    <a-tooltip :title="$t('dataset.common.visualTypeArea')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.AREA">
+                    <MfTooltip :content="$t('dataset.common.visualTypeArea')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="areaChart"
                            style="width: 24px;">
                         <path
@@ -70,11 +74,11 @@
                             stroke="#21252C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
                         <path d="M20 11L14 14.5L9 11L4 14.5" stroke="#21252C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.PIE">
-                    <a-tooltip :title="$t('dataset.common.visualTypePie')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.PIE">
+                    <MfTooltip :content="$t('dataset.common.visualTypePie')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" class="vchart-dropdown-content-item-icon" id="pieChart"
                            style="width: 24px;">
                         <path
@@ -84,11 +88,11 @@
                             d="M18.4993 9.88932C18.4405 5.28275 14.7173 1.55949 10.1107 1.50071C10.0498 1.49993 10 1.54934 10 1.61021V9.44897C10 9.7533 10.2467 10 10.551 10H18.3898C18.4507 10 18.5001 9.95018 18.4993 9.88932Z"
                             stroke="#21252C" stroke-opacity="0.9" stroke-width="1.8"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.HISTOGRAM">
-                    <a-tooltip :title="$t('dataset.common.visualTypeHistogram')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.HISTOGRAM">
+                    <MfTooltip :content="$t('dataset.common.visualTypeHistogram')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
                         <g clip-path="url(#clip0_1700_69225)">
                           <path
@@ -107,11 +111,11 @@
                           </clipPath>
                         </defs>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.WORDCLOUD">
-                    <a-tooltip :title="$t('dataset.common.visualTypeWordCloud')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.WORDCLOUD">
+                    <MfTooltip :content="$t('dataset.common.visualTypeWordCloud')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="wordCloud"
                            style="width: 24px;">
                         <path d="M5.81563 7V8.77143H3.92339V15H2.39681V8.77143H0.5V7H5.81563Z" fill="#21252C"></path>
@@ -126,11 +130,11 @@
                             d="M13.6175 1.5V2.275H12.5825V5H11.7475V2.275H10.71V1.5H13.6175ZM16.6772 4.2475V5H13.9972V1.5H16.6672V2.2525H14.8322V2.8575H16.5597V3.6075H14.8322V4.2475H16.6772ZM20.2666 1.5L19.1341 3.2325L20.2791 5H19.3216L18.6216 3.8625L17.9216 5H16.9741L18.1191 3.2325L16.9891 1.5H17.9466L18.6316 2.615L19.3166 1.5H20.2666ZM23.2903 1.5V2.275H22.2553V5H21.4203V2.275H20.3828V1.5H23.2903Z"
                             fill="#21252C"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.SCATTER">
-                    <a-tooltip :title="$t('dataset.common.visualTypeScatter')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.SCATTER">
+                    <MfTooltip :content="$t('dataset.common.visualTypeScatter')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="scatterChart"
                            style="width: 24px;">
                         <path d="M4 4.5V18.5C4 19.0523 4.44772 19.5 5 19.5H20" stroke="#21252C" stroke-width="1.8" stroke-linecap="round"></path>
@@ -139,11 +143,11 @@
                         <circle cx="18" cy="15" r="2" fill="#21252C"></circle>
                         <circle cx="12.75" cy="12.25" r="2.25" fill="#21252C"></circle>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.RADAR">
-                    <a-tooltip :title="$t('dataset.common.visualTypeRadar')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.RADAR">
+                    <MfTooltip :content="$t('dataset.common.visualTypeRadar')">
                       <svg width="22" height="21" viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M1.57045 8.16646L10.3949 1.45986C10.7525 1.18808 11.2475 1.18808 11.6051 1.45986L20.4296 8.16646C20.7706 8.42565 20.9087 8.87328 20.7729 9.27956L17.4187 19.3169C17.2824 19.7249 16.9004 20 16.4703 20H5.52971C5.09956 20 4.7176 19.7249 4.58127 19.3169L1.22709 9.27956C1.09132 8.87328 1.2294 8.42565 1.57045 8.16646Z"
@@ -152,11 +156,11 @@
                             d="M6.11243 9.82863L10.8826 6.2478C10.951 6.19642 11.0446 6.19428 11.1153 6.24249L16.3379 9.80252C16.4279 9.8639 16.4522 9.98606 16.3926 10.0773L13.5468 14.4281C13.5169 14.4739 13.4696 14.5054 13.4158 14.5153L7.91428 15.5328C7.81444 15.5513 7.71661 15.492 7.68675 15.395L6.04134 10.0474C6.01654 9.96678 6.04498 9.87927 6.11243 9.82863Z"
                             stroke="#21252C" stroke-width="1.7" stroke-linecap="round"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.FUNNEL">
-                    <a-tooltip :title="$t('dataset.common.visualTypeFunnel')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.FUNNEL">
+                    <MfTooltip :content="$t('dataset.common.visualTypeFunnel')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="funnelChart"
                            style="width: 24px;">
                         <path
@@ -165,22 +169,22 @@
                         <path d="M4.52637 8.25H19.5264" stroke="#21252C" stroke-width="1.8"></path>
                         <path d="M7.52637 12.25H16.5264" stroke="#21252C" stroke-width="1.8"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.GAUGE">
-                    <a-tooltip :title="$t('dataset.common.visualTypeGauge')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.GAUGE">
+                    <MfTooltip :content="$t('dataset.common.visualTypeGauge')">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="vchart-dropdown-content-item-icon" id="gauge"
                            style="width: 24px;">
                         <circle cx="12" cy="12" r="9.5" stroke="#21252C" stroke-width="1.8"></circle>
                         <circle cx="12" cy="16" r="2" stroke="#21252C" stroke-width="1.8"></circle>
                         <path d="M12.9 7C12.9 6.50294 12.4971 6.1 12 6.1C11.5029 6.1 11.1 6.50294 11.1 7H12.9ZM11.1 7V14H12.9V7H11.1Z" fill="#21252C"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
+                    </MfTooltip>
+                  </MfRadio>
 
-                  <a-radio-button :disabled="configuration.headers.length === 0" :value="Type.ROSE">
-                    <a-tooltip :title="$t('dataset.common.visualTypeRose')">
+                  <MfRadio :disabled="configuration.headers.length === 0" :value="Type.ROSE">
+                    <MfTooltip :content="$t('dataset.common.visualTypeRose')">
                       <svg width="23" height="19" viewBox="0 0 23 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M14.2891 4.34061C12.6163 4.34061 11.1033 5.02518 10.0152 6.12945M9.28906 13.6584C10.364 15.2751 12.2021 16.3406 14.2891 16.3406C14.623 16.3406 14.9507 16.3133 15.2698 16.2608M19.9477 12.3406C20.1688 11.715 20.2891 11.0419 20.2891 10.3406C20.2891 9.29406 20.0211 8.3101 19.5501 7.45357"
@@ -195,30 +199,30 @@
                             d="M6.11156 3.00092C2.12443 6.01236 1.38079 11.9577 4.17682 16.11C4.25866 16.2316 4.42097 16.267 4.54805 16.194L14.0167 10.759C14.1817 10.6643 14.2094 10.4377 14.072 10.3061L6.47293 3.02416C6.37404 2.92939 6.22086 2.91837 6.11156 3.00092Z"
                             stroke="#21252C" stroke-width="1.6"></path>
                       </svg>
-                    </a-tooltip>
-                  </a-radio-button>
-                </a-space>
-              </a-radio-group>
-            </div>
-          </a-spin>
+                    </MfTooltip>
+                  </MfRadio>
+                </MfSpace>
+            </MfRadioGroup>
+          </div>
         </div>
-      </a-card>
+      </MfCard>
 
-      <a-card class="mt-1">
-        <template #title>{{ $t('dataset.common.visualConfigure') }}</template>
+      <MfCard class="mt-1">
+        <template #header>{{ $t('dataset.common.visualConfigure') }}</template>
 
         <div class="relative p-2">
-          <a-spin :spinning="localLoading">
-            <div v-if="configuration" class="flex items-center justify-center">
-              <a-alert v-if="configuration.type === Type.TABLE" :message="$t('dataset.common.visualConfigureNotSpecified')"/>
+          <div v-if="localLoading" class="flex items-center justify-center absolute inset-0 z-10">
+            <MfSpinner/>
+          </div>
+          <div v-if="configuration" class="flex items-center justify-center">
+            <MfAlert v-if="configuration.type === Type.TABLE" :title="$t('dataset.common.visualConfigureNotSpecified')"/>
 
-              <a-button v-else @click="configureVisible = true">{{ $t('common.configure') }}</a-button>
-            </div>
-          </a-spin>
+            <MfButton v-else @click="configureVisible = true">{{ $t('common.configure') }}</MfButton>
+          </div>
         </div>
-      </a-card>
-    </a-col>
-  </a-row>
+      </MfCard>
+    </div>
+  </div>
 
   <VisualConfigure v-if="configureVisible && configuration"
                    :is-visible="configureVisible"

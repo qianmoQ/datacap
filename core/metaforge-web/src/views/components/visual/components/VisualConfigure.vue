@@ -1,62 +1,54 @@
 <template>
-  <a-drawer v-model:open="visible"
+  <MfDrawer v-model:open="visible"
             width="40%"
             style="margin-right: -1rem;"
             :title="$t('common.configure')"
             @close="onCancel">
-    <a-form v-if="formState" :model="formState" class="mt-2" layout="vertical">
-      <a-tabs v-model:activeKey="activeGroup" tab-position="right">
-        <a-tab-pane v-for="group in fieldGroup"
-                    :key="group.label"
-                    :tab="group.label">
-          <a-form-item v-for="item in fieldGroup.find(value => value.label === activeGroup)?.fields"
-                       :key="item.field"
-                       :name="item.field"
-                       :label="item.label">
-            <a-switch v-if="item.type === 'SWITCH'" v-model:checked="formState[Object(item.field)]"/>
+    <MfForm v-if="formState" :model="formState" class="mt-2" layout="vertical">
+      <MfTabs v-model:active-key="activeGroup" tab-position="right">
+        <MfTabPane v-for="group in fieldGroup"
+                   :key="group.label"
+                   :item-key="group.label"
+                   :tab="group.label">
+          <MfFormItem v-for="item in fieldGroup.find(value => value.label === activeGroup)?.fields"
+                      :key="item.field"
+                      :name="item.field"
+                      :label="item.label">
+            <MfSwitch v-if="item.type === 'SWITCH'" v-model="formState[Object(item.field)]"/>
 
-            <a-slider v-else-if="item.type === 'SLIDER'"
-                      v-model:value="formState[Object(item.field)]"
-                      :min="item.min"
-                      :max="item.max"
-                      :step="item.step"/>
+            <input v-else-if="item.type === 'SLIDER'"
+                   v-model.number="formState[Object(item.field)]"
+                   type="range"
+                   class="w-full accent-primary"
+                   :min="item.min"
+                   :max="item.max"
+                   :step="item.step"/>
 
-            <a-input v-else-if="item.type === 'TEXT'"
-                     v-model:value="formState[Object(item.field)]"
+            <MfInput v-else-if="item.type === 'TEXT'"
+                     v-model="formState[Object(item.field)]"
                      :placeholder="item.label"
                      :disabled="item.disabled?.field ? formState[Object(item.disabled?.field)] === item.disabled?.value : false"/>
 
-            <a-select v-else
-                      v-model:value="formState[Object(item.field)]"
-                      :disabled="item.disabled?.field ? formState[Object(item.disabled?.field)] === item.disabled?.value : false">
-              <template v-if="item.values">
-                <a-select-option v-for="data in item.values" :key="data.value" :value="data.value">
-                  {{ data.label }}
-                </a-select-option>
-              </template>
-
-              <template v-else>
-                <a-select-option v-for="header in configuration.headers" :key="header" :value="header">
-                  {{ header }}
-                </a-select-option>
-              </template>
-            </a-select>
-          </a-form-item>
-        </a-tab-pane>
-      </a-tabs>
-    </a-form>
+            <MfSelect v-else
+                      v-model="formState[Object(item.field)]"
+                      :disabled="item.disabled?.field ? formState[Object(item.disabled?.field)] === item.disabled?.value : false"
+                      :options="item.values ? item.values : (configuration.headers || []).map((header: any) => ({ label: header, value: header }))"/>
+          </MfFormItem>
+        </MfTabPane>
+      </MfTabs>
+    </MfForm>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
-        <a-button type="primary" @click="onSubmit">
+        </MfButton>
+        <MfButton variant="primary" @click="onSubmit">
           {{ $t('common.apply') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-drawer>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">

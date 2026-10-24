@@ -3,6 +3,8 @@ import { computed, provide, ref } from 'vue'
 
 export interface MfFormRule {
     required?: boolean
+    /** `type: 'array'` makes `required` reject empty arrays. */
+    type?: 'string' | 'number' | 'array'
     message?: string
     min?: number
     max?: number
@@ -58,7 +60,8 @@ provide('mfForm', {
 function validateField(field: FieldRegistration, model: Record<string, unknown>): string | undefined {
     const value = field.value()
     for (const rule of field.rules()) {
-        if (rule.required && (value === undefined || value === null || value === '')) {
+        if (rule.required && (value === undefined || value === null || value === ''
+            || (rule.type === 'array' && Array.isArray(value) && value.length === 0))) {
             return rule.message ?? `${field.name} is required`
         }
         if (typeof value === 'string') {

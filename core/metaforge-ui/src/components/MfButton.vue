@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
     loading?: boolean
     disabled?: boolean
     block?: boolean
+    shape?: 'default' | 'circle'
 }>(), {
     variant: 'secondary',
     size: 'md',
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<{
     loading: false,
     disabled: false,
     block: false,
+    shape: 'default',
 })
 
 const VARIANTS: Record<Variant, string> = {
@@ -38,6 +40,7 @@ const classes = computed(() => clsx(
     TRANSITION,
     DISABLED,
     { 'w-full': props.block, 'opacity-50 pointer-events-none': props.loading },
+    { 'rounded-mf-full! px-0! aspect-square': props.shape === 'circle' },
 ))
 </script>
 

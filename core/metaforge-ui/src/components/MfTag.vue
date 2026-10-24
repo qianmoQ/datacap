@@ -9,6 +9,8 @@ const props = withDefaults(defineProps<{
     variant?: Variant
     size?: 'sm' | 'md'
     closable?: boolean
+    /** Custom color (antd compatibility); overrides the variant palette. */
+    color?: string
 }>(), {
     variant: 'default',
     size: 'md',
@@ -29,13 +31,21 @@ const VARIANTS: Record<Variant, string> = {
 const classes = computed(() => clsx(
     'inline-flex items-center gap-1 rounded-mf-md border font-medium',
     props.size === 'sm' ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-0.5 text-sm',
-    VARIANTS[props.variant],
+    props.color ? '' : VARIANTS[props.variant],
     TRANSITION,
 ))
+
+const colorStyle = computed(() => props.color
+    ? {
+        color: props.color,
+        borderColor: props.color,
+        backgroundColor: `color-mix(in srgb, ${props.color} 12%, transparent)`,
+    }
+    : undefined)
 </script>
 
 <template>
-    <span :class="classes">
+    <span :class="classes" :style="colorStyle">
         <slot />
         <button
             v-if="closable"

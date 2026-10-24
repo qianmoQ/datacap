@@ -64,7 +64,8 @@
           <MfSelect v-else-if="item.type === 'array'"
                     :model-value="toArrayValue(item.value)"
                     :disabled="item.disabled"
-                    multiple
+                    tags
+                    searchable
                     :placeholder="item.placeholder"
                     class="w-full"
                     :options="toArrayValue(item.value).map((v) => ({ label: v, value: v }))"
