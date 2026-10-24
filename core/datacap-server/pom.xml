@@ -143,8 +143,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>${frontend-maven-plugin.version}</version>
                 <configuration>
-                    <installDirectory>../datacap-ui/</installDirectory>
-                    <workingDirectory>../datacap-ui/</workingDirectory>
+                    <installDirectory>../datacap-web/</installDirectory>
+                    <workingDirectory>../datacap-web/</workingDirectory>
                     <nodeVersion>${node.version}</nodeVersion>
                     <pnpmVersion>${pnpm.version}</pnpmVersion>
                 </configuration>
@@ -223,7 +223,7 @@
 
         <resources>
             <resource>
-                <directory>../datacap-ui/dist</directory>
+                <directory>../datacap-web/dist</directory>
                 <targetPath>resources</targetPath>
             </resource>
             <resource>
