@@ -2,7 +2,7 @@
 title: 开发规范
 ---
 
-本文档主要用来介绍 DataCap 服务端和 UI 端的开发规范。
+本文档主要用来介绍 MetaForge 服务端和 UI 端的开发规范。
 
 !!! danger
 
