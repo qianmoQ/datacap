@@ -12,23 +12,21 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'active'">
-          <a-switch v-model:checked="record.active" size="small" :disabled="record.active"/>
+          <MfSwitch v-model="record.active" size="sm" :disabled="record.active"/>
         </template>
 
         <template v-else-if="column.key === 'system'">
-          <a-switch v-model:checked="record.system" size="small" :disabled="record.system"/>
+          <MfSwitch v-model="record.system" size="sm" :disabled="record.system"/>
         </template>
 
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('schedule.common.history')">
-              <a-button type="text" size="small" shape="circle" @click="handlerChangeInfo(true, record)">
-                <template #icon>
-                  <HistoryOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
-          </a-space>
+          <MfSpace>
+            <MfTooltip :content="$t('schedule.common.history')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
+                <HistoryOutlined :style="{ fontSize: '15px' }"/>
+              </MfButton>
+            </MfTooltip>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

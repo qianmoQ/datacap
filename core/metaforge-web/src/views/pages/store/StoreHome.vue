@@ -1,138 +1,136 @@
 <template>
   <div class="relative min-h-screen">
-    <a-spin :spinning="loading">
-      <a-alert type="warning" class="mb-2">
-        <template #message>
-          {{ $t('common.plugin.systemVersion') }}
-          <a-tag class="text-red-400">{{ version }}</a-tag>
-        </template>
-      </a-alert>
+    <MfAlert variant="warning" class="mb-2">
+      {{ $t('common.plugin.systemVersion') }}
+      <MfTag variant="danger" class="text-red-400">{{ version }}</MfTag>
+    </MfAlert>
 
-      <a-tabs v-show="!loading" v-model:activeKey="activeTab">
-        <template #rightExtra>
-          <a-popover trigger="click" placement="bottom">
-            <template #content>
-              <div class="p-2 space-y-2 flex flex-col">
-                <a-form-item :label="$t('common.plugin.metadata.url')" :extra="$t('common.plugin.metadata.description')">
-                  <a-input v-model:value="applyMetadataUrl"/>
-                </a-form-item>
+    <div v-if="loading" class="flex items-center justify-center py-16">
+      <MfSpinner size="lg"/>
+    </div>
 
-                <a-button type="primary" @click="onSave">{{ $t('common.save') }}</a-button>
-              </div>
-            </template>
+    <!-- 原 a-tabs #rightExtra（MfTabs 暂无该插槽）：设置按钮放页签右上方 -->
+    <div v-show="!loading" class="flex justify-end">
+      <MfPopover trigger="click" placement="bottom">
+        <template #content>
+          <div class="p-2 space-y-2 flex flex-col">
+            <div>
+              <label class="mb-1 block text-sm text-content-secondary">{{ $t('common.plugin.metadata.url') }}</label>
+              <MfInput v-model="applyMetadataUrl"/>
+              <div class="mt-1 text-xs text-content-tertiary">{{ $t('common.plugin.metadata.description') }}</div>
+            </div>
 
-            <a-button type="text" shape="circle" size="small">
-              <template #icon>
-                <SettingOutlined :style="{ fontSize: '15px' }"/>
-              </template>
-            </a-button>
-          </a-popover>
+            <MfButton variant="primary" @click="onSave">{{ $t('common.save') }}</MfButton>
+          </div>
         </template>
 
-        <a-tab-pane v-for="type in pluginTypes" :key="type" :tab="type">
-          <div class="relative">
-            <a-space direction="vertical" :size="15" :style="{ width: '100%' }">
-              <a-alert v-if="typeDescription(type)" :message="typeDescription(type)"/>
+        <MfButton variant="ghost" size="sm" class="rounded-full!">
+          <SettingOutlined :style="{ fontSize: '15px' }"/>
+        </MfButton>
+      </MfPopover>
+    </div>
 
-              <a-card v-for="plugin in pluginsByType(type)" :key="plugin.key" class="w-full">
-                <a-row class="p-3 px-6 items-center">
-                  <a-col :span="4">
-                    <!-- Logo and Name -->
-                    <div class="flex flex-col items-center space-y-2 justify-between">
-                      <a-avatar class="bg-transparent"
-                                :size="64"
-                                :src="plugin.logo"
-                                :alt="plugin.i18nFormat ? $t(plugin.label) : plugin.label"
-                                @click="onVisibleInfo(plugin, true)">
-                      </a-avatar>
+    <MfTabs v-show="!loading" v-model:active-key="activeTab" class="mt-2">
+      <MfTabPane v-for="type in pluginTypes" :key="type" :item-key="type" :tab="type">
+        <div class="relative">
+          <MfSpace direction="vertical" size="lg" fill :style="{ width: '100%' }">
+            <MfAlert v-if="typeDescription(type)" :title="typeDescription(type)"/>
 
-                      <span class="text-base font-medium">
-                        {{ plugin.i18nFormat ? $t(plugin.label) : plugin.label }}
-                      </span>
-                    </div>
-                  </a-col>
+            <MfCard v-for="plugin in pluginsByType(type)" :key="plugin.key" class="w-full">
+              <div class="grid grid-cols-24 p-3 px-6 items-center">
+                <div class="col-span-4">
+                  <!-- Logo and Name -->
+                  <div class="flex flex-col items-center space-y-2 justify-between">
+                    <MfAvatar class="bg-transparent cursor-pointer"
+                              :size="64"
+                              :src="plugin.logo"
+                              :alt="plugin.i18nFormat ? $t(plugin.label) : plugin.label"
+                              @click="onVisibleInfo(plugin, true)">
+                    </MfAvatar>
 
-                  <a-col :span="18">
-                    <!-- Plugin -->
-                    <div class="flex items-center space-x-4 justify-between">
-                      <div class="pl-8 flex flex-wrap">
-                        <!-- Description -->
-                        <div class="flex flex-col space-y-4">
+                    <span class="text-base font-medium">
+                      {{ plugin.i18nFormat ? $t(plugin.label) : plugin.label }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="col-span-18">
+                  <!-- Plugin -->
+                  <div class="flex items-center space-x-4 justify-between">
+                    <div class="pl-8 flex flex-wrap">
+                      <!-- Description -->
+                      <div class="flex flex-col space-y-4">
                           <span class="text-sm text-gray-500">
                             {{ plugin.i18nFormat ? $t(plugin.description) : plugin.description }}
                           </span>
 
-                          <!-- Support Version -->
-                          <div class="flex space-x-2 text-sm text-gray-500">
-                            <div class="flex items-center space-x-2">
-                              {{ $t('common.plugin.list.supportVersion') }} :
-                            </div>
-
-                            <a-tag v-for="ver in plugin.supportVersion" :key="ver" color="success">
-                              {{ ver }}
-                            </a-tag>
+                        <!-- Support Version -->
+                        <div class="flex space-x-2 text-sm text-gray-500">
+                          <div class="flex items-center space-x-2">
+                            {{ $t('common.plugin.list.supportVersion') }} :
                           </div>
 
-                          <!-- Version -->
-                          <div class="flex space-x-2 text-sm text-gray-500">
-                            <div class="space-x-1">
-                              {{ $t('common.plugin.version') }} :
-                              <a-tag>{{ plugin.version }}</a-tag>
-                            </div>
+                          <MfTag v-for="ver in plugin.supportVersion" :key="ver" variant="success">
+                            {{ ver }}
+                          </MfTag>
+                        </div>
 
-                            <a-divider v-if="plugin.installed" type="vertical"/>
-
-                            <div v-if="plugin.installed" class="space-x-1">
-                              {{ $t('common.installVersion') }}:
-                              <a-tag color="#00BFFF">{{ plugin.installVersion }}</a-tag>
-                            </div>
+                        <!-- Version -->
+                        <div class="flex space-x-2 text-sm text-gray-500">
+                          <div class="space-x-1">
+                            {{ $t('common.plugin.version') }} :
+                            <MfTag>{{ plugin.version }}</MfTag>
                           </div>
 
-                          <!-- Time -->
-                          <div class="flex space-x-2 text-sm text-gray-500">
-                            <div class="space-x-1">
-                              {{ $t('common.releasedTime') }}：
-                              <a-tag color="warning">{{ plugin.released }}</a-tag>
-                            </div>
+                          <span v-if="plugin.installed" class="self-stretch w-px bg-line mx-1"/>
 
-                            <a-divider v-if="plugin.installed" type="vertical"/>
+                          <div v-if="plugin.installed" class="space-x-1">
+                            {{ $t('common.installVersion') }}:
+                            <MfTag variant="info">{{ plugin.installVersion }}</MfTag>
+                          </div>
+                        </div>
 
-                            <div v-if="plugin.installed" class="space-x-1">
-                              {{ $t('common.installTime') }}：
-                              <a-tag color="#00BFFF">{{ plugin.installTime }}</a-tag>
-                            </div>
+                        <!-- Time -->
+                        <div class="flex space-x-2 text-sm text-gray-500">
+                          <div class="space-x-1">
+                            {{ $t('common.releasedTime') }}：
+                            <MfTag variant="warning">{{ plugin.released }}</MfTag>
                           </div>
 
-                          <!-- Other -->
-                          <div class="flex space-x-2 text-sm text-gray-500">
-                            <div class="space-x-1">
-                              {{ $t('common.author') }}： {{ plugin.author }}
-                            </div>
+                          <span v-if="plugin.installed" class="self-stretch w-px bg-line mx-1"/>
+
+                          <div v-if="plugin.installed" class="space-x-1">
+                            {{ $t('common.installTime') }}：
+                            <MfTag variant="info">{{ plugin.installTime }}</MfTag>
+                          </div>
+                        </div>
+
+                        <!-- Other -->
+                        <div class="flex space-x-2 text-sm text-gray-500">
+                          <div class="space-x-1">
+                            {{ $t('common.author') }}： {{ plugin.author }}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </a-col>
+                  </div>
+                </div>
 
-                  <a-col :span="2">
-                    <!-- Action -->
-                    <a-button :type="plugin.installed ? 'default' : 'primary'"
-                              :danger="plugin.installed"
-                              :loading="plugin.loading"
-                              @click="plugin.installed ? onUninstall(plugin) : onInstall(plugin)">
-                      <template #icon>
-                        <component :is="plugin.installed ? DeleteOutlined : PlusOutlined" :style="{ fontSize: '15px' }"/>
-                      </template>
-                      {{ plugin.installed ? $t('common.uninstall') : $t('common.install') }}
-                    </a-button>
-                  </a-col>
-                </a-row>
-              </a-card>
-            </a-space>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
-    </a-spin>
+                <div class="col-span-2">
+                  <!-- Action -->
+                  <MfButton :variant="plugin.installed ? 'danger' : 'primary'"
+                            :loading="plugin.loading"
+                            @click="plugin.installed ? onUninstall(plugin) : onInstall(plugin)">
+                    <component :is="plugin.installed ? DeleteOutlined : PlusOutlined" :style="{ fontSize: '15px' }"/>
+                    {{ plugin.installed ? $t('common.uninstall') : $t('common.install') }}
+                  </MfButton>
+                </div>
+              </div>
+            </MfCard>
+          </MfSpace>
+        </div>
+      </MfTabPane>
+    </MfTabs>
   </div>
 
   <PluginInfo v-if="infoVisible && info"
@@ -145,7 +143,7 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { useI18nHandler } from '@/i18n/I18n'
 import { PackageUtils } from '@/utils/package.ts'
 import PluginService from '@/services/plugin.ts'
@@ -285,7 +283,7 @@ const loadMetadata = async () => {
 
     const installResponse = await PluginService.getPlugins()
     if (!installResponse.status) {
-      message.error(installResponse.message)
+      MfMessage.error(installResponse.message)
       return
     }
 
@@ -305,10 +303,10 @@ const loadMetadata = async () => {
   }
   catch (error: any) {
     if (error instanceof TypeError) {
-      message.error(t('common.tip.pageNotNetwork'))
+      MfMessage.error(t('common.tip.pageNotNetwork'))
     }
     else {
-      message.error(`${ t('common.pageNotFoundTip') }: ${ error.message }`)
+      MfMessage.error(`${ t('common.pageNotFoundTip') }: ${ error.message }`)
     }
 
     // Reset to default URL if current URL is invalid
@@ -331,10 +329,10 @@ const onInstall = async (item: MetadataItem) => {
     item.loading = true
     const installResponse = await PluginService.install({ name: item.key, url: item.url })
     if (installResponse.status) {
-      message.success(t('common.installSuccess'))
+      MfMessage.success(t('common.installSuccess'))
     }
     else {
-      message.error(installResponse.message)
+      MfMessage.error(installResponse.message)
     }
 
     await loadMetadata()
@@ -353,10 +351,10 @@ const onUninstall = async (item: MetadataItem) => {
     item.loading = true
     const unInstallResponse = await PluginService.uninstall(item.label)
     if (unInstallResponse.status) {
-      message.success(t('common.uninstallSuccess'))
+      MfMessage.success(t('common.uninstallSuccess'))
     }
     else {
-      message.error(unInstallResponse.message)
+      MfMessage.error(unInstallResponse.message)
     }
 
     await loadMetadata()
@@ -370,17 +368,17 @@ const onSave = async () => {
   try {
     const url = applyMetadataUrl.value.trim()
     if (!isValidUrl(url)) {
-      message.error('Invalid Url')
+      MfMessage.error('Invalid Url')
       return
     }
 
     metadataUrl.value = url
-    message.success(t('common.successfully'))
+    MfMessage.success(t('common.successfully'))
 
     await loadMetadata()
   }
   catch (error) {
-    message.error(t('common.error'))
+    MfMessage.error(t('common.error'))
   }
 }
 

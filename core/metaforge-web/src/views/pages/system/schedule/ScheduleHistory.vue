@@ -1,28 +1,26 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
            :title="$t('schedule.common.history')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-spin :spinning="loading">
-      <a-table size="small"
-               :columns="headers"
+           @close="onCancel">
+    <div v-if="loading" class="flex items-center justify-center py-8">
+      <MfSpinner size="lg"/>
+    </div>
+    <template v-else>
+      <MfTable :columns="headers"
                :data-source="data"
-               :pagination="false"
-               row-key="id"
-               :scroll="{ x: 'max-content' }"/>
+               row-key="id"/>
 
       <div v-if="data?.length > 0" class="py-2 flex justify-end">
-        <a-pagination :current="pageIndex"
+        <MfPagination :current="pageIndex"
                       :page-size="pageSize"
                       :total="dataCount"
-                      show-size-changer
-                      :page-size-options="['10', '20', '50']"
-                      @change="onPageChange"
-                      @show-size-change="onSizeChange"/>
+                      show-size
+                      :page-sizes="[10, 20, 50]"
+                      @change="(page: number, size: number) => size !== pageSize ? onSizeChange(page, size) : onPageChange(page)"/>
       </div>
-    </a-spin>
-  </a-modal>
+    </template>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

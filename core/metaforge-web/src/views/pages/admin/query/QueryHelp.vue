@@ -1,31 +1,25 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="40%"
            :title="$t('query.common.help')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-tabs v-model:activeKey="activeTab" @change="onChange">
-      <a-tab-pane v-for="item in helpType" :key="getEnumName(item)" :tab="getEnumName(item)">
-        <div class="relative h-full">
-          <a-spin :spinning="loading" class="mt-2.5">
-            <MdPreview v-if="helpReplyContent" :modelValue="helpReplyContent" style="padding: 0; width: 100%"/>
-          </a-spin>
+           @close="onCancel">
+    <MfTabs v-model:active-key="activeTab" @change="onChange">
+      <MfTabPane v-for="item in helpType" :key="getEnumName(item)" :item-key="getEnumName(item)" :tab="getEnumName(item)">
+        <div class="relative h-full mt-2.5">
+          <div v-if="loading" class="flex items-center justify-center py-8">
+            <MfSpinner size="lg"/>
+          </div>
+          <MdPreview v-else-if="helpReplyContent" :modelValue="helpReplyContent" style="padding: 0; width: 100%"/>
         </div>
-      </a-tab-pane>
-    </a-tabs>
-
-    <template #footer>
-      <a-button danger @click="onCancel">
-        {{ $t('common.cancel') }}
-      </a-button>
-    </template>
-  </a-modal>
+      </MfTabPane>
+    </MfTabs>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message as antdMessage } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import UserService from '@/services/user'
 import { UserModel, UserQuestionModel } from '@/model/user'
 import { HelpType } from '@/views/pages/admin/query/HelpType'
@@ -82,7 +76,7 @@ const onChange = (value: any) => {
                     helpReplyContent.value = response.data.content
                   }
                   else {
-                    antdMessage.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => (loading.value = false))

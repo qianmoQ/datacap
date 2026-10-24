@@ -11,35 +11,34 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-button type="primary" @click="handlerInfo(true, null)">
-          <template #icon>
-            <PlusOutlined :style="{ fontSize: '16px' }"/>
-          </template>
+        <MfButton variant="primary" @click="handlerInfo(true, null)">
+          <PlusOutlined :style="{ fontSize: '16px' }"/>
           {{ $t('function.common.create') }}
-        </a-button>
-        <a-button @click="handlerImport(true)">
-          <template #icon>
-            <ImportOutlined :style="{ fontSize: '16px' }"/>
-          </template>
+        </MfButton>
+        <MfButton @click="handlerImport(true)">
+          <ImportOutlined :style="{ fontSize: '16px' }"/>
           {{ $t('function.common.import') }}
-        </a-button>
+        </MfButton>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'type'">
-          <a-tag>{{ $t('function.common.' + record.type.toLowerCase()) }}</a-tag>
+          <MfTag>{{ $t('function.common.' + record.type.toLowerCase()) }}</MfTag>
         </template>
         <template v-else-if="column.key === 'plugin'">
-          <a-avatar-group :max-count="3" size="small">
-            <a-avatar v-for="item in extractItem(record?.plugin)" :key="item.name" :src="item.src"/>
-          </a-avatar-group>
+          <div class="flex items-center -space-x-2">
+            <MfAvatar v-for="item in extractItem(record?.plugin).slice(0, 3)" :key="item.name" :src="item.src" size="sm"/>
+            <MfAvatar v-if="extractItem(record?.plugin).length > 3" size="sm">
+              +{{ extractItem(record?.plugin).length - 3 }}
+            </MfAvatar>
+          </div>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-tooltip :title="$t('common.editData')">
-            <a-button type="text" size="small" shape="circle" @click="handlerInfo(true, record)">
+          <MfTooltip :content="$t('common.editData')">
+            <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
               <EditOutlined :style="{ fontSize: '15px' }"/>
-            </a-button>
-          </a-tooltip>
+            </MfButton>
+          </MfTooltip>
         </template>
       </template>
     </DataTable>

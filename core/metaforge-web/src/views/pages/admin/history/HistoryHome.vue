@@ -15,77 +15,77 @@
           <span>{{ record?.source?.name }}</span>
         </template>
         <template v-else-if="column.key === 'type'">
-          <a-tooltip :title="record?.source?.type">
-            <a-avatar size="small"
+          <MfTooltip :content="record?.source?.type">
+            <MfAvatar size="sm"
                       :src="'/static/images/plugin/' + record?.source?.type.toLowerCase() + '.svg'"
                       :alt="record?.source?.type"
                       class="cursor-pointer"/>
-          </a-tooltip>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'mode'">
-          <a-tag v-if="record.mode === 'ADHOC'">{{ $t('common.adhoc') }}</a-tag>
-          <a-tag v-else-if="record.mode === 'HISTORY'">{{ $t('common.history') }}</a-tag>
-          <a-tag v-else-if="record.mode === 'REPORT'">{{ $t('common.report') }}</a-tag>
-          <a-tag v-else-if="record.mode === 'SNIPPET'">{{ $t('common.snippet') }}</a-tag>
-          <a-tag v-else-if="record.mode === 'DATASET'">{{ $t('common.dataset') }}</a-tag>
-          <a-tag v-else>{{ record.mode }}</a-tag>
+          <MfTag v-if="record.mode === 'ADHOC'">{{ $t('common.adhoc') }}</MfTag>
+          <MfTag v-else-if="record.mode === 'HISTORY'">{{ $t('common.history') }}</MfTag>
+          <MfTag v-else-if="record.mode === 'REPORT'">{{ $t('common.report') }}</MfTag>
+          <MfTag v-else-if="record.mode === 'SNIPPET'">{{ $t('common.snippet') }}</MfTag>
+          <MfTag v-else-if="record.mode === 'DATASET'">{{ $t('common.dataset') }}</MfTag>
+          <MfTag v-else>{{ record.mode }}</MfTag>
         </template>
         <template v-else-if="column.key === 'state'">
-          <a-tag :color="record.state === 'SUCCESS' ? 'success' : 'error'">{{ record.state }}</a-tag>
+          <MfTag :variant="record.state === 'SUCCESS' ? 'success' : 'danger'">{{ record.state }}</MfTag>
         </template>
         <template v-else-if="column.key === 'format'">
-          <a-tooltip :title="record?.format">
-            <a-avatar size="small"
+          <MfTooltip :content="record?.format">
+            <MfAvatar size="sm"
                       :src="'/static/images/convert/' + record?.format.replace('Convert', '').toLowerCase() + '.svg'"
                       :alt="record?.source?.type"
                       class="cursor-pointer"/>
-          </a-tooltip>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('common.error')">
-              <a-button type="text" danger
-                        shape="circle"
-                        size="small"
+          <MfSpace>
+            <MfTooltip :content="$t('common.error')">
+              <MfButton variant="ghost"
+                        size="sm"
+                        class="rounded-full! text-danger!"
                         :disabled="record.state === 'SUCCESS'"
                         @click="handlerShowContent(true, record?.message)">
                 <WarningOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click" placement="bottomRight">
-              <a-button type="text" shape="circle" size="small">
+            <MfDropdown trigger="click" placement="bottomRight">
+              <MfButton variant="ghost" size="sm" class="rounded-full!">
                 <MoreOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
+                <MfMenu>
+                  <MfMenuItem>
                     <router-link :to="`/admin/query/history/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
                         <SnippetsOutlined :style="{ fontSize: '15px' }"/>
                         <span>{{ $t('query.common.quoteRecord') }}</span>
                       </div>
                     </router-link>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="handlerShowContent(true, record?.content)">
+                  <MfMenuItem @click="handlerShowContent(true, record?.content)">
                     <div class="flex items-center space-x-2">
                       <RightOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('query.common.showSql') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="handlerShowData(true, record)">
+                  <MfMenuItem @click="handlerShowData(true, record)">
                     <div class="flex items-center space-x-2">
                       <TableOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('query.common.historyData') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

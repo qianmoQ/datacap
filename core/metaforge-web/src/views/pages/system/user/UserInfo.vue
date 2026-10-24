@@ -1,7 +1,7 @@
 <template>
-  <a-drawer v-model:open="visible" :title="title">
+  <MfDrawer v-model:open="visible" :title="title">
     <UserForm class="mt-3" :info="info" @close="handlerCancel"/>
-  </a-drawer>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">

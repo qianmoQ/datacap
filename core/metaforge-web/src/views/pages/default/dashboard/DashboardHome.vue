@@ -1,41 +1,45 @@
 <template>
-  <a-row :gutter="10">
-    <a-col :span="4">
-      <a-card :loading="loading">
-        <template #title>
-          <div class="text-center">
+  <div class="grid grid-cols-24 gap-2.5">
+    <div class="col-span-4">
+      <MfCard>
+        <template #header>
+          <div class="text-center w-full">
             {{ $t('user.common.sourceCount') }}
           </div>
         </template>
-        <div class="flex flex-col items-center justify-center py-8">
-          <div class="text-2xl font-bold">
-            {{ summary.sourceCount }}
+        <MfSkeleton :loading="loading">
+          <div class="flex flex-col items-center justify-center py-8">
+            <div class="text-2xl font-bold">
+              {{ summary.sourceCount }}
+            </div>
+            <div class="text-xs text-muted-foreground mt-2">
+              {{ $t('user.tip.sourceCountTip') }}
+            </div>
           </div>
-          <div class="text-xs text-muted-foreground mt-2">
-            {{ $t('user.tip.sourceCountTip') }}
-          </div>
-        </div>
-      </a-card>
-    </a-col>
+        </MfSkeleton>
+      </MfCard>
+    </div>
 
-    <a-col :span="4">
-      <a-card :loading="loading">
-        <template #title>
-          <div class="text-center">
+    <div class="col-span-4">
+      <MfCard>
+        <template #header>
+          <div class="text-center w-full">
             {{ $t('user.common.queryCount') }}
           </div>
         </template>
-        <div class="flex flex-col items-center justify-center py-8">
-          <div class="text-2xl font-bold">
-            {{ summary.queryCount }}
+        <MfSkeleton :loading="loading">
+          <div class="flex flex-col items-center justify-center py-8">
+            <div class="text-2xl font-bold">
+              {{ summary.queryCount }}
+            </div>
+            <div class="text-xs text-muted-foreground mt-2">
+              {{ $t('user.tip.queryCountTip') }}
+            </div>
           </div>
-          <div class="text-xs text-muted-foreground mt-2">
-            {{ $t('user.tip.queryCountTip') }}
-          </div>
-        </div>
-      </a-card>
-    </a-col>
-  </a-row>
+        </MfSkeleton>
+      </MfCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

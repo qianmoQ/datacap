@@ -1,53 +1,54 @@
 <template>
-  <a-drawer v-model:open="visible" :title="title" width="40%">
-    <a-spin :spinning="loading">
-      <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-form-item name="name"
-                     :label="$t('common.name')"
-                     :rules="[{ required: true, message: $t('common.name') }]">
-          <a-input v-model:value="formState.name"/>
-        </a-form-item>
+  <MfDrawer v-model:open="visible" :title="title" width="40%">
+    <div v-if="loading" class="flex items-center justify-center py-8">
+      <MfSpinner size="lg"/>
+    </div>
+    <MfForm v-else-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[{ required: true, message: $t('common.name') }]">
+        <MfInput v-model="formState.name"/>
+      </MfFormItem>
 
-        <a-form-item name="plugin"
-                     :label="$t('common.plugin')"
-                     :rules="[{ required: true, message: $t('common.plugin') }]">
-          <a-select v-model:value="formState.plugin" mode="multiple" :options="plugins"/>
-        </a-form-item>
+      <MfFormItem name="plugin"
+                  :label="$t('common.plugin')"
+                  :rules="[{ required: true, message: $t('common.plugin') }]">
+        <MfSelect v-model="formState.plugin" multiple :options="plugins"/>
+      </MfFormItem>
 
-        <a-form-item name="content"
-                     :label="$t('common.content')"
-                     :rules="[{ required: true, message: $t('common.content') }]">
-          <a-textarea v-model:value="formState.content"/>
-        </a-form-item>
+      <MfFormItem name="content"
+                  :label="$t('common.content')"
+                  :rules="[{ required: true, message: $t('common.content') }]">
+        <MfTextarea v-model="formState.content"/>
+      </MfFormItem>
 
-        <a-form-item name="description"
-                     :label="$t('common.description')"
-                     :rules="[{ required: true, message: $t('common.description') }]">
-          <a-textarea v-model:value="formState.description"/>
-        </a-form-item>
+      <MfFormItem name="description"
+                  :label="$t('common.description')"
+                  :rules="[{ required: true, message: $t('common.description') }]">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
 
-        <a-form-item name="type"
-                     :label="$t('common.type')"
-                     :rules="[{ required: true, message: $t('common.type') }]">
-          <a-select v-model:value="formState.type"
-                    :placeholder="$t('function.tip.selectTypeHolder')"
-                    :options="types"/>
-        </a-form-item>
+      <MfFormItem name="type"
+                  :label="$t('common.type')"
+                  :rules="[{ required: true, message: $t('common.type') }]">
+        <MfSelect v-model="formState.type"
+                  :placeholder="$t('function.tip.selectTypeHolder')"
+                  :options="types"/>
+      </MfFormItem>
 
-        <div class="flex justify-end">
-          <a-button type="primary" html-type="submit" :loading="saving" :disabled="saving">
-            {{ $t('common.save') }}
-          </a-button>
-        </div>
-      </a-form>
-    </a-spin>
-  </a-drawer>
+      <div class="flex justify-end">
+        <MfButton variant="primary" type="submit" :loading="saving" :disabled="saving">
+          {{ $t('common.save') }}
+        </MfButton>
+      </div>
+    </MfForm>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { cloneDeep, omit } from 'lodash'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionModel } from '@/model/function'
@@ -111,10 +112,10 @@ const onSubmit = () => {
                  .then((response) => {
                    if (response.status) {
                      visible.value = false
-                     message.success('Save successfully')
+                     MfMessage.success('Save successfully')
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => (saving.value = false))

@@ -11,29 +11,27 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-button type="primary" @click="handlerChangeInfo(true, null)">
-          <template #icon>
-            <PlusOutlined :style="{ fontSize: '16px' }"/>
-          </template>
+        <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
+          <PlusOutlined :style="{ fontSize: '16px' }"/>
           {{ $t('role.common.create') }}
-        </a-button>
+        </MfButton>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('common.editData')">
-              <a-button type="text" size="small" shape="circle" @click="handlerChangeInfo(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('common.editData')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
                 <EditOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-tooltip :title="$t('role.common.assignMenu').replace('$NAME', record?.name)">
-              <a-button type="text" size="small" shape="circle" @click="handlerAssignMenu(true, record)">
+            <MfTooltip :content="$t('role.common.assignMenu').replace('$NAME', record?.name)">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerAssignMenu(true, record)">
                 <MenuOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
-          </a-space>
+              </MfButton>
+            </MfTooltip>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

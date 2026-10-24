@@ -1,10 +1,12 @@
 <template>
   <div class="relative min-h-screen">
-    <a-spin :spinning="loading">
-      <DashboardView v-if="data && !loading" :layouts="JSON.parse(String(data.configure))"/>
+    <div v-if="loading" class="flex items-center justify-center py-16">
+      <MfSpinner size="lg"/>
+    </div>
 
-      <a-alert v-else-if="!loading" type="error" :message="$t('dashboard.tip.notFound').replace('$VALUE', String(route.currentRoute?.value?.params['code']))"/>
-    </a-spin>
+    <DashboardView v-else-if="data" :layouts="JSON.parse(String(data.configure))"/>
+
+    <MfAlert v-else variant="danger" :title="$t('dashboard.tip.notFound').replace('$VALUE', String(route.currentRoute?.value?.params['code']))"/>
   </div>
 </template>
 

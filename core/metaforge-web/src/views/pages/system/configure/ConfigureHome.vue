@@ -6,52 +6,54 @@
         <div class="dc-rt__title">{{ $t('configure.runtime.title') }}</div>
         <div class="dc-rt__desc">{{ $t('configure.runtime.desc') }}</div>
       </div>
-      <a-popover placement="bottomRight">
+      <MfPopover placement="bottomRight">
         <template #content>
           <div class="dc-rt__guide-pop">{{ $t('configure.runtime.bandTip') }}</div>
         </template>
-        <a-button class="dc-rt__guide-btn">
-          <template #icon>
-            <QuestionCircleOutlined/>
-          </template>
+        <MfButton class="dc-rt__guide-btn">
+          <QuestionCircleOutlined/>
           {{ $t('configure.runtime.guide') }}
-        </a-button>
-      </a-popover>
+        </MfButton>
+      </MfPopover>
     </div>
 
-    <a-row :gutter="16">
+    <div class="grid grid-cols-3 gap-4">
       <!-- 左侧：分类 tab + 配置项列表 -->
-      <a-col :span="8">
+      <div>
         <div class="dc-rt__sidebar">
-          <a-tabs v-model:activeKey="activeCategory" class="dc-rt__tabs">
-            <a-tab-pane key="EXECUTOR" :tab="$t('configure.runtime.categoryExecutor')"/>
-            <a-tab-pane key="DATASET" :tab="$t('configure.runtime.categoryDataset')"/>
-          </a-tabs>
+          <MfTabs v-model:active-key="activeCategory" class="dc-rt__tabs">
+            <MfTabPane item-key="EXECUTOR" :tab="$t('configure.runtime.categoryExecutor')"/>
+            <MfTabPane item-key="DATASET" :tab="$t('configure.runtime.categoryDataset')"/>
+          </MfTabs>
 
-          <a-spin :spinning="loading">
-            <div class="dc-rt__rows">
+          <div v-if="loading" class="flex items-center justify-center py-8">
+            <MfSpinner size="lg"/>
+          </div>
+          <div v-else class="dc-rt__rows">
               <div v-for="row in (groupedRows[activeCategory] || [])"
                    :key="row.id"
                    class="dc-rt__row"
                    :class="{ 'dc-rt__row--active': selected && selected.category === activeCategory && selected.name === row.name }"
                    @click="onSelect(activeCategory, row.name)">
                 <span class="dc-rt__row-name">{{ row.name }}</span>
-                <a-button type="text" size="small" class="dc-rt__row-test" @click.stop="onTestConfig(activeCategory, row.name)">
+                <MfButton variant="ghost" size="sm" class="dc-rt__row-test" @click.stop="onTestConfig(activeCategory, row.name)">
                   {{ $t('configure.runtime.testConfig') }}
-                </a-button>
+                </MfButton>
               </div>
               <div v-if="!(groupedRows[activeCategory] || []).length" class="dc-rt__empty">
                 {{ $t('configure.runtime.empty') }}
               </div>
-            </div>
-          </a-spin>
+          </div>
         </div>
-      </a-col>
+      </div>
 
       <!-- 右侧：选中项参数 -->
-      <a-col :span="16">
+      <div class="col-span-2">
         <div class="dc-rt__content">
-          <a-spin :spinning="loading">
+          <div v-if="loading" class="flex items-center justify-center py-8">
+            <MfSpinner size="lg"/>
+          </div>
+          <template v-else>
             <div v-if="!selected" class="dc-rt__placeholder">
               {{ $t('configure.runtime.selectHint') }}
             </div>
@@ -65,38 +67,38 @@
                 <div v-for="field in schema" :key="field.name" class="dc-rt__field">
                   <div class="dc-rt__field-label">
                     <span>{{ field.name }}</span>
-                    <a-tooltip v-if="field.description" :title="field.description">
+                    <MfTooltip v-if="field.description" :content="field.description">
                       <QuestionCircleOutlined class="dc-rt__field-q"/>
-                    </a-tooltip>
+                    </MfTooltip>
                     <span v-if="!field.tunable" class="dc-rt__field-admin">[{{ $t('configure.runtime.adminOnly') }}]</span>
                   </div>
 
-                  <a-input v-if="field.type === 'STRING'" v-model:value="form[field.name]"/>
-                  <a-input-number v-else-if="field.type === 'NUMBER'" v-model:value="form[field.name]" class="w-full"/>
-                  <a-switch v-else-if="field.type === 'BOOLEAN'"
-                            v-model:checked="booleanProxies[field.name]"
-                            @change="(v: boolean) => onBoolChange(field.name, v)"/>
-                  <a-input-password v-else-if="field.type === 'PASSWORD'" v-model:value="form[field.name]"/>
+                  <MfInput v-if="field.type === 'STRING'" v-model="form[field.name]"/>
+                  <MfInputNumber v-else-if="field.type === 'NUMBER'" v-model="form[field.name]" class="w-full"/>
+                  <MfSwitch v-else-if="field.type === 'BOOLEAN'"
+                            :model-value="booleanProxies[field.name]"
+                            @update:model-value="(v: boolean) => { booleanProxies[field.name] = v; onBoolChange(field.name, v) }"/>
+                  <MfInput v-else-if="field.type === 'PASSWORD'" v-model="form[field.name]" type="password" show-password/>
                 </div>
               </div>
 
               <div class="dc-rt__actions">
-                <a-button type="primary" :loading="saving" @click="onSave">
+                <MfButton variant="primary" :loading="saving" @click="onSave">
                   {{ $t('configure.runtime.save') }}
-                </a-button>
+                </MfButton>
               </div>
             </template>
-          </a-spin>
+          </template>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 import RuntimeConfigureService from '@/services/runtimeConfigure'
 
@@ -167,7 +169,7 @@ const onSelect = async (category: string, name: string) => {
                              }
                            }
                            else {
-                             message.error(response.message)
+                             MfMessage.error(response.message)
                            }
                          })
                          .finally(() => (loading.value = false))
@@ -190,14 +192,14 @@ const onTestConfig = (category: string, name: string) => {
                                  })
                                  .map((f: PluginConfigureField) => f.name)
                              if (missing.length === 0) {
-                               message.success(t('configure.runtime.testOk'))
+                               MfMessage.success(t('configure.runtime.testOk'))
                              }
                              else {
-                               message.error(`${ t('configure.runtime.testMissing', { count: missing.length }) }: ${ missing.join(', ') }`)
+                               MfMessage.error(`${ t('configure.runtime.testMissing', { count: missing.length }) }: ${ missing.join(', ') }`)
                              }
                            }
                            else {
-                             message.error(response.message)
+                             MfMessage.error(response.message)
                            }
                          })
                          .finally(() => (loading.value = false))
@@ -216,10 +218,10 @@ const onSave = () => {
   RuntimeConfigureService.save(selected.value.category, selected.value.name, form.value)
                          .then(response => {
                            if (response.status) {
-                             message.success(t('common.successfully'))
+                             MfMessage.success(t('common.successfully'))
                            }
                            else {
-                             message.error(response.message)
+                             MfMessage.error(response.message)
                            }
                          })
                          .finally(() => (saving.value = false))
@@ -276,14 +278,6 @@ loadAll()
 
 .dc-rt__tabs {
     margin-bottom: 8px;
-}
-
-.dc-rt__tabs :deep(.ant-tabs-nav) {
-    margin-bottom: 8px;
-}
-
-.dc-rt__tabs :deep(.ant-tabs-tab) {
-    padding: 6px 0;
 }
 
 .dc-rt__rows {

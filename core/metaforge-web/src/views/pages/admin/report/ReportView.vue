@@ -1,9 +1,8 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
-           :title="title"
-           :body-style="{ height: '60vh', overflow: 'auto' }">
-    <div class="relative w-full h-full justify-center items-center">
+           :title="title">
+    <div class="relative w-full justify-center items-center" style="height: 60vh; overflow: auto;">
       <div v-if="info">
         <VisualView class="h-full"
                     :code="info.dataset?.code"
@@ -15,11 +14,11 @@
     </div>
 
     <template #footer>
-      <a-button @click="onCancel">
+      <MfButton @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

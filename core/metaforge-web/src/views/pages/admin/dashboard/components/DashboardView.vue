@@ -19,17 +19,15 @@
                 :min-h="3"
                 :is-resizable="false"
                 :min-w="3">
-        <a-card class="h-full w-full">
-          <template #title>{{ item.title ? item.title : $t('dataset.common.notSpecifiedTitle') }}</template>
+        <MfCard class="h-full w-full">
+          <template #header>{{ item.title ? item.title : $t('dataset.common.notSpecifiedTitle') }}</template>
 
           <template #extra>
-            <a-tooltip v-if="item.description" :title="item.description">
-              <a-button type="text" shape="circle" size="small" danger>
-                <template #icon>
-                  <DeleteOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+            <MfTooltip v-if="item.description" :content="item.description">
+              <MfButton variant="ghost" size="sm" class="rounded-full! text-danger!">
+                <DeleteOutlined :style="{ fontSize: '15px' }"/>
+              </MfButton>
+            </MfTooltip>
           </template>
 
           <VisualView v-if="item.original"
@@ -47,7 +45,7 @@
                       :code="item.node.code"
                       :configuration="JSON.parse(item.node.configure)"
                       :query="JSON.parse(item.node.query)"/>
-        </a-card>
+        </MfCard>
       </GridItem>
     </GridLayout>
   </div>

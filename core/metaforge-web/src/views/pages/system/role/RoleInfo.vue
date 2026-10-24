@@ -1,41 +1,41 @@
 <template>
-  <a-modal v-model:open="visible" :title="title" :footer="null">
+  <MfModal v-model:open="visible" :title="title">
     <div class="relative">
-      <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-form-item name="name"
-                     :label="$t('role.common.name')"
-                     :rules="[
-                       { required: true, message: $t('role.tip.name') },
-                       { min: 2, message: $t('role.validate.nameSize') },
-                       { max: 20, message: $t('role.validate.nameSize') }
-                   ]">
-          <a-input v-model:value="formState.name" :placeholder="$t('role.tip.name')"/>
-        </a-form-item>
+      <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+        <MfFormItem name="name"
+                    :label="$t('role.common.name')"
+                    :rules="[
+                      { required: true, message: $t('role.tip.name') },
+                      { min: 2, message: $t('role.validate.nameSize') },
+                      { max: 20, message: $t('role.validate.nameSize') }
+                  ]">
+          <MfInput v-model="formState.name" :placeholder="$t('role.tip.name')"/>
+        </MfFormItem>
 
-        <a-form-item name="description"
-                     :label="$t('role.common.description')"
-                     :rules="[
-                       { required: true, message: $t('role.tip.description') },
-                       { min: 3, message: $t('role.validate.descriptionSize') },
-                       { max: 50, message: $t('role.validate.descriptionSize') }
-                   ]">
-          <a-textarea v-model:value="formState.description" :placeholder="$t('role.tip.description')"/>
-        </a-form-item>
+        <MfFormItem name="description"
+                    :label="$t('role.common.description')"
+                    :rules="[
+                      { required: true, message: $t('role.tip.description') },
+                      { min: 3, message: $t('role.validate.descriptionSize') },
+                      { max: 50, message: $t('role.validate.descriptionSize') }
+                  ]">
+          <MfTextarea v-model="formState.description" :placeholder="$t('role.tip.description')"/>
+        </MfFormItem>
 
         <div class="flex justify-end">
-          <a-button type="primary" html-type="submit" :loading="loading" :disabled="loading">
+          <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
             {{ title }}
-          </a-button>
+          </MfButton>
         </div>
-      </a-form>
+      </MfForm>
     </div>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
 import { RoleModel, RoleRequest } from '@/model/role'
 import { StringUtils } from '@/utils/string'
@@ -80,11 +80,11 @@ const onSubmit = () => {
   RoleService.saveOrUpdate(formState.value)
              .then(response => {
                if (response.status) {
-                 message.success(`${ title.value } ${ t('common.successfully') }`)
+                 MfMessage.success(`${ title.value } ${ t('common.successfully') }`)
                  onCancel()
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (loading.value = false))

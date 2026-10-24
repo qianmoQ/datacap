@@ -11,28 +11,26 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-tooltip :title="$t('menu.common.create')">
-          <a-button type="primary" @click="handlerChangeInfo(true, null)">
-            <template #icon>
-              <PlusOutlined :style="{ fontSize: '16px' }"/>
-            </template>
+        <MfTooltip :content="$t('menu.common.create')">
+          <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
+            <PlusOutlined :style="{ fontSize: '16px' }"/>
             {{ $t('menu.common.create') }}
-          </a-button>
-        </a-tooltip>
+          </MfButton>
+        </MfTooltip>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'active'">
-          <a-switch v-model:checked="record.active" :disabled="record.active"/>
+          <MfSwitch v-model="record.active" :disabled="record.active"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('common.editData')">
-              <a-button type="text" size="small" shape="circle" @click="handlerChangeInfo(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('common.editData')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
                 <EditOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
-          </a-space>
+              </MfButton>
+            </MfTooltip>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

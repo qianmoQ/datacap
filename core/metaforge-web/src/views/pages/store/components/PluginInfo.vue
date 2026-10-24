@@ -1,16 +1,15 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="50%"
            :title="title"
-           :footer="null"
-           @cancel="onCancel">
+           @close="onCancel">
     <div v-if="info" class="relative w-full h-full flex flex-col items-center p-6">
       <div class="flex flex-col items-center mb-6">
-        <a-avatar class="mb-4 shadow-lg border-4 border-gray-100"
+        <MfAvatar class="mb-4 shadow-lg border-4 border-gray-100"
                   :size="80"
                   :src="info.logo || '/static/images/plugin.png'"
                   :alt="info.label">
-        </a-avatar>
+        </MfAvatar>
 
         <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ info.label }}</h3>
       </div>
@@ -26,12 +25,12 @@
       <div class="w-full max-w-md space-y-4">
         <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
           <span class="text-sm font-medium text-gray-700">{{ $t('common.plugin.version') }}</span>
-          <a-tag>{{ info.version }}</a-tag>
+          <MfTag>{{ info.version }}</MfTag>
         </div>
 
         <div v-if="info.installed" class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
           <span class="text-sm font-medium text-gray-700">{{ $t('common.installVersion') }}</span>
-          <a-tag color="#00BFFF">{{ info.installVersion }}</a-tag>
+          <MfTag variant="info">{{ info.installVersion }}</MfTag>
         </div>
 
         <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
@@ -50,20 +49,20 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <a-tag v-for="ver in info.supportVersion" :key="ver" color="success">
+            <MfTag v-for="ver in info.supportVersion" :key="ver" variant="success">
               {{ ver }}
-            </a-tag>
+            </MfTag>
           </div>
         </div>
       </div>
     </div>
 
     <template #footer>
-      <a-button @click="onCancel">
+      <MfButton @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

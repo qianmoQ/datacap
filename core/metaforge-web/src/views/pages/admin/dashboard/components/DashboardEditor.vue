@@ -1,15 +1,15 @@
 <template>
-  <a-card :title="title">
+  <MfCard :title="title">
     <template #extra>
-      <a-space>
-        <a-button @click="visibleAddReport(true)">
+      <MfSpace>
+        <MfButton @click="visibleAddReport(true)">
           {{ $t('dashboard.common.addReport') }}
-        </a-button>
+        </MfButton>
 
-        <a-button type="primary" @click="visibleSave(true)">
+        <MfButton variant="primary" @click="visibleSave(true)">
           {{ $t('common.save') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
 
     <div class="min-h-screen">
@@ -33,15 +33,13 @@
                   :min-h="3"
                   :min-w="3"
                   @resized="onResize">
-          <a-card class="h-full w-full">
-            <template #title>{{ item.title ? item.title : $t('dataset.common.notSpecifiedTitle') }}</template>
+          <MfCard class="h-full w-full">
+            <template #header>{{ item.title ? item.title : $t('dataset.common.notSpecifiedTitle') }}</template>
 
             <template #extra>
-              <a-button type="text" shape="circle" size="small" danger @click="onRemove(item.i)">
-                <template #icon>
-                  <DeleteOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
+              <MfButton variant="ghost" size="sm" class="rounded-full! text-danger!" @click="onRemove(item.i)">
+                <DeleteOutlined :style="{ fontSize: '15px' }"/>
+              </MfButton>
             </template>
 
             <VisualView v-if="item.original"
@@ -59,41 +57,41 @@
                         :code="item.node.code"
                         :configuration="JSON.parse(item.node.configure)"
                         :query="JSON.parse(item.node.query)"/>
-          </a-card>
+          </MfCard>
         </GridItem>
       </GridLayout>
     </div>
-  </a-card>
+  </MfCard>
 
-  <a-modal v-model:open="configureVisible" :title="$t('common.configure')" :footer="null">
-    <a-form v-if="configureVisible && formState" :model="formState" layout="vertical" @finish="onSubmit">
-      <a-form-item name="name"
-                   :label="$t('common.name')"
-                   :rules="[{ required: true, message: $t('common.name') }]">
-        <a-input v-model:value="formState.name"/>
-      </a-form-item>
+  <MfModal v-model:open="configureVisible" :title="$t('common.configure')">
+    <MfForm v-if="configureVisible && formState" :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[{ required: true, message: $t('common.name') }]">
+        <MfInput v-model="formState.name"/>
+      </MfFormItem>
 
-      <a-form-item name="description" :label="$t('common.description')">
-        <a-textarea v-model:value="formState.description"/>
-      </a-form-item>
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
 
-      <a-form-item name="avatar" :label="$t('common.avatar')">
+      <MfFormItem name="avatar" :label="$t('common.avatar')">
         <CropperHome :pic="formState?.avatar?.path" @update:value="onCropper"/>
-      </a-form-item>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="configureVisible = false">
+        <MfSpace>
+          <MfButton @click="configureVisible = false">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" html-type="submit" :loading="loading" :disabled="loading">
+          <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
             {{ $t('common.save') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 
   <ChartContainer v-if="dataReportVisible"
                   :is-visible="dataReportVisible"
@@ -105,7 +103,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { GridItem, GridLayout } from 'vue3-grid-layout-next'
 import DashboardService from '@/services/dashboard'
 import { ReportModel } from '@/model/report.ts'
@@ -192,10 +190,10 @@ const onCropper = (value: any) => {
                    if (formState.value) {
                      formState.value.avatar = response.data
                    }
-                   message.success(t('common.successfully'))
+                   MfMessage.success(t('common.successfully'))
                  }
                  else {
-                   message.error(response.message)
+                   MfMessage.error(response.message)
                  }
                })
 }
@@ -232,7 +230,7 @@ const onSubmit = () => {
     DashboardService.saveOrUpdate(formState.value)
                     .then((response) => {
                       if (response.status) {
-                        message.success(t('dashboard.tip.publishSuccess').replace('$VALUE', String(formState.value?.name)))
+                        MfMessage.success(t('dashboard.tip.publishSuccess').replace('$VALUE', String(formState.value?.name)))
                         if (response.data) {
                           router.push(`/admin/dashboard/preview/${ response.data?.code }`)
                         }
@@ -241,7 +239,7 @@ const onSubmit = () => {
                         }
                       }
                       else {
-                        message.error(response.message)
+                        MfMessage.error(response.message)
                       }
                     })
                     .finally(() => (loading.value = false))

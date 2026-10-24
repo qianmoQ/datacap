@@ -1,66 +1,66 @@
 <template>
-  <a-drawer v-model:open="visible" :title="$t('function.common.import')" width="40%">
-    <a-form v-if="formState" :model="formState" layout="vertical">
-      <a-tabs v-model:activeKey="formState.mode">
-        <a-tab-pane :key="FunctionMode.txt" :tab="$t('common.content')">
-          <a-form-item name="content" :label="$t('common.content')">
-            <a-textarea v-model:value="formState.content" :placeholder="$t('common.content')"/>
-          </a-form-item>
-        </a-tab-pane>
+  <MfDrawer v-model:open="visible" :title="$t('function.common.import')" width="40%">
+    <MfForm v-if="formState" :model="formState" layout="vertical">
+      <MfTabs v-model:active-key="formState.mode">
+        <MfTabPane :item-key="FunctionMode.txt" :tab="$t('common.content')">
+          <MfFormItem name="content" :label="$t('common.content')">
+            <MfTextarea v-model="formState.content" :placeholder="$t('common.content')"/>
+          </MfFormItem>
+        </MfTabPane>
 
-        <a-tab-pane :key="FunctionMode.url" :tab="$t('function.common.importFromUrl')">
-          <a-space direction="vertical" :style="{ width: '100%' }">
-            <a-alert type="warning"
-                     show-icon
-                     :message="$t('function.common.keyword')"
-                     description="(http|https)://metaforge.devlive.org/resources/functions/plugin/keywords.txt"/>
-            <a-alert type="warning"
-                     show-icon
-                     :message="$t('function.common.operator')"
-                     description="(http|https)://metaforge.devlive.org/resources/functions/plugin/operators.txt"/>
-            <a-alert type="warning"
-                     show-icon
-                     :message="$t('function.common.function')"
-                     description="(http|https)://metaforge.devlive.org/resources/functions/plugin/functions.txt"/>
-          </a-space>
+        <MfTabPane :item-key="FunctionMode.url" :tab="$t('function.common.importFromUrl')">
+          <MfSpace direction="vertical" fill :style="{ width: '100%' }">
+            <MfAlert variant="warning"
+                     :title="$t('function.common.keyword')">
+              (http|https)://metaforge.devlive.org/resources/functions/plugin/keywords.txt
+            </MfAlert>
+            <MfAlert variant="warning"
+                     :title="$t('function.common.operator')">
+              (http|https)://metaforge.devlive.org/resources/functions/plugin/operators.txt
+            </MfAlert>
+            <MfAlert variant="warning"
+                     :title="$t('function.common.function')">
+              (http|https)://metaforge.devlive.org/resources/functions/plugin/functions.txt
+            </MfAlert>
+          </MfSpace>
 
-          <a-form-item name="url" :label="$t('common.url')" class="mt-2">
-            <a-input v-model:value="formState.content"/>
-          </a-form-item>
-        </a-tab-pane>
-      </a-tabs>
+          <MfFormItem name="url" :label="$t('common.url')" class="mt-2">
+            <MfInput v-model="formState.content"/>
+          </MfFormItem>
+        </MfTabPane>
+      </MfTabs>
 
-      <a-form-item name="plugin"
-                   :label="$t('common.plugin')"
-                   :rules="[{ required: true, message: $t('common.plugin') }]">
-        <a-select v-model:value="formState.plugin" mode="multiple" :options="plugins"/>
-      </a-form-item>
+      <MfFormItem name="plugin"
+                  :label="$t('common.plugin')"
+                  :rules="[{ required: true, message: $t('common.plugin') }]">
+        <MfSelect v-model="formState.plugin" multiple :options="plugins"/>
+      </MfFormItem>
 
-      <a-form-item name="type"
-                   :label="$t('common.type')"
-                   :rules="[{ required: true, message: $t('common.type') }]">
-        <a-select v-model:value="formState.type"
+      <MfFormItem name="type"
+                  :label="$t('common.type')"
+                  :rules="[{ required: true, message: $t('common.type') }]">
+        <MfSelect v-model="formState.type"
                   :placeholder="$t('function.tip.selectTypeHolder')"
                   :options="types"/>
-      </a-form-item>
-    </a-form>
+      </MfFormItem>
+    </MfForm>
 
     <div class="flex justify-end mt-2">
-      <a-space>
-        <a-button danger :loading="loading" :disabled="loading" @click="onCancel()">
+      <MfSpace>
+        <MfButton variant="danger" :loading="loading" :disabled="loading" @click="onCancel()">
           {{ $t('common.cancel') }}
-        </a-button>
-        <a-button type="primary" :loading="loading" :disabled="loading" @click="onSubmit()">
+        </MfButton>
+        <MfButton variant="primary" :loading="loading" :disabled="loading" @click="onSubmit()">
           {{ $t('function.common.import') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </div>
-  </a-drawer>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionImportModel, FunctionMode } from '@/model/function'
 import FunctionService from '@/services/function'
@@ -111,11 +111,11 @@ const onSubmit = () => {
   FunctionService.import(formState.value)
                  .then((response) => {
                    if (response.status) {
-                     message.success('Create successfully')
+                     MfMessage.success('Create successfully')
                      onCancel()
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => (loading.value = false))

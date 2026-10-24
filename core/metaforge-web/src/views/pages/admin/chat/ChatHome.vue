@@ -1,43 +1,42 @@
 <template>
-  <a-layout>
-    <a-layout has-sider>
-      <a-layout-sider theme="light" :width="280">
-        <a-card :title="$t('common.chat')">
+  <div class="flex flex-col min-h-screen">
+    <div class="flex flex-1 min-h-0">
+      <aside class="w-[280px] shrink-0">
+        <MfCard :title="$t('common.chat')">
           <template #extra>
-            <a-button type="text" shape="circle" size="small" @click="visibleInfo(true)">
-              <template #icon>
-                <PlusOutlined :style="{ fontSize: '15px' }"/>
-              </template>
-            </a-button>
+            <MfButton variant="ghost" size="sm" class="rounded-full!" @click="visibleInfo(true)">
+              <PlusOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
           </template>
 
           <div class="relative min-h-screen">
-            <a-spin :spinning="loading">
-              <a-radio-group v-model:value="toggleValue" class="dc-chat-radio p-1" :style="{ width: '100%' }" @change="onChange">
-                <a-row :gutter="8">
-                  <a-col v-for="item of data" :key="item.id" :span="24">
-                    <a-radio-button class="w-full" :value="item.id">
-                      <div class="flex items-center space-x-4">
-                        <a-avatar size="small" :src="item.avatar" :alt="item.name"/>
+            <div v-if="loading" class="flex items-center justify-center py-8">
+              <MfSpinner size="lg"/>
+            </div>
+            <MfRadioGroup v-else v-model="toggleValue" variant="button" class="dc-chat-radio flex flex-col! items-stretch! p-1 gap-1.5" :style="{ width: '100%' }" @change="onChange">
+              <div class="grid gap-2">
+                <div v-for="item of data" :key="item.id">
+                  <MfRadio class="w-full! justify-start!" :value="item.id">
+                    <div class="flex items-center space-x-4">
+                      <MfAvatar size="sm" :src="item.avatar" :alt="item.name"/>
 
-                        <div class="text-sm font-medium leading-none">{{ item.name }}</div>
-                      </div>
-                    </a-radio-button>
-                  </a-col>
-                </a-row>
-              </a-radio-group>
-            </a-spin>
+                      <div class="text-sm font-medium leading-none">{{ item.name }}</div>
+                    </div>
+                  </MfRadio>
+                </div>
+              </div>
+            </MfRadioGroup>
           </div>
-        </a-card>
-      </a-layout-sider>
+        </MfCard>
+      </aside>
 
-      <a-layout-content>
+      <main class="flex-1 min-w-0">
         <div v-if="dataInfo">
-          <a-card>
-            <template #title>
+          <MfCard>
+            <template #header>
               <div class="flex flex-row items-center justify-between">
                 <div class="flex items-center space-x-4">
-                  <a-avatar :src="dataInfo.avatar" :alt="dataInfo.name"/>
+                  <MfAvatar :src="dataInfo.avatar" :alt="dataInfo.name"/>
                   <div>
                     <p class="text-sm font-medium leading-none">{{ dataInfo.name }}</p>
                     <p class="text-sm text-muted-foreground">{{ dataInfo.description }}</p>
@@ -51,11 +50,11 @@
                 <div>
                   Prompt Tokens: {{ promptTokens }}
                 </div>
-                <a-divider type="vertical"/>
+                <span class="self-stretch w-px bg-line"/>
                 <div>
                   Completion Tokens: {{ completionTokens }}
                 </div>
-                <a-divider type="vertical"/>
+                <span class="self-stretch w-px bg-line"/>
                 <div>
                   Total Tokens: {{ totalTokens }}
                 </div>
@@ -63,56 +62,55 @@
             </template>
 
             <div class="relative min-h-screen">
-              <a-spin :spinning="loadingMessages">
-                <div class="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
-                  <div ref="messagesContainer" class="w-full overflow-y-auto overflow-x-hidden flex flex-col" style="height: 550px;">
-                    <div v-for="(item, index) in messages"
-                         :key="`msg-${ index }`"
-                         :class="cn('flex flex-col gap-2 p-4 whitespace-pre-wrap',
-                                  item.type === 'question' ? 'items-end' : 'items-start'
-                            )">
-                        <div class="flex gap-3 items-center">
-                          <span class="bg-accent p-3 rounded-md max-w-lg">{{ item.content }}</span>
-                        </div>
+              <div v-if="loadingMessages" class="flex items-center justify-center py-8">
+                <MfSpinner size="lg"/>
+              </div>
+              <div v-else class="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
+                <div ref="messagesContainer" class="w-full overflow-y-auto overflow-x-hidden flex flex-col" style="height: 550px;">
+                  <div v-for="(item, index) in messages"
+                       :key="`msg-${ index }`"
+                       :class="cn('flex flex-col gap-2 p-4 whitespace-pre-wrap',
+                                item.type === 'question' ? 'items-end' : 'items-start'
+                          )">
+                    <div class="flex gap-3 items-center">
+                      <span class="bg-accent p-3 rounded-md max-w-lg">{{ item.content }}</span>
+                    </div>
 
-                        <div v-if="item.type === 'answer'" class="flex text-sm text-muted-foreground mt-0.5 space-x-2">
-                          <div>Model: {{ item.model }}</div>
-                          <a-divider type="vertical"/>
-                          <div>Prompt Tokens: {{ item.promptTokens }}</div>
-                          <a-divider type="vertical"/>
-                          <div>Completion Tokens: {{ item.completionTokens }}</div>
-                          <a-divider type="vertical"/>
-                          <div>Total Tokens: {{ item.totalTokens }}</div>
-                        </div>
+                    <div v-if="item.type === 'answer'" class="flex text-sm text-muted-foreground mt-0.5 space-x-2">
+                      <div>Model: {{ item.model }}</div>
+                      <span class="self-stretch w-px bg-line"/>
+                      <div>Prompt Tokens: {{ item.promptTokens }}</div>
+                      <span class="self-stretch w-px bg-line"/>
+                      <div>Completion Tokens: {{ item.completionTokens }}</div>
+                      <span class="self-stretch w-px bg-line"/>
+                      <div>Total Tokens: {{ item.totalTokens }}</div>
                     </div>
                   </div>
                 </div>
-              </a-spin>
+              </div>
             </div>
 
             <template #footer>
               <div class="p-2 flex justify-between w-full items-center gap-2">
-                <a-textarea v-model:value="inputValue" placeholder="Type a message ..."/>
+                <MfTextarea v-model="inputValue" placeholder="Type a message ..."/>
 
-                <a-button type="primary" :loading="submitting" :disabled="!inputValue || submitting" @click="onSubmit">
-                  <template #icon>
-                    <SendOutlined :style="{ fontSize: '18px' }"/>
-                  </template>
-                </a-button>
+                <MfButton variant="primary" :loading="submitting" :disabled="!inputValue || submitting" @click="onSubmit">
+                  <SendOutlined :style="{ fontSize: '18px' }"/>
+                </MfButton>
               </div>
             </template>
-          </a-card>
+          </MfCard>
         </div>
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+      </main>
+    </div>
+  </div>
 
   <ChatInfo v-if="dataVisible" :is-visible="dataVisible" @close="visibleInfo($event)"/>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { message as antdMessage } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { FilterModel } from '@/model/filter.ts'
 import ChatService from '@/services/chat.ts'
 import ChatInfo from '@/views/pages/admin/chat/ChatInfo.vue'
@@ -149,7 +147,7 @@ const handleInitialize = () => {
                  data.value = response.data.content
                }
                else {
-                 antdMessage.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (loading.value = false))
@@ -207,7 +205,7 @@ const onSubmit = () => {
                     inputValue.value = ''
                   }
                   else {
-                    antdMessage.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => {
@@ -219,21 +217,3 @@ const onSubmit = () => {
 
 handleInitialize()
 </script>
-
-<style scoped>
-/* 让聊天列表的单选按钮铺满整行、左对齐 */
-.dc-chat-radio :deep(.ant-radio-button-wrapper) {
-    width: 100%;
-    height: auto;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border-radius: 6px;
-    border-left-width: 1px;
-    display: flex;
-    align-items: center;
-}
-
-.dc-chat-radio :deep(.ant-radio-button-wrapper::before) {
-    display: none;
-}
-</style>

@@ -12,49 +12,49 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'username'">
-          <a-avatar size="small" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
+          <MfAvatar size="sm" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('snippet.common.modify').replace('$VALUE', record.name)">
-              <a-button type="text" size="small" shape="circle" @click="visibleInfo(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('snippet.common.modify').replace('$VALUE', record.name)">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="visibleInfo(true, record)">
                 <EditOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click">
-              <a-button type="text" size="small" shape="circle">
+            <MfDropdown trigger="click">
+              <MfButton variant="ghost" size="sm" class="rounded-full!">
                 <SettingOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
+                <MfMenu>
+                  <MfMenuItem>
                     <router-link :to="`/admin/query/snippet/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
                         <SnippetsOutlined :style="{ fontSize: '15px' }"/>
                         <span>{{ $t('query.common.quoteRecord') }}</span>
                       </div>
                     </router-link>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleContent(true, record?.context)">
+                  <MfMenuItem @click="visibleContent(true, record?.context)">
                     <div class="flex items-center space-x-2">
                       <RightOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('query.common.showSql') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleDelete(true, record)">
+                  <MfMenuItem @click="visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
                       <DeleteOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('snippet.common.delete') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>
@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { FilterModel } from '@/model/filter.ts'
 import { useHeaders } from '@/views/pages/admin/snippet/SnippetUtils'
 import { SnippetModel } from '@/model/snippet'
@@ -115,7 +115,7 @@ const handleInitialize = () => {
                     pageIndex.value = response.data.page
                   }
                   else {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                   }
                 })
                 .finally(() => (loading.value = false))

@@ -1,60 +1,59 @@
 <template>
-  <a-card :title="$t('dashboard.common.list')">
+  <MfCard :title="$t('dashboard.common.list')">
     <template #extra>
-      <a-tooltip :title="$t('dashboard.common.create')">
+      <MfTooltip :content="$t('dashboard.common.create')">
         <router-link to="/admin/dashboard/info" target="_blank">
-          <a-button type="primary" shape="circle" size="small">
-            <template #icon>
-              <PlusOutlined :style="{ fontSize: '15px' }"/>
-            </template>
-          </a-button>
+          <MfButton variant="primary" size="sm" class="rounded-full!">
+            <PlusOutlined :style="{ fontSize: '15px' }"/>
+          </MfButton>
         </router-link>
-      </a-tooltip>
+      </MfTooltip>
     </template>
 
     <div class="mb-3 min-h-screen p-2">
-      <a-spin :spinning="loading">
-        <a-row :gutter="16">
-          <a-col v-for="item in data" :key="item.code" :span="6">
-            <a-card class="mb-4">
-              <template #title>
+      <div v-if="loading" class="flex items-center justify-center py-16">
+        <MfSpinner size="lg"/>
+      </div>
+      <template v-else>
+        <div class="grid grid-cols-4 gap-4">
+          <div v-for="item in data" :key="item.code">
+            <MfCard class="mb-4">
+              <template #header>
                 <router-link :to="`/admin/dashboard/preview/${item.code}`" target="_blank">{{ item.name }}</router-link>
               </template>
 
               <template #extra>
-                <a-space class="items-center">
+                <MfSpace class="items-center">
                   <div v-if="item.description" class="cursor-pointer mt-1">
-                    <a-tooltip :title="item.description">
+                    <MfTooltip :content="item.description">
                       <InfoCircleOutlined :style="{ fontSize: '20px' }"/>
-                    </a-tooltip>
+                    </MfTooltip>
                   </div>
 
-                  <a-dropdown trigger="click" placement="bottomRight">
-                    <a-button type="text" shape="circle" size="small">
-                      <template #icon>
-                        <SettingOutlined :style="{ fontSize: '18px' }"/>
-                      </template>
-                    </a-button>
+                  <MfDropdown trigger="click" placement="bottomRight">
+                    <MfButton variant="ghost" size="sm" class="rounded-full!">
+                      <SettingOutlined :style="{ fontSize: '18px' }"/>
+                    </MfButton>
 
                     <template #overlay>
-                      <a-menu>
-                        <a-menu-item>
+                      <MfMenu>
+                        <MfMenuItem>
                           <router-link :to="`/admin/dashboard/info/${item.code}`" target="_blank" class="flex items-center space-x-2">
                             <EditOutlined :style="{ fontSize: '15px' }"/>
                             <span>{{ $t('dashboard.common.modify') }}</span>
                           </router-link>
-                        </a-menu-item>
+                        </MfMenuItem>
 
-                        <a-menu-item @click="visibleDelete(true, item)">
+                        <MfMenuItem @click="visibleDelete(true, item)">
                           <div class="flex items-center space-x-2">
                             <DeleteOutlined :style="{ fontSize: '15px' }"/>
                             <span>{{ $t('dashboard.common.delete') }}</span>
                           </div>
-                        </a-menu-item>
-                      </a-menu>
+                        </MfMenuItem>
+                      </MfMenu>
                     </template>
-                  </a-dropdown>
-                </a-space>
+                  </MfDropdown>
+                </MfSpace>
               </template>
 
               <div class="p-3">
@@ -66,28 +65,27 @@
 
                 <div class="text-xs text-muted-foreground text-right mt-2">{{ item.createTime }}</div>
               </div>
-            </a-card>
-          </a-col>
+            </MfCard>
+          </div>
 
-          <a-col :span="24">
+          <div class="col-span-4">
             <div v-if="!loading && data.length === 0" class="text-center">
               {{ $t('common.noData') }}
             </div>
-          </a-col>
-        </a-row>
+          </div>
+        </div>
 
         <div v-if="data.length > 0" class="py-2 flex justify-end">
-          <a-pagination :current="pageIndex"
+          <MfPagination :current="pageIndex"
                         :page-size="pageSize"
                         :total="dataCount"
-                        show-size-changer
-                        :page-size-options="['12', '24', '36']"
-                        @change="onPageChange"
-                        @show-size-change="onSizeChange"/>
+                        show-size
+                        :page-sizes="[12, 24, 36]"
+                        @change="(page: number, size: number) => size !== pageSize ? onSizeChange(page, size) : onPageChange(page)"/>
         </div>
-      </a-spin>
+      </template>
     </div>
-  </a-card>
+  </MfCard>
 
   <DashboardDelete v-if="deleteVisible"
                    :is-visible="deleteVisible"

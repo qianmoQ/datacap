@@ -1,39 +1,39 @@
 <template>
-  <a-modal v-model:open="visible" :title="$t('common.chat')" :footer="null">
-    <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-      <a-form-item name="name"
-                   :label="$t('common.name')"
-                   :rules="[ { required: true, message: $t('common.name') } ]">
-        <a-input v-model:value="formState.name"/>
-      </a-form-item>
+  <MfModal v-model:open="visible" :title="$t('common.chat')">
+    <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[ { required: true, message: $t('common.name') } ]">
+        <MfInput v-model="formState.name"/>
+      </MfFormItem>
 
-      <a-form-item name="avatar" :label="$t('common.avatar')">
-        <a-input v-model:value="formState.avatar"/>
-      </a-form-item>
+      <MfFormItem name="avatar" :label="$t('common.avatar')">
+        <MfInput v-model="formState.avatar"/>
+      </MfFormItem>
 
-      <a-form-item name="description" :label="$t('common.description')">
-        <a-textarea v-model:value="formState.description"/>
-      </a-form-item>
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" html-type="submit" :disabled="loading" :loading="loading">
+          <MfButton variant="primary" type="submit" :disabled="loading" :loading="loading">
             {{ $t('common.save') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import ChatService from '@/services/chat.ts'
 import { ChatModel, ChatRequest } from '@/model/chat.ts'
 
@@ -62,11 +62,11 @@ const onSubmit = () => {
     ChatService.saveOrUpdate(formState.value)
                .then((response) => {
                  if (response.status) {
-                   message.success(t('common.success'))
+                   MfMessage.success(t('common.success'))
                    onCancel()
                  }
                  else {
-                   message.error(response.message)
+                   MfMessage.error(response.message)
                  }
                })
                .finally(() => (loading.value = false))

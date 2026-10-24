@@ -1,32 +1,31 @@
 <template>
-  <a-modal v-model:open="visible" :title="title" :footer="null">
+  <MfModal v-model:open="visible" :title="title">
     <div class="relative">
-      <a-spin :spinning="loading">
-        <a-form v-if="formState" :model="formState" @finish="onSubmit" @finishFailed="onError">
-          <a-form-item name="roles"
-                       :rules="[
-                         { required: true, type: 'array', message: 'Please check the role' }
-                     ]">
-            <a-checkbox-group v-model:value="formState.roles">
-              <a-checkbox v-for="item in data" :key="item.code" :value="item.code">{{ item.name }}</a-checkbox>
-            </a-checkbox-group>
-          </a-form-item>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <MfSpinner size="lg"/>
+      </div>
+      <MfForm v-else-if="formState" :model="formState" @finish="onSubmit" @finish-failed="onError">
+        <MfFormItem name="roles"
+                    :rules="[
+                      { required: true, message: 'Please check the role', validator: (value: unknown) => Array.isArray(value) && value.length > 0 }
+                  ]">
+          <MfCheckboxGroup v-model="formState.roles" :options="roleOptions"/>
+        </MfFormItem>
 
-          <div class="flex justify-end">
-            <a-button type="primary" html-type="submit" :loading="submitted" :disabled="submitted">
-              {{ title }}
-            </a-button>
-          </div>
-        </a-form>
-      </a-spin>
+        <div class="flex justify-end">
+          <MfButton variant="primary" type="submit" :loading="submitted" :disabled="submitted">
+            {{ title }}
+          </MfButton>
+        </div>
+      </MfForm>
     </div>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { StringUtils } from '@/utils/string'
 import { UserModel, UserRoleModel } from '@/model/user'
 import { FilterModel } from '@/model/filter'
@@ -54,6 +53,9 @@ const submitted = ref(false)
 const title = ref<string | null>(null)
 const data = ref<RoleModel[]>([])
 const formState = ref<UserRoleModel | null>(null)
+
+// 迁移至 MfCheckboxGroup：选项为数组形式
+const roleOptions = computed(() => data.value.map((item: RoleModel) => ({ label: item.name, value: item.code })))
 
 const handlerInitialize = () => {
   if (props.info) {
@@ -85,23 +87,23 @@ const onSubmit = () => {
     UserService.assignRole(formState.value as UserRoleModel)
                .then((response) => {
                  if (response.status) {
-                   message.success(t('user.tip.assignRoleSuccess'))
+                   MfMessage.success(t('user.tip.assignRoleSuccess'))
                    onClose()
                  }
                  else {
-                   message.error(response.message)
+                   MfMessage.error(response.message)
                  }
                })
                .finally(() => (submitted.value = false))
   }
   else {
-    message.error(t('common.invalidParam'))
+    MfMessage.error(t('common.invalidParam'))
   }
 }
 
 const onError = (error: any) => {
   const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
-  message.error(`Validation error field: [ ${ names.join(', ') } ]`)
+  MfMessage.error(`Validation error field: [ ${ names.join(', ') } ]`)
 }
 
 handlerInitialize()

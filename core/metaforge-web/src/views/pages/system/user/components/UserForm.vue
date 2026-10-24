@@ -1,48 +1,52 @@
 <template>
-  <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit" @finishFailed="onError">
-    <a-form-item name="username"
-                 :label="$t('user.common.username')"
-                 :rules="[
-                   { required: true, message: $t('user.auth.usernameTip') },
-                   { min: 3, message: $t('user.auth.usernameSizeTip') },
-                   { max: 20, message: $t('user.auth.usernameSizeTip') }
-               ]">
-      <a-input v-model:value="formState.username"/>
-    </a-form-item>
+  <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit" @finish-failed="onError">
+    <MfFormItem name="username"
+                :label="$t('user.common.username')"
+                :rules="[
+                  { required: true, message: $t('user.auth.usernameTip') },
+                  { min: 3, message: $t('user.auth.usernameSizeTip') },
+                  { max: 20, message: $t('user.auth.usernameSizeTip') }
+              ]">
+      <MfInput v-model="formState.username"/>
+    </MfFormItem>
 
-    <a-form-item name="password"
-                 :label="$t('user.common.password')"
-                 :rules="[
-                   { required: true, message: $t('user.auth.passwordTip') },
-                   { min: 6, message: $t('user.auth.passwordSizeTip') },
-                   { max: 20, message: $t('user.auth.passwordSizeTip') }
-               ]">
-      <a-input-password v-model:value="formState.password"
-                        :placeholder="$t('user.auth.passwordTip')"/>
-    </a-form-item>
+    <MfFormItem name="password"
+                :label="$t('user.common.password')"
+                :rules="[
+                  { required: true, message: $t('user.auth.passwordTip') },
+                  { min: 6, message: $t('user.auth.passwordSizeTip') },
+                  { max: 20, message: $t('user.auth.passwordSizeTip') }
+              ]">
+      <MfInput v-model="formState.password"
+               type="password"
+               show-password
+               :placeholder="$t('user.auth.passwordTip')"/>
+    </MfFormItem>
 
-    <a-form-item name="confirmPassword"
-                 :label="$t('user.common.confirmPassword')"
-                 :rules="[
-                   { required: true, message: $t('user.auth.passwordTip') },
-                   { validator: validatePassword }
-               ]">
-      <a-input-password v-model:value="formState.confirmPassword"
-                        :placeholder="$t('user.auth.confirmPasswordTip')"/>
-    </a-form-item>
+    <MfFormItem name="confirmPassword"
+                :label="$t('user.common.confirmPassword')"
+                :rules="[
+                  { required: true, message: $t('user.auth.passwordTip') },
+                  { validator: validatePassword }
+              ]">
+      <MfInput v-model="formState.confirmPassword"
+               type="password"
+               show-password
+               :placeholder="$t('user.auth.confirmPasswordTip')"/>
+    </MfFormItem>
 
     <div class="flex justify-end">
-      <a-button type="primary" html-type="submit" :loading="loading" :disabled="loading">
+      <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
         {{ $t('common.save') }}
-      </a-button>
+      </MfButton>
     </div>
-  </a-form>
+  </MfForm>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { UserModel } from '@/model/user'
 import UserService from '@/services/user'
 
@@ -66,16 +70,16 @@ if (props.info) {
   formState.value = { code, username } as UserModel
 }
 
-const validatePassword = (_rule: any, value: string) => {
+const validatePassword = (value: string) => {
   if (value !== formState.value.password) {
-    return Promise.reject(new Error(t('user.auth.passwordNotMatchTip')))
+    return t('user.auth.passwordNotMatchTip')
   }
-  return Promise.resolve(true)
+  return true
 }
 
 const onError = (error: any) => {
   const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
-  message.error(`Validation error field: [ ${ names.join(', ') } ]`)
+  MfMessage.error(`Validation error field: [ ${ names.join(', ') } ]`)
 }
 
 const onSubmit = () => {
@@ -86,7 +90,7 @@ const onSubmit = () => {
                  emit('close', true)
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (loading.value = false))

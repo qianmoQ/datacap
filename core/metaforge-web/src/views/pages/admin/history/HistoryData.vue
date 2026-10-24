@@ -1,23 +1,24 @@
 <template>
-  <a-modal v-model:open="visible" :title="title">
+  <MfModal v-model:open="visible" :title="title">
     <div class="relative max-h-[80%]" :class="configuration ? '' : 'h-24'">
-      <a-spin :spinning="loading">
-        <VisualTable v-if="configuration" :configuration="configuration as any" :submitted="false"/>
-      </a-spin>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <MfSpinner size="lg"/>
+      </div>
+      <VisualTable v-else-if="configuration" :configuration="configuration as any" :submitted="false"/>
     </div>
 
     <template #footer>
-      <a-button danger @click="handlerCancel">
+      <MfButton variant="danger" @click="handlerCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { HistoryModel } from '@/model/history'
 import AuditService from '@/services/audit'
 import { Configuration, ConfigurationRequest } from '@/views/components/visual/Configuration'
@@ -52,7 +53,7 @@ const handlerInitialize = () => {
                     configuration.value = ConfigurationRequest.of(response)
                   }
                   else {
-                    message.error(response.data.message)
+                    MfMessage.error(response.data.message)
                   }
                 })
                 .finally(() => (loading.value = false))

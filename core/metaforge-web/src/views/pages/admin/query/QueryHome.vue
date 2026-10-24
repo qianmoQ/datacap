@@ -1,55 +1,47 @@
 <template>
-  <a-layout>
-    <a-layout has-sider>
-      <a-layout-sider theme="light" style="top: -8px;" :width="280">
-        <a-card :bordered="false">
+  <div class="flex flex-col">
+    <div class="flex flex-1 min-h-0">
+      <aside class="w-[280px] shrink-0" style="top: -8px;">
+        <MfCard :bordered="false">
           <SourceSelect v-model="selectSource.full as string" @on-change="onChange($event)"/>
 
           <MetadataTree v-if="selectSource.code" :code="selectSource.code as string"/>
-        </a-card>
-      </a-layout-sider>
+        </MfCard>
+      </aside>
 
-      <a-layout-content class="min-h-screen flex-1 overflow-hidden">
+      <main class="min-h-screen flex-1 overflow-hidden">
         <div ref="editorContainer">
-          <a-card :bordered="false">
-            <template #title>
-              <a-space v-if="selectSource.code">
-                <a-button type="primary" :loading="loading.running" :disabled="(!selectSource.id && !loading.running) || loading.running" @click="onRun()">
-                  <template #icon>
-                    <CaretRightOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+          <MfCard :bordered="false">
+            <template #header>
+              <MfSpace v-if="selectSource.code">
+                <MfButton variant="primary" :loading="loading.running" :disabled="(!selectSource.id && !loading.running) || loading.running" @click="onRun()">
+                  <CaretRightOutlined :style="{ fontSize: '15px' }"/>
                   {{ $t('query.common.execute') }}
-                </a-button>
+                </MfButton>
 
-                <a-button :loading="loading.formatting"
+                <MfButton :loading="loading.formatting"
                           :disabled="(!selectSource.id && !loading.formatting) || loading.formatting"
                           @click="onFormat()">
-                  <template #icon>
-                    <ClearOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+                  <ClearOutlined :style="{ fontSize: '15px' }"/>
                   {{ $t('query.common.format') }}
-                </a-button>
+                </MfButton>
 
-                <a-button danger
+                <MfButton variant="danger"
                           :loading="loading.formatting"
                           :disabled="!selectSource.id || !loading.running"
                           @click="onCancel()">
-                  <template #icon>
-                    <StopOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+                  <StopOutlined :style="{ fontSize: '15px' }"/>
                   {{ $t('common.cancel') }}
-                </a-button>
+                </MfButton>
 
-                <a-button v-if="responseConfigure.response" type="primary" @click="visibleSnippet(true)">
-                  <template #icon>
-                    <PlusOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+                <MfButton v-if="responseConfigure.response" variant="primary" @click="visibleSnippet(true)">
+                  <PlusOutlined :style="{ fontSize: '15px' }"/>
                   {{ $t('common.snippet') }}
-                </a-button>
+                </MfButton>
 
                 <div v-if="responseConfigure.response">
-                  <a-tooltip>
-                    <template #title>
+                  <MfTooltip>
+                    <template #content>
                       <div class="flex flex-col">
                         <span class="text-xs">
                           {{ $t('query.common.connectionTime') }}
@@ -63,47 +55,51 @@
                       </div>
                     </template>
 
-                    <a-button>
+                    <MfButton>
                       <ClockCircleOutlined :style="{ fontSize: '15px' }"/>
                       {{ responseConfigure.response.data.processor.elapsed }} ms
-                    </a-button>
-                  </a-tooltip>
+                    </MfButton>
+                  </MfTooltip>
                 </div>
 
-                <a-button v-if="selectSource.id && (responseConfigure.response?.data || !responseConfigure.response?.status)"
-                          type="primary" @click="visibleQueryHelp(true)">
-                  <template #icon>
-                    <RobotOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+                <MfButton v-if="selectSource.id && (responseConfigure.response?.data || !responseConfigure.response?.status)"
+                          variant="primary" @click="visibleQueryHelp(true)">
+                  <RobotOutlined :style="{ fontSize: '15px' }"/>
 
                   {{ $t('query.common.help') }}
-                </a-button>
+                </MfButton>
 
-                <a-button :disabled="!selectSource.code" @click="onPlusEditor">
-                  <template #icon>
-                    <EditOutlined :style="{ fontSize: '15px' }"/>
-                  </template>
+                <MfButton :disabled="!selectSource.code" @click="onPlusEditor">
+                  <EditOutlined :style="{ fontSize: '15px' }"/>
 
                   {{ $t('common.createEditor') }}
-                </a-button>
-              </a-space>
+                </MfButton>
+              </MfSpace>
             </template>
 
             <div v-if="!selectSource.code" class="flex justify-center" style="height: 300px">
               <div class="flex items-center justify-center">
-                <a-alert :message="$t('source.tip.selected')"/>
+                <MfAlert :title="$t('source.tip.selected')"/>
               </div>
             </div>
 
-            <a-tabs v-else
-                    v-model:activeKey="activeEditor"
-                    type="editable-card"
-                    hide-add
-                    @edit="onEditTabs">
-              <a-tab-pane v-for="item in Object.values(editors)"
-                          :key="item.key"
-                          :tab="item.title"
-                          :closable="Object.keys(editors).length > 1">
+            <MfTabs v-else
+                    v-model:active-key="activeEditor">
+              <MfTabPane v-for="item in Object.values(editors)"
+                         :key="item.key"
+                         :item-key="item.key">
+                <template #tab>
+                  <span class="inline-flex items-center gap-1.5">
+                    {{ item.title }}
+                    <!-- editable-card 关闭按钮（hide-add，仅保留 remove） -->
+                    <span v-if="Object.keys(editors).length > 1"
+                          class="inline-flex size-4 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
+                          role="button"
+                          @click.stop="onEditTabs(item.key, 'remove')">
+                      <CloseOutlined :style="{ fontSize: '10px' }"/>
+                    </span>
+                  </span>
+                </template>
                 <AceEditor v-model="item.content"
                            height="320px"
                            :auto-complete="{
@@ -124,17 +120,17 @@
                                }
                            }">
                 </AceEditor>
-              </a-tab-pane>
-            </a-tabs>
-          </a-card>
+              </MfTabPane>
+            </MfTabs>
+          </MfCard>
         </div>
 
-        <a-layout-content class="mt-1">
+        <div class="mt-1">
           <GridTable v-if="responseConfigure.gridConfigure" :configure="responseConfigure.gridConfigure"/>
-        </a-layout-content>
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+        </div>
+      </main>
+    </div>
+  </div>
 
   <QueryHelp v-if="visibility.queryHelp"
              :is-visible="visibility.queryHelp"
@@ -155,7 +151,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import SourceSelect from '@/views/components/source/SourceSelect.vue'
 import SnippetService from '@/services/snippet'
 import AuditService from '@/services/audit'
@@ -173,7 +169,7 @@ import { SnippetModel, SnippetRequest } from '@/model/snippet'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'
 import { TokenUtils } from '@/utils/token.ts'
 import axios from 'axios'
-import { CaretRightOutlined, ClearOutlined, ClockCircleOutlined, EditOutlined, PlusOutlined, RobotOutlined, StopOutlined } from '@ant-design/icons-vue'
+import { CaretRightOutlined, ClearOutlined, ClockCircleOutlined, CloseOutlined, EditOutlined, PlusOutlined, RobotOutlined, StopOutlined } from '@ant-design/icons-vue'
 
 interface EditorInstance
 {
@@ -331,7 +327,7 @@ const onRun = () => {
                     editor.content = response.data.content
                   }
                   else {
-                    message.error(response.message)
+                    MfMessage.error(response.message)
                     responseConfigure.message = response.message
                     queryConfigure.queryType.push(HelpType.FIXEDBUGS)
                     responseConfigure.gridConfigure = null
@@ -355,7 +351,7 @@ const onFormat = () => {
                    active.content = response.data
                  }
                  else {
-                   message.error(response.message)
+                   MfMessage.error(response.message)
                  }
                })
                .finally(() => (loading.formatting = false))

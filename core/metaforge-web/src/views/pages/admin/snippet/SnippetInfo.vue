@@ -1,40 +1,41 @@
 <template>
-  <a-drawer v-model:open="visible" :title="title" width="40%">
-    <a-spin :spinning="loading">
-      <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-form-item name="name"
-                     :label="$t('common.name')"
-                     :rules="[{ required: true, message: $t('common.name') }]">
-          <a-input v-model:value="formState.name"/>
-        </a-form-item>
+  <MfDrawer v-model:open="visible" :title="title" width="40%">
+    <div v-if="loading" class="flex items-center justify-center py-8">
+      <MfSpinner size="lg"/>
+    </div>
+    <MfForm v-else-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :label="$t('common.name')"
+                  :rules="[{ required: true, message: $t('common.name') }]">
+        <MfInput v-model="formState.name"/>
+      </MfFormItem>
 
-        <a-form-item name="description" :label="$t('common.description')">
-          <a-textarea v-model:value="formState.description"/>
-        </a-form-item>
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
 
-        <a-form-item name="content" :label="$t('common.content')">
-          <AceEditor :value="formState.context" @update:value="formState.context = $event"/>
-        </a-form-item>
+      <MfFormItem name="content" :label="$t('common.content')">
+        <AceEditor :value="formState.context" @update:value="formState.context = $event"/>
+      </MfFormItem>
 
-        <div class="flex justify-end">
-          <a-space>
-            <a-button danger @click="onCancel()">
-              {{ $t('common.cancel') }}
-            </a-button>
-            <a-button type="primary" html-type="submit" :loading="loading" :disabled="loading">
-              {{ $t('common.save') }}
-            </a-button>
-          </a-space>
-        </div>
-      </a-form>
-    </a-spin>
-  </a-drawer>
+      <div class="flex justify-end">
+        <MfSpace>
+          <MfButton variant="danger" @click="onCancel()">
+            {{ $t('common.cancel') }}
+          </MfButton>
+          <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
+            {{ $t('common.save') }}
+          </MfButton>
+        </MfSpace>
+      </div>
+    </MfForm>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
 import { SnippetModel, SnippetRequest } from '@/model/snippet'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
@@ -81,7 +82,7 @@ const onSubmit = () => {
   SnippetService.saveOrUpdate(formState.value)
                 .then((response) => {
                   if (response.status) {
-                    message.success(t('snippet.tip.createSuccess').replace('$VALUE', formState.value.name as string))
+                    MfMessage.success(t('snippet.tip.createSuccess').replace('$VALUE', formState.value.name as string))
                     onCancel()
                   }
                 })

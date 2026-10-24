@@ -1,38 +1,38 @@
 <template>
-  <a-modal v-model:open="visible" :title="title" :footer="null">
-    <a-space direction="vertical" :style="{ width: '100%' }">
-      <a-alert type="error" :message="$t('report.tip.deleteAlert1')"/>
-      <a-alert type="error" :message="$t('report.tip.deleteAlert2')"/>
-      <a-alert type="info" :message="$t('report.tip.deleteAlert3').replace('$VALUE', String(info?.name))"/>
-    </a-space>
+  <MfModal v-model:open="visible" :title="title">
+    <MfSpace direction="vertical" fill :style="{ width: '100%' }">
+      <MfAlert variant="danger" :title="$t('report.tip.deleteAlert1')"/>
+      <MfAlert variant="danger" :title="$t('report.tip.deleteAlert2')"/>
+      <MfAlert variant="info" :title="$t('report.tip.deleteAlert3').replace('$VALUE', String(info?.name))"/>
+    </MfSpace>
 
-    <a-form :model="formState" class="mt-3" @finish="onSubmit">
-      <a-form-item name="name"
-                   :rules="[
-                     { required: true, message: $t('report.validator.name.required') },
-                     { validator: validateMatch }
-                   ]">
-        <a-input v-model:value="formState.name" :placeholder="$t('report.placeholder.name')"/>
-      </a-form-item>
+    <MfForm :model="formState" class="mt-3" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :rules="[
+                    { required: true, message: $t('report.validator.name.required') },
+                    { validator: validateMatch }
+                  ]">
+        <MfInput v-model="formState.name" :placeholder="$t('report.placeholder.name')"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
-          <a-button type="primary" danger html-type="submit" :loading="loading" :disabled="loading">
+          </MfButton>
+          <MfButton variant="danger" type="submit" :loading="loading" :disabled="loading">
             {{ title }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import ReportService from '@/services/report'
 import { ReportModel } from '@/model/report'
 
@@ -59,11 +59,11 @@ if (props.info) {
   title.value = `${ t('report.common.deleteInfo').replace('$VALUE', String(props.info.name)) }`
 }
 
-const validateMatch = (_rule: any, value: string) => {
+const validateMatch = (value: string) => {
   if (value !== String(props.info?.name)) {
-    return Promise.reject(new Error(t('report.validator.name.match').replace('$VALUE', String(props.info?.name))))
+    return t('report.validator.name.match').replace('$VALUE', String(props.info?.name))
   }
-  return Promise.resolve(true)
+  return true
 }
 
 const onCancel = () => {
@@ -76,11 +76,11 @@ const onSubmit = () => {
     ReportService.deleteByCode(props.info.code!)
                  .then((response) => {
                    if (response.status) {
-                     message.success(t('report.tip.deleteSuccess').replace('$VALUE', String(props.info?.name)))
+                     MfMessage.success(t('report.tip.deleteSuccess').replace('$VALUE', String(props.info?.name)))
                      onCancel()
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => (loading.value = false))

@@ -11,32 +11,30 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-button type="primary" @click="handlerChangeInfo(true, null)">
-          <template #icon>
-            <PlusOutlined :style="{ fontSize: '16px' }"/>
-          </template>
+        <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
+          <PlusOutlined :style="{ fontSize: '16px' }"/>
           {{ $t('user.common.create') }}
-        </a-button>
+        </MfButton>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'role'">
-          <a-tag v-for="role in record.roles" :key="role.id">{{ role.name }}</a-tag>
+          <MfTag v-for="role in record.roles" :key="role.id">{{ role.name }}</MfTag>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('user.common.assignRole')">
-              <a-button type="text" size="small" shape="circle" @click="handlerChangeRole(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('user.common.assignRole')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeRole(true, record)">
                 <ArrowUpOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-tooltip :title="$t('common.editData')">
-              <a-button type="text" size="small" shape="circle" @click="handlerChangeInfo(true, record)">
+            <MfTooltip :content="$t('common.editData')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
                 <EditOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
-          </a-space>
+              </MfButton>
+            </MfTooltip>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

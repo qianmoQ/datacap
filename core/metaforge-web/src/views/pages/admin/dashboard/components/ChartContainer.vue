@@ -1,34 +1,42 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
            :title="$t('report.common.list')"
-           :footer="null"
-           @cancel="onCancel">
+           @close="onCancel">
     <div class="relative w-full h-full">
-      <a-spin :spinning="loading">
-        <div v-if="!loading" class="p-2">
-          <a-checkbox-group v-model:value="report" :style="{ width: '100%' }">
-            <a-row :gutter="8">
-              <a-col v-for="item of data" :key="item.code" :span="8">
-                <a-checkbox class="px-1 py-1 dc-chart-checkbox" :value="item.code">
-                  <a-card :title="item.name">
-                    <template #extra>
-                      <a-tooltip v-if="item.description" :title="item.description">
-                        <InfoCircleOutlined :style="{ fontSize: '20px' }"/>
-                      </a-tooltip>
-                    </template>
+      <div v-if="loading" class="flex items-center justify-center py-16">
+        <MfSpinner size="lg"/>
+      </div>
+      <template v-else>
+        <div class="p-2">
+          <!-- a-checkbox-group 数组用法：MfCheckbox(value + :model-value) -->
+          <div :style="{ width: '100%' }">
+            <div class="grid grid-cols-3 gap-2">
+              <div v-for="item of data" :key="item.code">
+                <MfCheckbox class="px-1 py-1 dc-chart-checkbox w-full! items-start!"
+                            :value="item.code"
+                            :model-value="report"
+                            @update:model-value="(value: any[]) => (report = value)">
+                  <div class="flex-1 w-full">
+                    <MfCard :title="item.name">
+                      <template #extra>
+                        <MfTooltip v-if="item.description" :content="item.description">
+                          <InfoCircleOutlined :style="{ fontSize: '20px' }"/>
+                        </MfTooltip>
+                      </template>
 
-                    <VisualView width="300px" height="250px"
-                                :code="item.dataset?.code as string"
-                                :configuration="JSON.parse(item.configure as string)"
-                                :type="item.type"
-                                :query="item.type === 'DATASET' ? JSON.parse(item.query as string) : item.query"
-                                :original="item?.source?.code"/>
-                  </a-card>
-                </a-checkbox>
-              </a-col>
-            </a-row>
-          </a-checkbox-group>
+                      <VisualView width="300px" height="250px"
+                                  :code="item.dataset?.code as string"
+                                  :configuration="JSON.parse(item.configure as string)"
+                                  :type="item.type"
+                                  :query="item.type === 'DATASET' ? JSON.parse(item.query as string) : item.query"
+                                  :original="item?.source?.code"/>
+                    </MfCard>
+                  </div>
+                </MfCheckbox>
+              </div>
+            </div>
+          </div>
 
           <div v-if="data.length === 0" class="flex w-full items-center">
             {{ $t('common.noData') }}
@@ -36,29 +44,28 @@
         </div>
 
         <div v-if="data.length > 0" class="py-2 mt-2 flex justify-end">
-          <a-pagination :current="pageIndex"
+          <MfPagination :current="pageIndex"
                         :page-size="pageSize"
                         :total="dataCount"
-                        show-size-changer
-                        :page-size-options="['12', '24', '36']"
-                        @change="onPageChange"
-                        @show-size-change="onSizeChange"/>
+                        show-size
+                        :page-sizes="[12, 24, 36]"
+                        @change="(page: number, size: number) => size !== pageSize ? onSizeChange(page, size) : onPageChange(page)"/>
         </div>
-      </a-spin>
+      </template>
     </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
 
-        <a-button type="primary" :disabled="!report || report.length === 0" @click="onSubmit()">
+        <MfButton variant="primary" :disabled="!report || report.length === 0" @click="onSubmit()">
           {{ $t('common.save') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
@@ -140,11 +147,5 @@ handleInitialize()
     display: flex;
     width: 100%;
     align-items: flex-start;
-}
-
-.dc-chart-checkbox :deep(.ant-checkbox + span) {
-    flex: 1;
-    width: 100%;
-    padding-right: 0;
 }
 </style>

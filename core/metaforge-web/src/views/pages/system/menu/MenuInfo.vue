@@ -1,107 +1,102 @@
 <template>
-  <a-drawer v-model:open="visible" :title="title" width="40%">
-    <a-spin :spinning="loading">
-      <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item name="name"
-                         :label="$t('common.name')"
-                         :rules="[{ required: true, message: $t('common.name') }]">
-              <a-input v-model:value="formState.name"/>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item name="icon" :label="$t('menu.common.icon')">
-              <a-input v-model:value="formState.icon"/>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item name="url"
-                         :label="$t('common.url')"
-                         :rules="[{ required: true, message: $t('common.url') }]">
-              <a-input v-model:value="formState.url"/>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item name="group" :label="$t('common.group')">
-              <a-input v-model:value="formState.group"/>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item name="sorted" :label="$t('common.sorted')" :rules="[{ required: true, message: $t('common.sorted') }]">
-              <a-input-number v-model:value="formState.sorted" :style="{ width: '100%' }"/>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item name="type"
-                         :label="$t('common.type')"
-                         :rules="[{ required: true, message: $t('common.type') }]">
-              <a-select v-model:value="formState.type" :placeholder="$t('menu.tip.selectType')">
-                <a-select-option value="VIEW">VIEW</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item :label="$t('common.parent')">
-              <a-select v-model:value="formState.parent" :placeholder="$t('menu.tip.selectParent')" allow-clear>
-                <a-select-option v-for="menu in fullMenus" :key="menu.id" :value="menu.id">{{ menu.name }}</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item :label="$t('menu.common.redirect')">
-              <a-select v-model:value="formState.redirect" :placeholder="$t('menu.tip.selectRedirect')" allow-clear>
-                <a-select-option v-for="menu in fullMenus" :key="menu.id" :value="menu.id">{{ menu.name }}</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item name="new" :label="$t('menu.common.new')">
-              <a-switch v-model:checked="formState.new"/>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item name="i18nKey" :label="$t('menu.common.i18nKey')" :rules="[{ required: true, message: $t('menu.common.i18nKey') }]">
-              <a-input v-model:value="formState.i18nKey"/>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-form-item name="description" :label="$t('common.description')">
-          <a-textarea v-model:value="formState.description"/>
-        </a-form-item>
-
-        <div class="flex justify-end">
-          <a-button type="primary" html-type="submit" :loading="loading" :disabled="loading">
-            {{ $t('common.save') }}
-          </a-button>
+  <MfDrawer v-model:open="visible" :title="title" width="40%">
+    <div v-if="loading" class="flex items-center justify-center py-8">
+      <MfSpinner size="lg"/>
+    </div>
+    <MfForm v-else-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <MfFormItem name="name"
+                      :label="$t('common.name')"
+                      :rules="[{ required: true, message: $t('common.name') }]">
+            <MfInput v-model="formState.name"/>
+          </MfFormItem>
         </div>
-      </a-form>
-    </a-spin>
-  </a-drawer>
+
+        <div>
+          <MfFormItem name="icon" :label="$t('menu.common.icon')">
+            <MfInput v-model="formState.icon"/>
+          </MfFormItem>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <MfFormItem name="url"
+                      :label="$t('common.url')"
+                      :rules="[{ required: true, message: $t('common.url') }]">
+            <MfInput v-model="formState.url"/>
+          </MfFormItem>
+        </div>
+
+        <div>
+          <MfFormItem name="group" :label="$t('common.group')">
+            <MfInput v-model="formState.group"/>
+          </MfFormItem>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <MfFormItem name="sorted" :label="$t('common.sorted')" :rules="[{ required: true, message: $t('common.sorted') }]">
+            <MfInputNumber v-model="formState.sorted" :style="{ width: '100%' }"/>
+          </MfFormItem>
+        </div>
+
+        <div>
+          <MfFormItem name="type"
+                      :label="$t('common.type')"
+                      :rules="[{ required: true, message: $t('common.type') }]">
+            <MfSelect v-model="formState.type" :placeholder="$t('menu.tip.selectType')" :options="[{ label: 'VIEW', value: 'VIEW' }]"/>
+          </MfFormItem>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <MfFormItem :label="$t('common.parent')">
+            <MfSelect v-model="formState.parent" :placeholder="$t('menu.tip.selectParent')" clearable :options="menuOptions"/>
+          </MfFormItem>
+        </div>
+
+        <div>
+          <MfFormItem :label="$t('menu.common.redirect')">
+            <MfSelect v-model="formState.redirect" :placeholder="$t('menu.tip.selectRedirect')" clearable :options="menuOptions"/>
+          </MfFormItem>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <MfFormItem name="new" :label="$t('menu.common.new')">
+            <MfSwitch v-model="formState.new"/>
+          </MfFormItem>
+        </div>
+
+        <div>
+          <MfFormItem name="i18nKey" :label="$t('menu.common.i18nKey')" :rules="[{ required: true, message: $t('menu.common.i18nKey') }]">
+            <MfInput v-model="formState.i18nKey"/>
+          </MfFormItem>
+        </div>
+      </div>
+
+      <MfFormItem name="description" :label="$t('common.description')">
+        <MfTextarea v-model="formState.description"/>
+      </MfFormItem>
+
+      <div class="flex justify-end">
+        <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
+          {{ $t('common.save') }}
+        </MfButton>
+      </div>
+    </MfForm>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
 import { MenuModel, MenuRequest } from '@/model/menu'
 import MenuService from '@/services/menu'
@@ -127,6 +122,9 @@ const formState = ref<MenuModel>(null as unknown as MenuModel)
 const loading = ref(false)
 const fullMenus = ref<MenuModel[]>([])
 const saving = ref(false)
+
+// 迁移至 MfSelect：选项为数组形式
+const menuOptions = computed(() => fullMenus.value.map((menu: MenuModel) => ({ label: menu.name, value: menu.id })))
 
 const handlerInitialize = () => {
   title.value = `${ t('menu.common.create') }`
@@ -158,11 +156,11 @@ const onSubmit = () => {
   MenuService.saveOrUpdate(formState.value)
              .then(response => {
                if (response.status) {
-                 message.success('successful')
+                 MfMessage.success('successful')
                  onCancel()
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                }
              })
              .finally(() => (saving.value = false))

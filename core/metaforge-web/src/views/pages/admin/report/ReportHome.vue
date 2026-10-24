@@ -12,32 +12,32 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'realtime'">
-          <a-switch v-model:checked="record.realtime" size="small" :disabled="record.realtime"/>
+          <MfSwitch v-model="record.realtime" size="sm" :disabled="record.realtime"/>
         </template>
         <template v-else-if="column.key === 'source'">
-          <a-tooltip v-if="record.source" :title="record.source?.type">
-            <a-avatar size="small" :src="'/static/images/plugin/' + record.source?.type.toLowerCase() + '.svg'" :alt="record.source?.type"/>
-          </a-tooltip>
-          <a-tooltip v-else :title="record.dataset?.name">
-            <a-tag>{{ $t('common.dataset') }}</a-tag>
-          </a-tooltip>
+          <MfTooltip v-if="record.source" :content="record.source?.type">
+            <MfAvatar size="sm" :src="'/static/images/plugin/' + record.source?.type.toLowerCase() + '.svg'" :alt="record.source?.type"/>
+          </MfTooltip>
+          <MfTooltip v-else :content="record.dataset?.name">
+            <MfTag>{{ $t('common.dataset') }}</MfTag>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('report.common.view').replace('$VALUE', record.name)">
-              <a-button type="text" shape="circle" size="small" @click="visibleView(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('report.common.view').replace('$VALUE', record.name)">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="visibleView(true, record)">
                 <EyeOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click">
-              <a-button type="text" shape="circle" size="small">
+            <MfDropdown trigger="click">
+              <MfButton variant="ghost" size="sm" class="rounded-full!">
                 <SettingOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item :disabled="record.type === 'QUERY'">
+                <MfMenu>
+                  <MfMenuItem :disabled="record.type === 'QUERY'">
                     <router-link v-if="record.type !== 'QUERY'"
                                  :to="`/admin/dataset/adhoc/${ record.dataset?.code }/${ record.code }`"
                                  target="_blank">
@@ -50,18 +50,18 @@
                       <EditOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('report.common.modify') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item @click="visibleDelete(true, record)">
+                  <MfMenuItem @click="visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
                       <DeleteOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('report.common.delete') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>
@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { FilterModel } from '@/model/filter'
 import { useHeaders } from '@/views/pages/admin/report/ReportUtils'
 import { ReportModel } from '@/model/report'
@@ -114,7 +114,7 @@ const handleInitialize = () => {
                    pageIndex.value = response.data.page
                  }
                  else {
-                   message.error(response.message)
+                   MfMessage.error(response.message)
                  }
                })
                .finally(() => (loading.value = false))
