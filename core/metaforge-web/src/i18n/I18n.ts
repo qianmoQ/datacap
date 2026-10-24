@@ -13,6 +13,97 @@ const DEFAULT_MESSAGES = {
             loading: 'Loading...',
             networkError: 'Network error',
             loadingFailed: 'Loading failed'
+        },
+        setup: {
+            title: '安装 MetaForge',
+            subtitle: '首次启动引导，配置管理员账号后即可使用',
+            installedTip: '该实例已完成安装，即将前往登录页',
+            steps: {
+                environment: '环境检查',
+                account: '管理员账号',
+                finish: '完成安装'
+            },
+            env: {
+                database: '数据库',
+                product: '数据库类型',
+                version: '数据库版本',
+                connected: '已连接',
+                disconnected: '连接失败',
+                test: '测试连接',
+                testing: '测试中...',
+                elapsed: '耗时',
+                testFailed: '连接测试失败'
+            },
+            account: {
+                username: '用户名',
+                password: '密码',
+                confirmPassword: '确认密码',
+                name: '昵称（可选）',
+                usernameTip: '请输入用户名',
+                usernameSizeTip: '用户名长度须为 3-20 个字符',
+                passwordTip: '请输入密码',
+                passwordSizeTip: '密码长度须为 6-20 个字符',
+                passwordNotMatchTip: '两次输入的密码不一致'
+            },
+            install: {
+                running: '正在初始化数据库并创建管理员账号...',
+                success: '安装完成',
+                successTip: '管理员账号已创建，请使用该账号登录系统',
+                failed: '安装失败',
+                goToSignin: '前往登录',
+                retry: '重试'
+            },
+            next: '下一步',
+            back: '上一步'
+        }
+    },
+    en: {
+        common: {
+            loading: 'Loading...',
+            networkError: 'Network error',
+            loadingFailed: 'Loading failed'
+        },
+        setup: {
+            title: 'Install MetaForge',
+            subtitle: 'First-boot wizard, set up the administrator to continue',
+            installedTip: 'This instance is already installed, redirecting to sign in',
+            steps: {
+                environment: 'Environment',
+                account: 'Administrator',
+                finish: 'Finish'
+            },
+            env: {
+                database: 'Database',
+                product: 'Database type',
+                version: 'Database version',
+                connected: 'Connected',
+                disconnected: 'Connection failed',
+                test: 'Test connection',
+                testing: 'Testing...',
+                elapsed: 'Elapsed',
+                testFailed: 'Connection test failed'
+            },
+            account: {
+                username: 'Username',
+                password: 'Password',
+                confirmPassword: 'Confirm password',
+                name: 'Nickname (optional)',
+                usernameTip: 'Please input the username',
+                usernameSizeTip: 'Username must be 3-20 characters',
+                passwordTip: 'Please input the password',
+                passwordSizeTip: 'Password must be 6-20 characters',
+                passwordNotMatchTip: 'Passwords do not match'
+            },
+            install: {
+                running: 'Initializing database and creating administrator...',
+                success: 'Installation finished',
+                successTip: 'The administrator account is ready, sign in with it',
+                failed: 'Installation failed',
+                goToSignin: 'Go to sign in',
+                retry: 'Retry'
+            },
+            next: 'Next',
+            back: 'Back'
         }
     }
 }

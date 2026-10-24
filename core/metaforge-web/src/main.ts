@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './styles/theme.css'
 import './style.css'
-import './assets/utilities.local.css'
 // metaforge-ui（Tailwind v4 + token）入口：加载在本地样式之后，
 // 其生成的工具类与 --mf-* token 对全应用生效
 import 'metaforge-ui/styles/metaforge-ui.css'
