@@ -1,18 +1,20 @@
 <template>
   <BaseLayout>
-    <a-layout>
+    <div class="flex min-h-screen w-full flex-col">
       <LayoutHeader/>
       <div class="container min-h-screen" style="margin-top: 20px; margin-bottom: 24px;">
-        <a-layout has-sider :gutter="16">
-          <LayoutSidebar/>
-          <a-layout-content class="ml-6 min-w-0">
+        <div class="flex w-full gap-4">
+          <div class="shrink-0">
+            <LayoutSidebar/>
+          </div>
+          <div class="ml-6 min-w-0 flex-1">
             <LayoutBreadcrumb style="margin-bottom: 16px;"/>
             <RouterView/>
-          </a-layout-content>
-        </a-layout>
+          </div>
+        </div>
       </div>
       <LayoutFooter/>
-    </a-layout>
+    </div>
   </BaseLayout>
 </template>
 

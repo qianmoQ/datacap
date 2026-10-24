@@ -1,64 +1,59 @@
 <template>
   <div v-if="!originalDatabase">
-    <a-alert type="warning" :message="$t('source.tip.notSelectedNode')"/>
+    <MfAlert variant="warning" :title="$t('source.tip.notSelectedNode')"/>
   </div>
 
-  <a-tabs v-else v-model:activeKey="selectTab" @change="onChange">
-    <a-tab-pane key="info">
+  <MfTabs v-else v-model:active-key="selectTab" @change="onChange">
+    <MfTabPane item-key="info" :tab="$t('source.common.info')">
       <template #tab>
-        <div class="flex items-center space-x-1">
+        <span class="inline-flex items-center gap-1.5">
           <InfoCircleOutlined :style="{ fontSize: '16px' }"/>
-          <span>{{ $t('source.common.info') }}</span>
-        </div>
+          {{ $t('source.common.info') }}
+        </span>
       </template>
-
       <RouterView/>
-    </a-tab-pane>
+    </MfTabPane>
 
-    <a-tab-pane key="structure" :disabled="!originalTable">
+    <MfTabPane item-key="structure" :tab="$t('source.common.structure')" :disabled="!originalTable">
       <template #tab>
-        <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center gap-1.5">
           <AppstoreOutlined :style="{ fontSize: '16px' }"/>
-          <span>{{ $t('source.common.structure') }}</span>
-        </div>
+          {{ $t('source.common.structure') }}
+        </span>
       </template>
-
       <RouterView/>
-    </a-tab-pane>
+    </MfTabPane>
 
-    <a-tab-pane key="data" :disabled="!originalTable">
+    <MfTabPane item-key="data" :tab="$t('source.common.tableData')" :disabled="!originalTable">
       <template #tab>
-        <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center gap-1.5">
           <TableOutlined :style="{ fontSize: '16px' }"/>
-          <span>{{ $t('source.common.tableData') }}</span>
-        </div>
+          {{ $t('source.common.tableData') }}
+        </span>
       </template>
-
       <RouterView/>
-    </a-tab-pane>
+    </MfTabPane>
 
-    <a-tab-pane key="statement" :disabled="!originalTable">
+    <MfTabPane item-key="statement" :tab="$t('source.common.statement')" :disabled="!originalTable">
       <template #tab>
-        <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center gap-1.5">
           <CloudServerOutlined :style="{ fontSize: '16px' }"/>
-          <span>{{ $t('source.common.statement') }}</span>
-        </div>
+          {{ $t('source.common.statement') }}
+        </span>
       </template>
-
       <RouterView/>
-    </a-tab-pane>
+    </MfTabPane>
 
-    <a-tab-pane key="erDiagram" :disabled="!originalTable">
+    <MfTabPane item-key="erDiagram" :tab="$t('source.common.erDiagram')" :disabled="!originalTable">
       <template #tab>
-        <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center gap-1.5">
           <CloudOutlined :style="{ fontSize: '16px' }"/>
-          <span>{{ $t('source.common.erDiagram') }}</span>
-        </div>
+          {{ $t('source.common.erDiagram') }}
+        </span>
       </template>
-
       <RouterView/>
-    </a-tab-pane>
-  </a-tabs>
+    </MfTabPane>
+  </MfTabs>
 </template>
 
 <script lang="ts" setup>
@@ -71,7 +66,7 @@ defineOptions({ name: 'MetadataContent' })
 const route = useRoute()
 const router = useRouter()
 
-const selectTab = ref<string | null>(null)
+const selectTab = ref('')
 const originalSource = ref<string | null>(null)
 const originalDatabase = ref<string | null>(null)
 const originalTable = ref<string | undefined>(undefined)

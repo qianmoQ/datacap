@@ -1,17 +1,15 @@
 <template>
   <div class="relative min-h-screen">
     <!-- Loading State -->
-    <div class="relative" v-if="loadingState" style="height: 100vh;">
-      <a-spin :spinning="loadingState" :tip="loadingText" class="w-full">
-        <div style="height: 100vh;"></div>
-      </a-spin>
+    <div class="relative flex items-center justify-center" v-if="loadingState" style="height: 100vh;">
+      <MfSpinner size="lg" :label="loadingText"/>
     </div>
 
     <!-- Error State -->
     <div v-if="errorState && !loadingState" class="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div class="flex flex-col items-center space-y-4">
         <h3 class="text-xl font-semibold">{{ errorMessage }}</h3>
-        <a-button @click="handleRetry">Retry 重试</a-button>
+        <MfButton @click="handleRetry">Retry 重试</MfButton>
       </div>
     </div>
 

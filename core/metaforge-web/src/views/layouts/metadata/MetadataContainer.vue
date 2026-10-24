@@ -1,17 +1,17 @@
 <template>
   <BaseLayout>
-    <a-layout>
+    <div class="flex min-h-screen w-full flex-col">
       <div class="container my-2 min-h-screen">
-        <a-layout has-sider>
-          <a-layout-sider class="mr-4" theme="light" :width="250">
+        <div class="flex w-full">
+          <div class="mr-4 w-[250px] shrink-0 bg-surface">
             <MetadataSidebar/>
-          </a-layout-sider>
-          <a-layout-content class="ml-2">
+          </div>
+          <div class="ml-2 min-w-0 flex-1">
             <MetadataContent/>
-          </a-layout-content>
-        </a-layout>
+          </div>
+        </div>
       </div>
-    </a-layout>
+    </div>
   </BaseLayout>
 </template>
 

@@ -10,17 +10,18 @@
       </div>
     </div>
 
-    <a-menu mode="inline"
+    <MfMenu mode="inline"
             class="dc-profile-sidebar__menu"
-            :selectedKeys="[route.path]">
-      <a-menu-item v-for="item in items"
-                   :key="item.href">
+            :selected-keys="[route.path]">
+      <MfMenuItem v-for="item in items"
+                  :key="item.href"
+                  :key_="item.href">
         <router-link :to="item.href" class="dc-profile-sidebar__link">
           <component :is="item.icon" class="dc-profile-sidebar__link-icon"/>
           <span>{{ item.title }}</span>
         </router-link>
-      </a-menu-item>
-    </a-menu>
+      </MfMenuItem>
+    </MfMenu>
 
     <div class="dc-profile-sidebar__promo">
       <div class="dc-profile-sidebar__promo-art">
@@ -120,17 +121,17 @@ const items = computed(() => [
     background: transparent;
 }
 
-/* 菜单状态色对齐 design/ui-color-system.md 第 7 节 */
-.dc-profile-sidebar :deep(.ant-menu-item) {
+/* 菜单状态色对齐 design/ui-color-system.md 第 7 节（MfMenuItem 渲染为 li[role=menuitem]） */
+.dc-profile-sidebar :deep(li[role='menuitem']) {
     color: var(--dc-menu-text);
 }
 
-.dc-profile-sidebar :deep(.ant-menu-item:hover) {
+.dc-profile-sidebar :deep(li[role='menuitem']:hover) {
     background: var(--dc-menu-hover) !important;
     color: var(--dc-primary-700);
 }
 
-.dc-profile-sidebar :deep(.ant-menu-item-selected) {
+.dc-profile-sidebar :deep(li[role='menuitem'][aria-selected='true']) {
     background: var(--dc-primary-light) !important;
     color: var(--dc-primary-700) !important;
     box-shadow: inset 3px 0 0 var(--dc-primary);

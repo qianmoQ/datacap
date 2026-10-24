@@ -1,15 +1,13 @@
 <template>
   <div class="relative">
-    <div class="relative" v-if="loadingState" style="height: 100vh;">
-      <a-spin :spinning="loadingState" :tip="loadingText" class="w-full">
-        <div style="height: 100vh;"></div>
-      </a-spin>
+    <div class="relative flex items-center justify-center" v-if="loadingState" style="height: 100vh;">
+      <MfSpinner size="lg" :label="loadingText"/>
     </div>
 
     <div v-show="!loadingState">
-      <a-layout>
+      <div class="flex w-full flex-col">
         <LayoutHeader/>
-      </a-layout>
+      </div>
 
       <div class="container my-2 min-h-screen">
         <LayoutBreadcrumb class="mb-2"/>

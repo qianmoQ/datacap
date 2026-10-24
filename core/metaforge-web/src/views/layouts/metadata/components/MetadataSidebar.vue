@@ -1,19 +1,16 @@
 <template>
-  <a-card :bordered="false">
-    <a-select v-model:value="selectDatabase" :loading="loading" :style="{ width: '100%' }" @change="onChangeDatabase">
-      <a-select-option v-for="item in databaseArray" :key="item.code" :value="item.code">{{ item.title }}</a-select-option>
-    </a-select>
+  <MfCard :bordered="false">
+    <MfSelect v-model="selectDatabase" :options="databaseOptions" :loading="loading" :style="{ width: '100%' }" @change="onChangeDatabase"/>
 
     <div class="relative h-screen overflow-x-auto overflow-y-auto">
-      <a-skeleton v-if="loading" active class="mt-2"/>
+      <MfSkeleton v-if="loading" class="mt-2"/>
 
-      <a-tree v-else-if="!loading && dataTreeArray.length > 0"
-              v-model:selectedKeys="selectedKeys"
-              :tree-data="dataTreeArray"
-              :field-names="{ key: 'value', title: 'title', children: 'children' }"
+      <MfTree v-else-if="!loading && dataTreeArray.length > 0"
+              v-model:selected-keys="selectedKeys"
+              :data="dataTreeArray"
               :load-data="onLoadData"
               @select="onSelect">
-        <template #title="node">
+        <template #title="{ node }">
           <div class="flex items-center space-x-1" @contextmenu.prevent="visibleContextMenu($event, node)">
             <TableOutlined v-if="node.level === StructureEnum.TYPE && node.type === 'table'" class="text-xs font-semibold text-gray-500" :style="{ fontSize: '16px' }"/>
             <EyeOutlined v-else-if="node.level === StructureEnum.TYPE && node.type === 'view'" class="text-xs font-semibold text-gray-500" :style="{ fontSize: '16px' }"/>
@@ -33,71 +30,71 @@
             </span>
           </div>
         </template>
-      </a-tree>
+      </MfTree>
 
       <div v-if="contextmenu.visible && dataInfo"
            class="dc-ctxmenu"
            :style="{ left: contextmenu.position.x + 'px', top: contextmenu.position.y + 'px' }"
            @click.stop>
-        <a-menu mode="vertical" :selectable="false" style="min-width: 180px;">
-          <a-sub-menu v-if="dataInfo.level === StructureEnum.TABLE || dataInfo.level === StructureEnum.COLUMN || dataInfo.type === 'table' || dataInfo.type === 'column'"
-                      key="new"
-                      :title="$t('source.common.menuNew')">
-            <a-menu-item v-if="dataInfo.level === StructureEnum.TABLE || dataInfo.type === 'table'" key="new-table" @click="visibleCreateTable(true)">
+        <MfMenu mode="vertical" style="min-width: 180px;">
+          <MfSubMenu v-if="dataInfo.level === StructureEnum.TABLE || dataInfo.level === StructureEnum.COLUMN || dataInfo.type === 'table' || dataInfo.type === 'column'"
+                     key_="new"
+                     :title="$t('source.common.menuNew')">
+            <MfMenuItem v-if="dataInfo.level === StructureEnum.TABLE || dataInfo.type === 'table'" key_="new-table" @click="visibleCreateTable(true)">
               <div class="flex items-center space-x-1">
                 <TableOutlined :style="{ fontSize: '16px' }"/>
                 <span>{{ $t('source.common.menuNewTable') }}</span>
               </div>
-            </a-menu-item>
+            </MfMenuItem>
 
-            <a-menu-item v-if="dataInfo.level === StructureEnum.COLUMN || dataInfo.type === 'column' || dataInfo.level === StructureEnum.TABLE" key="new-column" @click="visibleCreateColumn(true)">
+            <MfMenuItem v-if="dataInfo.level === StructureEnum.COLUMN || dataInfo.type === 'column' || dataInfo.level === StructureEnum.TABLE" key_="new-column" @click="visibleCreateColumn(true)">
               <div class="flex items-center space-x-1">
                 <InsertRowRightOutlined :style="{ fontSize: '16px' }"/>
                 <span>{{ $t('source.common.newColumn') }}</span>
               </div>
-            </a-menu-item>
-          </a-sub-menu>
+            </MfMenuItem>
+          </MfSubMenu>
 
-          <a-sub-menu v-if="dataInfo.level === StructureEnum.TABLE" key="export" :title="$t('source.common.menuExport')">
-            <a-menu-item key="export-data" @click="visibleExportData(true)">
+          <MfSubMenu v-if="dataInfo.level === StructureEnum.TABLE" key_="export" :title="$t('source.common.menuExport')">
+            <MfMenuItem key_="export-data" @click="visibleExportData(true)">
               <div class="flex items-center space-x-1">
                 <VerticalAlignTopOutlined :style="{ fontSize: '16px' }"/>
                 <span>{{ $t('source.common.exportData') }}</span>
               </div>
-            </a-menu-item>
-          </a-sub-menu>
+            </MfMenuItem>
+          </MfSubMenu>
 
-          <a-menu-item v-if="dataInfo.level === StructureEnum.TABLE" key="truncate" @click="visibleTruncateTable(true)">
+          <MfMenuItem v-if="dataInfo.level === StructureEnum.TABLE" key_="truncate" @click="visibleTruncateTable(true)">
             <div class="flex items-center space-x-1">
               <DeleteOutlined :style="{ fontSize: '16px' }"/>
               <span>{{ $t('source.common.truncateTable') }}</span>
             </div>
-          </a-menu-item>
+          </MfMenuItem>
 
-          <a-menu-item v-if="dataInfo.level === StructureEnum.TABLE" key="drop-table" @click="visibleDropTable(true)">
+          <MfMenuItem v-if="dataInfo.level === StructureEnum.TABLE" key_="drop-table" @click="visibleDropTable(true)">
             <div class="flex items-center space-x-1">
               <DeleteOutlined :style="{ fontSize: '16px' }"/>
               <span>{{ $t('source.common.dropTable') }}</span>
             </div>
-          </a-menu-item>
+          </MfMenuItem>
 
-          <a-menu-item v-if="dataInfo.level === StructureEnum.COLUMN" key="change-column" @click="visibleChangeColumn(true)">
+          <MfMenuItem v-if="dataInfo.level === StructureEnum.COLUMN" key_="change-column" @click="visibleChangeColumn(true)">
             <div class="flex items-center space-x-1">
               <EditOutlined :style="{ fontSize: '16px' }"/>
               <span>{{ $t('source.common.changeColumn') }}</span>
             </div>
-          </a-menu-item>
+          </MfMenuItem>
 
-          <a-menu-item v-if="dataInfo.level === StructureEnum.COLUMN" key="drop-column" @click="visibleDropColumn(true)">
+          <MfMenuItem v-if="dataInfo.level === StructureEnum.COLUMN" key_="drop-column" @click="visibleDropColumn(true)">
             <div class="flex items-center space-x-1">
               <DeleteOutlined :style="{ fontSize: '16px' }"/>
               <span>{{ $t('source.common.dropColumn') }}</span>
             </div>
-          </a-menu-item>
-        </a-menu>
+          </MfMenuItem>
+        </MfMenu>
       </div>
     </div>
-  </a-card>
+  </MfCard>
 
   <TableCreate v-if="tableCreateVisible" :is-visible="tableCreateVisible" @close="visibleCreateTable(false)"/>
 
@@ -126,10 +123,10 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata.ts'
 import { StructureEnum, StructureModel } from '@/model/structure.ts'
 import ColumnCreate from '@/views/pages/admin/source/components/ColumnCreate.vue'
@@ -151,6 +148,7 @@ interface MenuItem
   code?: string
   children?: MenuItem[]
   value?: string
+  key?: string
   dataType?: string
   nullable?: string
   defaultValue?: string
@@ -197,6 +195,8 @@ const contextmenu = reactive({
   position: { x: 0, y: 0 }
 })
 
+const databaseOptions = computed(() => databaseArray.value.map((item: StructureModel) => ({ label: item.title || '', value: item.code || '' })))
+
 const convertToTreeData = (flatData: SourceData[], level: StructureEnum = StructureEnum.DATABASE): MenuItem[] => {
   const groupedData = flatData.reduce((acc, curr) => {
     if (!acc[curr.type_name]) {
@@ -211,6 +211,7 @@ const convertToTreeData = (flatData: SourceData[], level: StructureEnum = Struct
     title: `${ t('common.' + type) } (${ items.length })`,
     level: StructureEnum.TYPE,
     value: `${ type }_${ new Date().getTime() }`,
+    key: `${ type }_${ new Date().getTime() }`,
     children: items.map(item => ({
       type: item.object_data_type || item.type_name || '',
       title: item.object_name,
@@ -218,6 +219,7 @@ const convertToTreeData = (flatData: SourceData[], level: StructureEnum = Struct
       isLeaf: false,
       code: item.object_name,
       value: `${ item.object_name }_${ item.type_name }`,
+      key: `${ item.object_name }_${ item.type_name }`,
       comment: item.object_comment,
       dataType: item.object_data_type,
       nullable: item.object_nullable,
@@ -255,7 +257,7 @@ const onChangeDatabase = () => {
                      dataTreeArray.value = [...convertToTreeData(response.data.columns, StructureEnum.TABLE)]
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => {
@@ -296,7 +298,7 @@ const handleInitialize = () => {
                        }
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))
@@ -304,7 +306,7 @@ const handleInitialize = () => {
 }
 
 const onSelect = (_keys: any[], info: any) => {
-  const node = info.node.dataRef as any
+  const node = info.node as any
   if (node.level === StructureEnum.TYPE || node.level === StructureEnum.COLUMN) {
     return
   }
@@ -314,7 +316,7 @@ const onSelect = (_keys: any[], info: any) => {
 }
 
 const onLoadData = (treeNode: any): Promise<void> => {
-  const item = treeNode.dataRef as any
+  const item = treeNode as any
   return new Promise<void>((resolve) => {
     if (item.children && item.children.length > 0 && item.level === StructureEnum.COLUMN) {
       resolve()
@@ -332,7 +334,7 @@ const onLoadData = (treeNode: any): Promise<void> => {
                        dataTreeArray.value = updateTreeChildren(dataTreeArray.value, item.value, children)
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => resolve())
@@ -411,5 +413,6 @@ onUnmounted(() => {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
     border-radius: 8px;
     background: var(--dc-bg, #fff);
+    padding: 4px;
 }
 </style>

@@ -1,14 +1,14 @@
 <template>
-  <a-breadcrumb>
-    <a-breadcrumb-item>
+  <MfBreadcrumb>
+    <MfBreadcrumbItem>
       <router-link to="/">{{ $t('common.home') }}</router-link>
-    </a-breadcrumb-item>
-    <a-breadcrumb-item v-for="item in breadcrumbs" :key="item.path">
+    </MfBreadcrumbItem>
+    <MfBreadcrumbItem v-for="item in breadcrumbs" :key="item.path">
       <router-link :to="item.path">
         {{ $t(`${ item.meta.title }`) }}
       </router-link>
-    </a-breadcrumb-item>
-  </a-breadcrumb>
+    </MfBreadcrumbItem>
+  </MfBreadcrumb>
 </template>
 
 <script setup lang="ts">
