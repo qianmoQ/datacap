@@ -81,6 +81,7 @@ git clone https://github.com/devlive-community/metaforge.git
     - `metaforge-server` metaforge 服务端源码
     - `metaforge-service` metaforge 服务端服务源码
     - `metaforge-spi` metaforge 服务端 SPI 源码
+    - `metaforge-ui` metaforge UI 组件库源码（Mf* 组件，Tailwind + 设计 token）
     - `metaforge-web` metaforge Web 前端源码
 - `docs`: metaforge 文档源码
 - `driver`: metaforge 数据源驱动源码

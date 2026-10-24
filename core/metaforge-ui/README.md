@@ -16,7 +16,19 @@ core/metaforge-ui
 └── playground            # pnpm dev 演示页（组件总览 + 主题切换）
 ```
 
-与 `core/metaforge-web`（应用层）通过 pnpm workspace 关联，应用侧按需渐进迁移 ant-design-vue。
+与 `core/metaforge-web`（应用层）通过 pnpm workspace 关联；web 已全量使用本组件库（ant-design-vue 已移除），新页面参考 `metaforge-web/docs/antd-to-mf.md` 映射指南。
+
+## 组件清单
+
+基础：MfButton（variant/size/loading/shape）、MfInput（密码切换/前后缀/清除）、MfInputNumber、MfTextarea、MfSelect（单选/多选/分组/搜索/标签创建）、MfCheckbox、MfCheckboxGroup、MfRadio(Group)（含按钮变体）、MfSwitch（checkedValue 映射）
+
+布局：MfCard、MfSpace、MfDivider、MfTabs/MfTabPane（自定义标签/禁用）、MfBreadcrumb(Item)
+
+反馈：MfAlert、MfMessage（命令式 toast）、MfModal、MfDrawer、MfTooltip、MfPopover、MfSpinner、MfSkeleton、MfTag（语义色/自定义色）、MfBadge、MfAvatar、MfResult
+
+数据：MfForm/MfFormItem（rules 校验：required/min/max/pattern/validator/type）、MfTable（bodyCell/列插槽）、MfPagination、MfTree（异步加载）、MfDropdown、MfMenu/MfMenuItem/MfSubMenu、MfUpload
+
+主题：MfConfigProvider + `applyMfTheme` / `setMfThemeMode` / `createMfTheme`（light/dark preset）
 
 ## Token 体系
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width=68 height=65 src="core/metaforge-ui/public/static/images/logo.png" />
+<img width=68 height=65 src="core/metaforge-web/public/static/images/logo.png" />
 
 # MetaForge
 
@@ -129,7 +129,7 @@ MetaForge может запрашивать данные из любого хр�
 
 [![Jetbrains](https://img.shields.io/badge/Development-Jetbrains-brightgreen?style=flat-square)](https://www.jetbrains.com/)
 [![App Store](https://img.shields.io/badge/App%20Store-Rainbond-brightgreen?style=flat-square)](https://www.rainbond.com/)
-[![View UI Plus](https://img.shields.io/badge/UI-View%20UI%20Plus-brightgreen?style=flat-square)](https://www.iviewui.com/view-ui-plus)
+[![Vue 3](https://img.shields.io/badge/UI-Vue%203%20%2B%20Tailwind-brightgreen?style=flat-square)](https://vuejs.org/)
 
 ## Установка и настройка
 
