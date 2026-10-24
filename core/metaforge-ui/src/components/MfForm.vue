@@ -52,6 +52,7 @@ provide('mfForm', {
     unregister(name: string): void {
         fields.value = fields.value.filter(f => f.name !== name)
     },
+    model: computed(() => props.model),
     disabled: computed(() => props.disabled),
     layout: computed(() => props.layout),
     labelWidth: computed(() => props.labelWidth),

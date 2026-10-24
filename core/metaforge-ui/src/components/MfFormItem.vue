@@ -19,13 +19,13 @@ interface FormContext {
     disabled: { value: boolean }
     layout: { value: 'vertical' | 'horizontal' }
     labelWidth: { value: string }
-    model: Record<string, unknown>
+    model: { value: Record<string, unknown> }
 }
 
 const form = inject<FormContext | null>('mfForm', null)
 const error = ref<string | undefined>()
 
-const value = computed(() => (form?.model as Record<string, unknown> | undefined)?.[props.name])
+const value = computed(() => form?.model.value?.[props.name])
 
 watch(value, () => {
     // clear error as soon as the user edits the field again
@@ -67,7 +67,7 @@ function validate(): string | undefined {
             }
         }
         if (rule.validator) {
-            const result = rule.validator(v, form.model)
+            const result = rule.validator(v, form.model.value)
             if (result === false) {
                 error.value = rule.message ?? `${props.name} is invalid`
                 return error.value
