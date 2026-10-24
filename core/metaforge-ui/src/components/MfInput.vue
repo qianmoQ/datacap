@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+
+const inputRef = ref<HTMLInputElement>()
 import clsx from 'clsx'
 import { CONTROL_SIZES, FOCUS_RING, TRANSITION, type MfControlSize } from './common'
 
@@ -52,6 +54,11 @@ function onInput(event: Event): void {
 function clear(): void {
     emit('update:modelValue', '')
 }
+
+defineExpose({
+    focus: (): void => inputRef.value?.focus(),
+    blur: (): void => inputRef.value?.blur(),
+})
 </script>
 
 <template>
@@ -60,6 +67,7 @@ function clear(): void {
             <slot name="prefix" />
         </span>
         <input
+            ref="inputRef"
             :value="modelValue"
             :type="actualType"
             :placeholder="placeholder"

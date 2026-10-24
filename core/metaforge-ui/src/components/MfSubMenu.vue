@@ -61,7 +61,9 @@ const chevron = computed(() => clsx(
     >
         <div :class="titleClass" @click="toggle">
             <slot name="icon" />
-            <span class="truncate">{{ title }}</span>
+            <span class="truncate">
+                <slot name="title">{{ title }}</slot>
+            </span>
             <svg :class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" />
             </svg>

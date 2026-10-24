@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
     clearable?: boolean
     disabled?: boolean
     invalid?: boolean
+    loading?: boolean
 }>(), {
     modelValue: '',
     options: () => [],
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<{
     clearable: false,
     disabled: false,
     invalid: false,
+    loading: false,
 })
 
 const emit = defineEmits<{
@@ -136,7 +138,12 @@ const triggerClass = computed(() => clsx(
             >
                 <svg class="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </span>
+            <svg v-if="loading" class="size-3.5 shrink-0 animate-spin text-primary" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
+            </svg>
             <svg
+                v-else
                 class="size-3.5 shrink-0 text-content-tertiary transition-transform duration-(--mf-duration-base) ease-(--mf-easing)"
                 :class="open && 'rotate-180'"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
@@ -181,7 +188,8 @@ const triggerClass = computed(() => clsx(
                         </svg>
                     </li>
                 </template>
-                <li v-if="options.length === 0" class="px-2.5 py-2 text-sm text-content-tertiary">No data</li>
+                <li v-if="loading && options.length === 0" class="px-2.5 py-2 text-sm text-content-tertiary">Loading…</li>
+                <li v-else-if="options.length === 0" class="px-2.5 py-2 text-sm text-content-tertiary">No data</li>
             </ul>
         </Transition>
     </div>

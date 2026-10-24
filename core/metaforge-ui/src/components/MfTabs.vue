@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, ref, watch } from 'vue'
+import { computed, defineComponent, provide, ref, watch } from 'vue'
 import clsx from 'clsx'
 
 const props = withDefaults(defineProps<{
@@ -18,6 +18,8 @@ const emit = defineEmits<{
 interface PaneEntry {
     key: string | number
     label: string | number
+    disabled: boolean
+    renderTab: (() => unknown[]) | undefined
 }
 
 const innerKey = ref<string | number>(props.activeKey)
@@ -26,11 +28,11 @@ watch(() => props.activeKey, value => { innerKey.value = value })
 const panes = ref<PaneEntry[]>([])
 
 provide('mfTabs', {
-    register(key: string | number, label: string | number): void {
-        if (!panes.value.some(p => p.key === key)) {
-            panes.value = [...panes.value, { key, label }]
+    register(entry: PaneEntry): void {
+        if (!panes.value.some(p => p.key === entry.key)) {
+            panes.value = [...panes.value, entry]
             if (innerKey.value === '' && panes.value.length === 1) {
-                select(key)
+                select(entry)
             }
         }
     },
@@ -42,13 +44,20 @@ provide('mfTabs', {
     },
 })
 
-function select(key: string | number): void {
-    if (innerKey.value !== key) {
-        innerKey.value = key
-        emit('update:activeKey', key)
-        emit('change', key)
+function select(entry: PaneEntry): void {
+    if (entry.disabled) return
+    if (innerKey.value !== entry.key) {
+        innerKey.value = entry.key
+        emit('update:activeKey', entry.key)
+        emit('change', entry.key)
     }
 }
+
+// renders a pane's custom #tab slot or its plain label
+const TabContent = defineComponent({
+    props: { entry: { type: Object, required: true } },
+    setup: (p: { entry: PaneEntry }) => () => p.entry.renderTab ? p.entry.renderTab() : String(p.entry.label),
+})
 
 const vertical = computed(() => props.tabPosition === 'left' || props.tabPosition === 'right')
 
@@ -59,14 +68,15 @@ const navClass = computed(() => clsx(
         : clsx('flex-row items-center border-b border-line px-1', props.tabPosition === 'bottom' ? 'order-2' : 'order-1'),
 ))
 
-function tabClass(key: string | number): string {
-    const active = innerKey.value === key
+function tabClass(entry: PaneEntry): string {
+    const active = innerKey.value === entry.key
     return clsx(
         'cursor-pointer whitespace-nowrap px-3.5 py-2 text-sm font-medium select-none',
         'transition-[color,border-color,background-color] duration-(--mf-duration-base) ease-(--mf-easing)',
+        entry.disabled && 'cursor-not-allowed opacity-40',
         active
             ? vertical ? 'text-primary bg-surface-active rounded-mf-md' : 'border-b-2 border-b-primary text-primary -mb-px'
-            : clsx('text-content-secondary hover:text-content', vertical ? 'rounded-mf-md hover:bg-surface-hover' : 'border-b-2 border-b-transparent'),
+            : clsx('text-content-secondary hover:text-content', vertical ? 'rounded-mf-md hover:bg-surface-hover' : 'border-b-2 border-b-transparent', !entry.disabled && ''),
     )
 }
 </script>
@@ -79,10 +89,11 @@ function tabClass(key: string | number): string {
                 :key="pane.key"
                 role="tab"
                 :aria-selected="innerKey === pane.key"
-                :class="tabClass(pane.key)"
-                @click="select(pane.key)"
+                :aria-disabled="pane.disabled"
+                :class="tabClass(pane)"
+                @click="select(pane)"
             >
-                {{ pane.label }}
+                <TabContent :entry="pane" />
             </div>
         </div>
         <div class="min-w-0 flex-1" :class="vertical ? 'px-3' : (tabPosition === 'bottom' ? '' : 'pt-3')">

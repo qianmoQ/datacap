@@ -5,7 +5,8 @@ import clsx from 'clsx'
 const props = withDefaults(defineProps<{
     src?: string
     alt?: string
-    size?: 'xs' | 'sm' | 'md' | 'lg'
+    /** Named preset or an explicit pixel size (antd compatibility). */
+    size?: 'xs' | 'sm' | 'md' | 'lg' | number
     shape?: 'circle' | 'square'
 }>(), {
     size: 'md',
@@ -24,15 +25,19 @@ watch(() => props.src, () => {
     failed.value = false
 })
 
+const sizeStyle = computed(() => (typeof props.size === 'number'
+    ? { width: `${props.size}px`, height: `${props.size}px` }
+    : {}))
+
 const classes = computed(() => clsx(
     'inline-flex shrink-0 items-center justify-center bg-primary/15 font-medium text-primary select-none overflow-hidden',
-    SIZES[props.size],
+    typeof props.size === 'number' ? 'text-base' : SIZES[props.size],
     props.shape === 'circle' ? 'rounded-mf-full' : 'rounded-mf-lg',
 ))
 </script>
 
 <template>
-    <span :class="classes">
+    <span :class="classes" :style="sizeStyle">
         <img v-if="src && !failed" :src="src" :alt="alt ?? ''" class="size-full object-cover" @error="failed = true">
         <slot v-else />
     </span>
