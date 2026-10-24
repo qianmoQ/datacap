@@ -1,34 +1,32 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="40%"
-           :title="$t('source.common.previewDML')"
-           :footer="null"
-           @cancel="onCancel">
+           :title="$t('source.common.previewDML')">
     <div class="relative h-full">
-      <a-skeleton v-if="loading" active/>
+      <MfSkeleton v-if="loading"/>
 
       <AceEditor v-else-if="contentDML" :value="contentDML" :read-only="true"/>
     </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
 
-        <a-button type="primary" danger :disabled="submitting" :loading="submitting" @click="onSubmit">
+        <MfButton variant="danger" :disabled="submitting" :loading="submitting" @click="onSubmit">
           {{ $t('source.common.deleteRows') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 
@@ -75,12 +73,12 @@ const onChange = (preview: boolean) => {
                          contentDML.value = response.data.content
                        }
                        else {
-                         message.success(t('source.tip.deleteSuccess'))
+                         MfMessage.success(t('source.tip.deleteSuccess'))
                          onCancel()
                        }
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => {

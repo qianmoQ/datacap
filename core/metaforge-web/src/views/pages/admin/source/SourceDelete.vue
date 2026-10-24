@@ -1,34 +1,34 @@
 <template>
-  <a-modal v-model:open="visible" :title="title" :footer="null">
-    <a-space direction="vertical" :style="{ width: '100%' }">
-      <a-alert type="error" :message="$t('source.tip.deleteAlert1')"/>
-      <a-alert type="error" :message="$t('source.tip.deleteAlert2')"/>
-      <a-alert :message="$t('source.tip.deleteAlert3').replace('$NAME', String(info?.name))"/>
-    </a-space>
+  <MfModal v-model:open="visible" :title="title">
+    <MfSpace direction="vertical" fill>
+      <MfAlert variant="danger" :title="$t('source.tip.deleteAlert1')"/>
+      <MfAlert variant="danger" :title="$t('source.tip.deleteAlert2')"/>
+      <MfAlert :title="$t('source.tip.deleteAlert3').replace('$NAME', String(info?.name))"/>
+    </MfSpace>
 
-    <a-form :model="formState" class="mt-3" @finish="onSubmit">
-      <a-form-item name="name"
-                   :rules="[
-                     { required: true, message: $t('source.validator.name.required') },
-                     { validator: validateMatch }
-                   ]">
-        <a-input v-model:value="formState.name" :placeholder="$t('source.placeholder.name')"/>
-      </a-form-item>
+    <MfForm :model="formState" class="mt-3" @finish="onSubmit">
+      <MfFormItem name="name"
+                  :rules="[
+                    { required: true, message: $t('source.validator.name.required') },
+                    { validator: validateMatch }
+                  ]">
+        <MfInput v-model="formState.name" :placeholder="$t('source.placeholder.name')"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">{{ $t('common.cancel') }}</a-button>
-          <a-button type="primary" danger html-type="submit" :loading="loading">{{ title }}</a-button>
-        </a-space>
+        <MfSpace>
+          <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+          <MfButton variant="danger" type="submit" :loading="loading">{{ title }}</MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { SourceModel } from '@/model/source'
 import SourceService from '@/services/source'
 
@@ -55,11 +55,11 @@ if (props.info) {
   title.value = `${ t('source.common.delete').replace('$NAME', String(props.info.name)) }`
 }
 
-const validateMatch = (_rule: any, value: string) => {
+const validateMatch = (value: string) => {
   if (value !== String(props.info?.name)) {
-    return Promise.reject(new Error(t('source.validator.name.match').replace('$VALUE', String(props.info?.name))))
+    return t('source.validator.name.match').replace('$VALUE', String(props.info?.name))
   }
-  return Promise.resolve(true)
+  return true
 }
 
 const onCancel = () => {
@@ -72,11 +72,11 @@ const onSubmit = () => {
     SourceService.deleteByCode(props.info.code!)
                  .then((response) => {
                    if (response.status) {
-                     message.success(t('source.tip.deleteSourceSuccess').replace('$NAME', String(props.info?.name)))
+                     MfMessage.success(t('source.tip.deleteSourceSuccess').replace('$NAME', String(props.info?.name)))
                      onCancel()
                    }
                    else {
-                     message.error(response.message)
+                     MfMessage.error(response.message)
                    }
                  })
                  .finally(() => (loading.value = false))

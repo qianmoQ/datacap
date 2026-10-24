@@ -1,34 +1,33 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="40%"
-           :title="$t('source.common.previewDML')"
-           :footer="null"
-           @cancel="onCancel">
+           :title="$t('source.common.previewDML')">
     <div class="relative h-full">
-      <a-spin :spinning="loading">
-        <AceEditor v-if="!loading && contentDML" :value="contentDML" :read-only="true"/>
-      </a-spin>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <MfSpinner size="lg" label="Loading..."/>
+      </div>
+      <AceEditor v-else-if="!loading && contentDML" :value="contentDML" :read-only="true"/>
     </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
 
-        <a-button type="primary" :disabled="submitting" :loading="submitting" @click="onSubmit">
+        <MfButton variant="primary" :disabled="submitting" :loading="submitting" @click="onSubmit">
           {{ $t('common.submit') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 import MetadataService from '@/services/metadata.ts'
 
@@ -80,12 +79,12 @@ const onChange = (preview: boolean) => {
           contentDML.value = response.data.content
         }
         else {
-          message.success(t('source.tip.updateSuccess'))
+          MfMessage.success(t('source.tip.updateSuccess'))
           onCancel()
         }
       }
       else {
-        message.error(response.data.message)
+        MfMessage.error(response.data.message)
       }
     })
            .finally(() => {

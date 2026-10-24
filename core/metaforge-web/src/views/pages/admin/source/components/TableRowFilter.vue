@@ -1,58 +1,50 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="50%"
-           :title="$t('source.common.filterData')"
-           :footer="null"
-           @cancel="onCancel">
-    <a-form :model="formState" layout="vertical">
+           :title="$t('source.common.filterData')">
+    <MfForm :model="formState" layout="vertical">
       <div v-for="(item, index) in formState.filters" :key="index" class="flex items-center space-x-2">
-        <a-form-item class="w-full">
-          <a-select v-model:value="item.index" @change="onFetchOperations(item.index, item)">
-            <a-select-option v-for="column in columns" :key="column" :value="column">
-              {{ column }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+        <MfFormItem name="" class="w-full">
+          <MfSelect v-model="item.index"
+                    :options="columns.map((column: any) => ({ label: column, value: column }))"
+                    @change="onFetchOperations(item.index, item)"/>
+        </MfFormItem>
 
-        <a-form-item class="w-full">
-          <a-select v-model:value="item.operator" :disabled="!item.index">
-            <a-select-option v-for="operation in item.operations" :key="operation" :value="operation">
-              {{ operation }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+        <MfFormItem name="" class="w-full">
+          <MfSelect v-model="item.operator"
+                    :options="(item.operations ?? []).map((operation: string) => ({ label: operation, value: operation }))"
+                    :disabled="!item.index"/>
+        </MfFormItem>
 
-        <a-form-item class="w-full">
-          <a-input v-model:value="item.value" :disabled="!item.operator"/>
-        </a-form-item>
+        <MfFormItem name="" class="w-full">
+          <MfInput v-model="item.value" :disabled="!item.operator"/>
+        </MfFormItem>
 
-        <a-form-item>
-          <a-button type="text" shape="circle" size="small" danger @click="onRemoveFilter(index)">
-            <template #icon>
-              <MinusOutlined :style="{ fontSize: '16px' }"/>
-            </template>
-          </a-button>
-        </a-form-item>
+        <MfFormItem name="">
+          <MfButton variant="ghost" size="sm" class="text-danger" @click="onRemoveFilter(index)">
+            <MinusOutlined :style="{ fontSize: '16px' }"/>
+          </MfButton>
+        </MfFormItem>
       </div>
 
-      <a-form-item class="space-y-1" :label="$t('source.common.filterCondition')">
-        <a-button size="small" @click="onAddFilter">
+      <MfFormItem name="" class="space-y-1" :label="$t('source.common.filterCondition')">
+        <MfButton size="sm" @click="onAddFilter">
           {{ $t('source.common.addFilter') }}
-        </a-button>
-      </a-form-item>
-    </a-form>
+        </MfButton>
+      </MfFormItem>
+    </MfForm>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
-        <a-button type="primary" @click="onFilter">
+        </MfButton>
+        <MfButton variant="primary" @click="onFilter">
           {{ $t('common.apply') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

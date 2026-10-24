@@ -1,17 +1,14 @@
 <template>
-  <a-drawer v-model:open="visible" width="20%" :title="$t('source.common.visibleColumn')">
-    <a-checkbox-group v-model:value="value">
-      <a-space direction="vertical">
-        <a-checkbox v-for="item in columns" :key="item.field" :value="item.field">{{ item.field }}</a-checkbox>
-      </a-space>
-    </a-checkbox-group>
+  <MfDrawer v-model:open="visible" width="20%" :title="$t('source.common.visibleColumn')">
+    <MfCheckboxGroup v-model="value"
+                     :options="columns.map((item: any) => ({ label: item.field, value: item.field }))"/>
 
     <template #footer>
-      <a-button type="primary" @click="onCancel">
+      <MfButton variant="primary" @click="onCancel">
         {{ $t('common.apply') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-drawer>
+  </MfDrawer>
 </template>
 
 <script setup lang="ts">

@@ -1,6 +1,6 @@
 <template>
   <div class="relative min-h-screen">
-    <a-skeleton v-if="loading" active/>
+    <MfSkeleton v-if="loading"/>
 
     <AceEditor v-else-if="statement" :value="statement" height="100vh" :read-only="true"/>
   </div>
@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 
@@ -35,7 +35,7 @@ const handleInitialize = () => {
                        statement.value = content.create_table_sql
                      }
                      else {
-                       message.error(response.data?.message)
+                       MfMessage.error(response.data?.message)
                      }
                    })
                    .finally(() => (loading.value = false))

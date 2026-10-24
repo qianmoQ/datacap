@@ -1,38 +1,39 @@
 <template>
-  <a-modal v-model:open="visible" width="40%" :title="title" :footer="null" @cancel="onCancel">
-    <a-space direction="vertical" :style="{ width: '100%' }">
-      <a-alert type="error" :message="$t('source.tip.dropColumn1')"/>
-      <a-alert type="error" :message="$t('source.tip.dropColumn2')"/>
-      <a-alert type="error" :message="$t('source.tip.dropColumn3')"/>
-      <a-alert type="error" :message="$t('source.tip.dropColumn4')"/>
-      <a-alert type="error" :message="$t('source.tip.dropColumn5')"/>
-    </a-space>
+  <MfModal v-model:open="visible" width="40%" :title="title">
+    <MfSpace direction="vertical" fill>
+      <MfAlert variant="danger" :title="$t('source.tip.dropColumn1')"/>
+      <MfAlert variant="danger" :title="$t('source.tip.dropColumn2')"/>
+      <MfAlert variant="danger" :title="$t('source.tip.dropColumn3')"/>
+      <MfAlert variant="danger" :title="$t('source.tip.dropColumn4')"/>
+      <MfAlert variant="danger" :title="$t('source.tip.dropColumn5')"/>
+    </MfSpace>
 
     <div class="relative mt-2">
-      <a-spin :spinning="loading">
-        <AceEditor v-if="formState.statement" :value="formState.statement" :read-only="true"/>
-      </a-spin>
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <MfSpinner size="lg" label="Loading..."/>
+      </div>
+      <AceEditor v-else-if="formState.statement" :value="formState.statement" :read-only="true"/>
     </div>
 
     <template #footer>
-      <a-space>
-        <a-button @click="onCancel">
+      <MfSpace>
+        <MfButton @click="onCancel">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
 
-        <a-button type="primary" danger :loading="submitting" :disabled="submitting" @click="onSubmit(false)">
+        <MfButton variant="danger" :loading="submitting" :disabled="submitting" @click="onSubmit(false)">
           {{ $t('source.common.dropColumn') }}
-        </a-button>
-      </a-space>
+        </MfButton>
+      </MfSpace>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 
@@ -78,12 +79,12 @@ const onSubmit = (preview: boolean) => {
                          formState.value.statement = response.data.content
                        }
                        else {
-                         message.success(t('source.tip.dropColumnSuccess').replace('$VALUE', String(props.column)))
+                         MfMessage.success(t('source.tip.dropColumnSuccess').replace('$VALUE', String(props.column)))
                          onCancel()
                        }
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => {

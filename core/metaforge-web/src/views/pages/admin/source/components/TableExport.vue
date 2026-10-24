@@ -1,49 +1,47 @@
 <template>
-  <a-modal v-model:open="visible" width="40%" :title="title" :footer="null" @cancel="onCancel">
+  <MfModal v-model:open="visible" width="40%" :title="title">
     <div class="px-4 py-4">
-      <a-skeleton v-if="loading" active/>
+      <MfSkeleton v-if="loading"/>
 
-      <a-form v-else-if="!loading && formState" :model="formState" layout="vertical" @finish="onSubmit">
-        <a-form-item name="format" :label="$t('source.common.exportDataFormat')">
-          <a-radio-group v-model:value="formState.format">
-            <a-radio-button v-for="item in formats" :key="item.name" :value="item.name">{{ item.name }}</a-radio-button>
-          </a-radio-group>
-        </a-form-item>
+      <MfForm v-else-if="!loading && formState" :model="formState" layout="vertical" @finish="onSubmit">
+        <MfFormItem name="format" :label="$t('source.common.exportDataFormat')">
+          <MfRadioGroup v-model="formState.format" variant="button">
+            <MfRadio v-for="item in formats" :key="item.name" :value="item.name">{{ item.name }}</MfRadio>
+          </MfRadioGroup>
+        </MfFormItem>
 
-        <a-row>
-          <a-col :span="12">
-            <a-form-item name="count" :label="$t('source.common.exportDataCount')">
-              <a-input-number v-model:value="formState.pagination.size" :style="{ width: '100%' }"/>
-            </a-form-item>
-          </a-col>
-        </a-row>
+        <div class="grid grid-cols-2 gap-4">
+          <MfFormItem name="count" :label="$t('source.common.exportDataCount')">
+            <MfInputNumber v-model="formState.pagination.size" :style="{ width: '100%' }"/>
+          </MfFormItem>
+        </div>
 
-        <a-form-item name="path" :label="$t('source.common.downloadPath')">
+        <MfFormItem name="path" :label="$t('source.common.downloadPath')">
           <div class="flex items-center space-x-1">
-            <a-input v-model:value="formState.path" disabled/>
-            <a-button :disabled="!formState.path" @click="onDownload()">
+            <MfInput v-model="formState.path" disabled/>
+            <MfButton :disabled="!formState.path" @click="onDownload()">
               {{ $t('source.common.downloadFile') }}
-            </a-button>
+            </MfButton>
           </div>
-        </a-form-item>
+        </MfFormItem>
 
-        <a-space>
-          <a-button @click="onCancel">{{ $t('common.cancel') }}</a-button>
+        <MfSpace>
+          <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
 
-          <a-button type="primary" html-type="submit" :loading="submitting" :disabled="submitting">
+          <MfButton variant="primary" type="submit" :loading="submitting" :disabled="submitting">
             {{ $t('source.common.generateData') }}
-          </a-button>
-        </a-space>
-      </a-form>
+          </MfButton>
+        </MfSpace>
+      </MfForm>
     </div>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import PluginService from '@/services/plugin'
 import MetadataService from '@/services/metadata'
 
@@ -86,7 +84,7 @@ const onSubmit = () => {
                        formState.value.path = response.data
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (submitting.value = false))

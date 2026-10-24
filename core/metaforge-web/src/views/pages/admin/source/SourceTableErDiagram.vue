@@ -1,15 +1,17 @@
 <template>
   <div class="relative h-screen">
-    <a-spin :spinning="loading">
-      <ErDiagram v-if="!loading && options" :options="options"/>
-    </a-spin>
+    <div v-if="loading" class="flex items-center justify-center py-8">
+      <MfSpinner size="lg" label="Loading..."/>
+    </div>
+
+    <ErDiagram v-else-if="!loading && options" :options="options"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import ErDiagram from '@/views/components/diagram/ErDiagram.vue'
 import { ErDiagramOptions } from '@/views/components/diagram/ErDiagramOptions.ts'
 import MetadataService from '@/services/metadata.ts'
@@ -39,7 +41,7 @@ const handleInitialize = () => {
                                                        .map((col: any) => ({ id: col.object_name, name: col.object_name, type: col.object_data_type }))
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))

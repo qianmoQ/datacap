@@ -11,74 +11,75 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <a-button type="primary" @click="visibleInfo(true, null)">
-          <template #icon>
-            <PlusOutlined :style="{ fontSize: '16px' }"/>
-          </template>
+        <MfButton variant="primary" @click="visibleInfo(true, null)">
+          <PlusOutlined :style="{ fontSize: '16px' }"/>
           {{ $t('source.common.create') }}
-        </a-button>
+        </MfButton>
       </template>
 
+      <!-- #bodyCell 透传给 DataTable（其内部仍为 a-table），保持原插槽契约 -->
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'type'">
-          <a-tooltip :title="record.type">
-            <a-avatar class="cursor-pointer" size="small" :src="'/static/images/plugin/' + record.type.toLowerCase() + '.svg'" :alt="record.type"/>
-          </a-tooltip>
+          <MfTooltip :content="record.type">
+            <MfAvatar class="cursor-pointer" size="sm" :src="'/static/images/plugin/' + record.type.toLowerCase() + '.svg'" :alt="record.type"/>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'public'">
-          <a-switch v-model:checked="record.public" disabled size="small"/>
+          <MfSwitch v-model="record.public" disabled size="sm"/>
         </template>
         <template v-else-if="column.key === 'version'">
-          <a-tooltip v-if="record.version" :title="record.version">
-            <a-tag color="blue" class="cursor-pointer">{{ formatVersionText(record.version) }}</a-tag>
-          </a-tooltip>
+          <MfTooltip v-if="record.version" :content="record.version">
+            <MfTag variant="info" class="cursor-pointer">{{ formatVersionText(record.version) }}</MfTag>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'available'">
-          <a-tooltip v-if="!record.available" :title="record.message">
+          <MfTooltip v-if="!record.available" :content="record.message">
             <CloseCircleOutlined class="cursor-pointer text-red-500" :style="{ fontSize: '20px' }"/>
-          </a-tooltip>
+          </MfTooltip>
           <PlayCircleOutlined v-else="" class="text-green-500" :style="{ fontSize: '20px' }"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-tooltip :title="$t('source.common.modify').replace('$NAME', record.name)">
-              <a-button type="text" shape="circle" size="small" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)">
+          <MfSpace>
+            <MfTooltip :content="$t('source.common.modify').replace('$NAME', record.name)">
+              <MfButton variant="ghost" size="sm" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)">
                 <EditOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
-            </a-tooltip>
+              </MfButton>
+            </MfTooltip>
 
-            <a-dropdown trigger="click" placement="bottomRight">
-              <a-button type="text" shape="circle" size="small">
+            <MfDropdown trigger="click" placement="bottomRight">
+              <MfButton variant="ghost" size="sm">
                 <SettingOutlined :style="{ fontSize: '15px' }"/>
-              </a-button>
+              </MfButton>
 
               <template #overlay>
-                <a-menu>
-                  <a-menu-item v-if="(loginUserCode === record.user.code) && record.available && record.isSupportMeta">
+                <MfMenu>
+                  <MfMenuItem v-if="(loginUserCode === record.user.code) && record.available && record.isSupportMeta" key_="manager">
                     <router-link :to="`/admin/source/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
                         <SettingOutlined :style="{ fontSize: '15px' }"/>
                         <span>{{ $t('source.common.manager') }}</span>
                       </div>
                     </router-link>
-                  </a-menu-item>
-                  <a-menu-item v-else disabled>
+                  </MfMenuItem>
+                  <MfMenuItem v-else key_="manager" disabled>
                     <div class="flex items-center space-x-2">
                       <SettingOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('source.common.manager') }}</span>
                     </div>
-                  </a-menu-item>
+                  </MfMenuItem>
 
-                  <a-menu-item :disabled="loginUserCode !== record.user.code" @click="visibleDelete(true, record)">
+                  <MfMenuItem key_="delete"
+                              :disabled="loginUserCode !== record.user.code"
+                              @click="loginUserCode === record.user.code && visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
                       <DeleteOutlined :style="{ fontSize: '15px' }"/>
                       <span>{{ $t('common.deleteData') }}</span>
                     </div>
-                  </a-menu-item>
-                </a-menu>
+                  </MfMenuItem>
+                </MfMenu>
               </template>
-            </a-dropdown>
-          </a-space>
+            </MfDropdown>
+          </MfSpace>
         </template>
       </template>
     </DataTable>

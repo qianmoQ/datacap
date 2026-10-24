@@ -1,168 +1,147 @@
 <template>
   <div class="relative">
-    <a-spin :spinning="loading">
-      <a-card class="h-screen">
-        <template #title>
-          <a-space class="items-center">
-            <a-tooltip :title="$t('source.common.firstPage')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!configure.pagination.hasPrevious"
-                        @click="onApplyPagination(configure.operator.FIRST)">
-                <template #icon>
-                  <MenuFoldOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+    <MfCard class="h-screen relative">
+      <template #header>
+        <MfSpace class="items-center">
+          <MfTooltip :content="$t('source.common.firstPage')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="!configure.pagination.hasPrevious"
+                      @click="onApplyPagination(configure.operator.FIRST)">
+              <MenuFoldOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.previousPage')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!configure.pagination.hasPrevious"
-                        @click="onApplyPagination(configure.operator.PREVIOUS)">
-                <template #icon>
-                  <ArrowLeftOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.previousPage')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="!configure.pagination.hasPrevious"
+                      @click="onApplyPagination(configure.operator.PREVIOUS)">
+              <ArrowLeftOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.nextPage')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!configure.pagination.hasNext"
-                        @click="onApplyPagination(configure.operator.NEXT)">
-                <template #icon>
-                  <ArrowRightOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.nextPage')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="!configure.pagination.hasNext"
+                      @click="onApplyPagination(configure.operator.NEXT)">
+              <ArrowRightOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.lastPage')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!configure.pagination.hasNext"
-                        @click="onApplyPagination(configure.operator.LAST)">
-                <template #icon>
-                  <MenuUnfoldOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.lastPage')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="!configure.pagination.hasNext"
+                      @click="onApplyPagination(configure.operator.LAST)">
+              <MenuUnfoldOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('user.common.setting')">
-              <a-button type="text" shape="circle" size="small" @click="visibleSettings(true)">
-                <template #icon>
-                  <SettingOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('user.common.setting')">
+            <MfButton variant="ghost" size="sm" @click="visibleSettings(true)">
+              <SettingOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <div class="text-sm text-muted-foreground flex gap-2 ml-4 mr-4">
-              [ <span>{{ configure.pagination.startIndex }}</span> / <span>{{ configure.pagination.endIndex }}</span> ]
-              <span>of</span>
-              <span>{{ configure.pagination.total }}</span>
-              <span>{{ $t('source.common.records') }}</span>
-            </div>
+          <div class="text-sm text-muted-foreground flex gap-2 ml-4 mr-4">
+            [ <span>{{ configure.pagination.startIndex }}</span> / <span>{{ configure.pagination.endIndex }}</span> ]
+            <span>of</span>
+            <span>{{ configure.pagination.total }}</span>
+            <span>{{ $t('source.common.records') }}</span>
+          </div>
 
-            <a-tooltip :title="$t('source.common.addRows')">
-              <a-button type="text" shape="circle" size="small" @click="onAddOrCloneRow(false)">
-                <template #icon>
-                  <PlusOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.addRows')">
+            <MfButton variant="ghost" size="sm" @click="onAddOrCloneRow(false)">
+              <PlusOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.copyRows')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="dataSelectedChanged.columns.length === 0"
-                        @click="onAddOrCloneRow(true)">
-                <template #icon>
-                  <CopyOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.copyRows')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="dataSelectedChanged.columns.length === 0"
+                      @click="onAddOrCloneRow(true)">
+              <CopyOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.deleteRows')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!dataSelectedChanged.changed"
-                        @click="visibleChanged(true)">
-                <template #icon>
-                  <MinusOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.deleteRows')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="!dataSelectedChanged.changed"
+                      @click="visibleChanged(true)">
+              <MinusOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.previewPendingChanges')">
-              <a-button type="text" shape="circle"
-                        size="small"
-                        :disabled="!dataCellChanged.changed && dataCellChanged.columns.length === 0"
-                        @click="visibleCellChanged(true)">
-                <template #icon>
-                  <EllipsisOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('source.common.previewPendingChanges')">
+            <MfButton variant="ghost"
+                      size="sm"
+                      :disabled="dataCellChanged.changed && dataCellChanged.columns.length === 0"
+                      @click="visibleCellChanged(true)">
+              <EllipsisOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('common.preview')">
-              <a-button type="text" shape="circle" size="small" @click="visibleContents(true)">
-                <template #icon>
-                  <EyeOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+          <MfTooltip :content="$t('common.preview')">
+            <MfButton variant="ghost" size="sm" @click="visibleContents(true)">
+              <EyeOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('common.refresh')">
-              <a-button type="text" shape="circle" size="small" @click="onRefresh">
-                <template #icon>
-                  <ReloadOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
-          </a-space>
-        </template>
+          <MfTooltip :content="$t('common.refresh')">
+            <MfButton variant="ghost" size="sm" @click="onRefresh">
+              <ReloadOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
+        </MfSpace>
+      </template>
 
-        <template #extra>
-          <a-space class="items-center">
-            <a-tooltip :title="$t('source.common.visibleColumn')">
-              <a-button type="text" shape="circle" size="small" @click="visibleColumns(null, true)">
-                <template #icon>
-                  <InsertRowRightOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+      <template #extra>
+        <MfSpace class="items-center">
+          <MfTooltip :content="$t('source.common.visibleColumn')">
+            <MfButton variant="ghost" size="sm" @click="visibleColumns(null, true)">
+              <InsertRowRightOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
 
-            <a-tooltip :title="$t('source.common.filterData')">
-              <a-button type="text" shape="circle" size="small" @click="onFilterConfigure(true)">
-                <template #icon>
-                  <FilterOutlined :style="{ fontSize: '15px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
-          </a-space>
-        </template>
+          <MfTooltip :content="$t('source.common.filterData')">
+            <MfButton variant="ghost" size="sm" @click="onFilterConfigure(true)">
+              <FilterOutlined :style="{ fontSize: '15px' }"/>
+            </MfButton>
+          </MfTooltip>
+        </MfSpace>
+      </template>
 
-        <div class="relative">
-          <a-spin :spinning="refererLoading">
-            <AgGridVue class="ag-theme-metaforge"
-                       style="width: 100%; height: calc(100vh - 40px);"
-                       :gridOptions="gridOptions"
-                       :columnDefs="configure.headers"
-                       :rowData="configure.datasets"
-                       :tooltipShowDelay="100"
-                       :sortingOrder="['desc', 'asc', null]"
-                       :rowSelection="'multiple'"
-                       @grid-ready="onGridReady"
-                       @sortChanged="onSortChanged"
-                       @cellValueChanged="onCellValueChanged"
-                       @selectionChanged="onSelectionChanged"
-                       @columnVisible="onColumnVisible"
-                       @columnMoved="onColumnMoved">
-            </AgGridVue>
-          </a-spin>
+      <div class="relative">
+        <AgGridVue v-show="!refererLoading"
+                   class="ag-theme-metaforge"
+                   style="width: 100%; height: calc(100vh - 40px);"
+                   :gridOptions="gridOptions"
+                   :columnDefs="configure.headers"
+                   :rowData="configure.datasets"
+                   :tooltipShowDelay="100"
+                   :sortingOrder="['desc', 'asc', null]"
+                   :rowSelection="'multiple'"
+                   @grid-ready="onGridReady"
+                   @sortChanged="onSortChanged"
+                   @cellValueChanged="onCellValueChanged"
+                   @selectionChanged="onSelectionChanged"
+                   @columnVisible="onColumnVisible"
+                   @columnMoved="onColumnMoved">
+        </AgGridVue>
+
+        <div v-if="refererLoading" class="absolute inset-0 z-10 flex items-center justify-center">
+          <MfSpinner size="lg" label="Loading..."/>
         </div>
-      </a-card>
-    </a-spin>
+      </div>
+    </MfCard>
+
+    <div v-if="loading" class="absolute inset-0 z-20 flex items-center justify-center">
+      <MfSpinner size="lg" label="Loading..."/>
+    </div>
 
     <TableCellInfo v-if="dataCellChanged.pending"
                    :isVisible="dataCellChanged.pending"
@@ -212,7 +191,7 @@
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
 import '@/views/components/grid/ag-theme-metaforge.css'
@@ -318,7 +297,7 @@ const handleInitialize = () => {
                        filterConfigure.types = cloneDeep(response.data.types)
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))
@@ -349,7 +328,7 @@ const handleRefererData = (conf: any) => {
                        filterConfigure.types = cloneDeep(response.data.types)
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (refererLoading.value = false))

@@ -1,10 +1,7 @@
 <template>
-  <a-modal :open="visible"
-           :width="1180"
-           :footer="null"
-           :title="null"
-           :mask-closable="false"
-           @cancel="onCancel"
+  <MfModal v-model:open="visible"
+           width="1180px"
+           :close-on-overlay="false"
            class="dc-src-modal">
     <!-- 头部 -->
     <div class="dc-src__head">
@@ -13,14 +10,23 @@
     </div>
 
     <!-- 步骤条 -->
-    <a-steps :current="currentStep" size="small" class="dc-src__steps">
-      <a-step v-for="step in stepDefs"
-              :key="step.titleKey"
-              :title="$t(step.titleKey)"
-              :description="$t(step.descKey)"/>
-    </a-steps>
+    <div class="dc-src__steps flex items-center gap-3">
+      <template v-for="(step, index) in stepDefs" :key="step.titleKey">
+        <div class="flex items-center gap-2" :class="index <= currentStep ? 'text-primary' : 'text-content-tertiary'">
+          <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium"
+                :class="index <= currentStep ? 'border-primary bg-primary text-on-primary' : 'border-line'">
+            {{ index + 1 }}
+          </span>
+          <span class="text-xs leading-tight">
+            <span class="block font-medium" :class="index <= currentStep ? 'text-primary' : 'text-content-secondary'">{{ $t(step.titleKey) }}</span>
+            <span class="block text-content-tertiary">{{ $t(step.descKey) }}</span>
+          </span>
+        </div>
+        <span v-if="index < stepDefs.length - 1" class="h-px w-8 shrink-0 bg-line"></span>
+      </template>
+    </div>
 
-    <a-alert v-if="testInfo && testInfo.message" type="error" :message="testInfo.message" class="mb-3"/>
+    <MfAlert v-if="testInfo && testInfo.message" variant="danger" :title="testInfo.message" class="mb-3"/>
 
     <!-- 步骤 1：选择数据源类型 -->
     <div v-if="currentStep === 0" class="dc-src__type-step">
@@ -39,13 +45,13 @@
 
       <!-- 中间：搜索 + 筛选 + 网格 -->
       <div class="dc-src__middle">
-        <a-input v-model:value="searchText"
+        <MfInput v-model="searchText"
                  class="dc-src__search"
                  :placeholder="$t('source.search.placeholder')">
           <template #prefix>
             <SearchOutlined :style="{ fontSize: '14px', color: 'var(--dc-text-secondary)' }"/>
           </template>
-        </a-input>
+        </MfInput>
 
         <div class="dc-src__chips">
           <span v-for="chip in chips"
@@ -80,7 +86,7 @@
         <template v-if="selectedSource">
           <div class="dc-src__detail-logo">
             <img :src="'/static/images/plugin/' + selectedSource.name.toLowerCase() + '.svg'" :alt="selectedSource.name">
-            <a-badge v-if="catalogEntry.popular" :count="$t('source.badge.popular')" :number-style="{ backgroundColor: 'var(--dc-success)', color: '#fff', fontSize: '10px' }"/>
+            <MfBadge v-if="catalogEntry.popular" variant="success" :count="$t('source.badge.popular')"/>
           </div>
           <div class="dc-src__detail-name">{{ selectedSource.name }}</div>
           <p class="dc-src__detail-desc">{{ catalogEntry.desc[detailLocale] }}</p>
@@ -114,74 +120,66 @@
 
     <!-- 步骤 2-4：连接参数 -->
     <div v-else class="dc-src__config-step">
-      <a-spin :spinning="loading">
-        <a-form v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-          <a-form-item v-for="configure in stepFields"
-                       :key="configure.field"
-                       :name="configure.field"
-                       :label="$t('source.common.' + configure.field)"
-                       :extra="configure.description">
-            <a-input v-if="configure.type === 'String'" v-model:value="configure.value" :disabled="configure.disabled"/>
+      <div class="relative">
+        <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+          <template v-for="configure in stepFields" :key="configure.field">
+            <MfFormItem :name="configure.field"
+                        :label="$t('source.common.' + configure.field)">
+              <MfInput v-if="configure.type === 'String'" v-model="configure.value" :disabled="configure.disabled"/>
 
-            <a-input-number v-else-if="configure.type === 'Number'"
-                            v-model:value="configure.value"
-                            :disabled="configure.disabled"
-                            :max="configure.max"
-                            :min="configure.min"
-                            :style="{ width: '100%' }"/>
+              <MfInputNumber v-else-if="configure.type === 'Number'"
+                             v-model="configure.value"
+                             :disabled="configure.disabled"
+                             :max="configure.max"
+                             :min="configure.min"
+                             :style="{ width: '100%' }"/>
 
-            <a-switch v-else-if="configure.type === 'Boolean'" v-model:checked="configure.value" :disabled="configure.disabled"/>
+              <MfSwitch v-else-if="configure.type === 'Boolean'" v-model="configure.value" :disabled="configure.disabled"/>
 
-            <a-upload v-else-if="configure.type === 'File'"
-                      action="http://localhost:9096/api/v1/source/uploadFile"
-                      multiple
-                      accept=".xml"
-                      :headers="{ 'Authorization': auth?.type + ' ' + auth?.token, 'PluginType': (formState.type as string).split(' ')[0] }"
-                      @change="onUploadChange">
-              <a-button>
-                <template #icon>
-                  <UploadOutlined/>
-                </template>
+              <MfUpload v-else-if="configure.type === 'File'"
+                        action="http://localhost:9096/api/v1/source/uploadFile"
+                        multiple
+                        accept=".xml"
+                        :headers="{ 'Authorization': auth?.type + ' ' + auth?.token, 'PluginType': (formState.type as string).split(' ')[0] }"
+                        @change="onUploadChange">
                 {{ $t('common.upload') }}
-              </a-button>
-            </a-upload>
+              </MfUpload>
 
-            <div v-else>
-              <a-space direction="vertical" :style="{ width: '100%' }">
-                <a-button type="text" shape="circle" size="small" @click="onPlusConfigure(configure.value)">
-                  <template #icon>
+              <div v-else>
+                <MfSpace direction="vertical" fill>
+                  <MfButton variant="ghost" size="sm" @click="onPlusConfigure(configure.value)">
                     <PlusOutlined :style="{ fontSize: '16px' }"/>
-                  </template>
-                </a-button>
+                  </MfButton>
 
-                <a-row v-for="(element, index) in configure.value" :key="index" :gutter="10">
-                  <a-col :span="10">
-                    <a-form-item :label="$t('common.field')">
-                      <a-input v-model:value="element.field"/>
-                    </a-form-item>
-                  </a-col>
+                  <div v-for="(element, index) in configure.value" :key="index" class="grid grid-cols-[5fr_6fr_1fr] gap-2.5">
+                    <MfFormItem :label="$t('common.field')">
+                      <MfInput v-model="element.field"/>
+                    </MfFormItem>
 
-                  <a-col :span="12">
-                    <a-form-item :label="$t('common.value')">
-                      <a-input v-model:value="element.value"/>
-                    </a-form-item>
-                  </a-col>
+                    <MfFormItem :label="$t('common.value')">
+                      <MfInput v-model="element.value"/>
+                    </MfFormItem>
 
-                  <a-col :span="2">
-                    <a-form-item :label="' '">
-                      <a-button type="text" shape="circle" danger size="small" @click="onMinusConfigure(element, configure.value)">
-                        <template #icon>
-                          <MinusOutlined :style="{ fontSize: '16px' }"/>
-                        </template>
-                      </a-button>
-                    </a-form-item>
-                  </a-col>
-                </a-row>
-              </a-space>
+                    <MfFormItem :label="' '">
+                      <MfButton variant="ghost" size="sm" class="text-danger" @click="onMinusConfigure(element, configure.value)">
+                        <MinusOutlined :style="{ fontSize: '16px' }"/>
+                      </MfButton>
+                    </MfFormItem>
+                  </div>
+                </MfSpace>
+              </div>
+            </MfFormItem>
+
+            <div v-if="configure.description" class="-mt-3 text-xs text-content-tertiary">
+              {{ configure.description }}
             </div>
-          </a-form-item>
-        </a-form>
-      </a-spin>
+          </template>
+        </MfForm>
+
+        <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
+          <MfSpinner size="lg" label="Loading..."/>
+        </div>
+      </div>
     </div>
 
     <!-- 底部 -->
@@ -194,39 +192,39 @@
         </a>
       </div>
       <div class="dc-src__footer-actions">
-        <a-button v-if="currentStep > 0" @click="currentStep--">{{ $t('source.wizard.previous') }}</a-button>
-        <a-button danger @click="onCancel">{{ $t('common.cancel') }}</a-button>
-        <a-button v-if="currentStep < 3"
-                  type="primary"
+        <MfButton v-if="currentStep > 0" @click="currentStep--">{{ $t('source.wizard.previous') }}</MfButton>
+        <MfButton variant="danger" @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+        <MfButton v-if="currentStep < 3"
+                  variant="primary"
                   :disabled="!formState?.type"
                   @click="currentStep++">
           {{ $t('source.wizard.next') }}
-        </a-button>
-        <a-button v-if="currentStep === 3"
-                  ghost
+        </MfButton>
+        <MfButton v-if="currentStep === 3"
+                  variant="ghost"
                   :loading="testing"
                   :disabled="testing || !formState.type"
                   @click="onTest()">
           {{ $t('common.test') }}
-        </a-button>
-        <a-button v-if="currentStep === 3"
-                  type="primary"
-                  html-type="submit"
+        </MfButton>
+        <MfButton v-if="currentStep === 3"
+                  variant="primary"
+                  type="submit"
                   :loading="saving"
                   :disabled="!testInfo.connected || saving"
                   @click="onSubmit">
           {{ $t('common.save') }}
-        </a-button>
+        </MfButton>
       </div>
     </div>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
-import { MinusOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import { MfMessage } from 'metaforge-ui'
+import { MinusOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { ArrowRightOutlined, CheckCircleFilled, DatabaseOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import { cloneDeep, pick } from 'lodash'
 import { SourceModel, SourceRequest } from '@/model/source'
@@ -409,7 +407,7 @@ const handleInitialize = async () => {
   }
   catch (error) {
     console.error('Failed to initialize:', error)
-    message.error('Failed to initialize the form')
+    MfMessage.error('Failed to initialize the form')
   }
   finally {
     loading.value = false
@@ -462,7 +460,7 @@ const onTest = () => {
                .then((response) => {
                  testInfo.value.percent = 100
                  if (response.status) {
-                   message.success('Test successful')
+                   MfMessage.success('Test successful')
                    testInfo.value.connected = true
                    testInfo.value.successful = true
                    testInfo.value.message = null
@@ -492,7 +490,7 @@ const onSubmit = () => {
   SourceService.saveOrUpdate(configure as any)
                .then((response) => {
                  if (response.status) {
-                   message.success('Create successful')
+                   MfMessage.success('Create successful')
                    onCancel()
                  }
                })

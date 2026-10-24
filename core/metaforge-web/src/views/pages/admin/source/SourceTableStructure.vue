@@ -1,20 +1,16 @@
 <template>
   <div class="relative min-h-screen">
-    <a-skeleton v-if="loading" active/>
+    <MfSkeleton v-if="loading"/>
 
-    <a-table v-else-if="data && data.length > 0"
-             size="small"
+    <MfTable v-else-if="data && data.length > 0"
              :columns="headers"
              :data-source="data"
-             :pagination="false"
              row-key="object_name"
-             :scroll="{ x: 'max-content' }">
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'object_nullable'">
-          <a-switch v-model:checked="record.object_nullable" size="small" disabled/>
-        </template>
+             :empty-text="$t('common.noData')">
+      <template #cell-object_nullable="{ record }">
+        <MfSwitch v-model="record.object_nullable" size="sm" disabled/>
       </template>
-    </a-table>
+    </MfTable>
   </div>
 </template>
 
@@ -22,7 +18,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { createHeaders } from '@/views/pages/admin/source/components/TableUtils.ts'
 import MetadataService from '@/services/metadata'
 
@@ -48,7 +44,7 @@ const handleInitialize = () => {
                                             .filter((col: any) => col.type_name === 'column')
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))

@@ -1,53 +1,51 @@
 <template>
-  <a-modal v-model:open="visible"
+  <MfModal v-model:open="visible"
            width="60%"
-           :title="$t('source.common.syncHistory')"
-           :footer="null">
-    <a-spin :spinning="loading">
-      <a-table size="small"
-               :columns="headers"
-               :data-source="data"
-               :pagination="false"
-               row-key="id"
-               :scroll="{ x: 'max-content' }">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'elapsed'">
-            {{ (getTime(record.updateTime) - getTime(record.createTime)) / 1000 }}
-          </template>
+           :title="$t('source.common.syncHistory')">
+    <MfTable :columns="headers as any"
+             :data-source="data"
+             :loading="loading"
+             row-key="id"
+             :empty-text="$t('common.noData')">
+      <template #cell-elapsed="{ record }">
+        {{ (getTime(record.updateTime) - getTime(record.createTime)) / 1000 }}
+      </template>
 
-          <template v-else-if="column.key === 'state'">
-            <a-tooltip v-if="record?.state === 'FAILURE'" :title="record.message">
-              <a-badge :color="Common.getColor(record?.state)" :text="getStateText(record.state)"/>
-            </a-tooltip>
-            <a-badge v-else :color="Common.getColor(record?.state)" :text="getStateText(record.state)"/>
-          </template>
+      <template #cell-state="{ record }">
+        <MfTooltip v-if="record?.state === 'FAILURE'" :content="record.message">
+          <span class="inline-flex items-center gap-2">
+            <span class="size-2.5 rounded-full" :style="{ backgroundColor: Common.getColor(record?.state) }"></span>
+            <span class="text-sm">{{ getStateText(record.state) }}</span>
+          </span>
+        </MfTooltip>
+        <span v-else class="inline-flex items-center gap-2">
+          <span class="size-2.5 rounded-full" :style="{ backgroundColor: Common.getColor(record?.state) }"></span>
+          <span class="text-sm">{{ getStateText(record.state) }}</span>
+        </span>
+      </template>
 
-          <template v-else-if="column.key === 'result'">
-            <a-tooltip>
-              <template #title>
-                <MdPreview :modelValue="toMarkdown(record.info)" style="padding: 0"/>
-              </template>
-              <a-button type="text" shape="circle" size="small">
-                <template #icon>
-                  <EyeOutlined :style="{ fontSize: '20px' }"/>
-                </template>
-              </a-button>
-            </a-tooltip>
+      <template #cell-result="{ record }">
+        <MfTooltip>
+          <template #content>
+            <MdPreview :modelValue="toMarkdown(record.info)" style="padding: 0"/>
           </template>
-        </template>
-      </a-table>
+          <MfButton variant="ghost" size="sm">
+            <EyeOutlined :style="{ fontSize: '20px' }"/>
+          </MfButton>
+        </MfTooltip>
+      </template>
+    </MfTable>
 
-      <div v-if="data.length > 0" class="py-2 flex justify-end">
-        <a-pagination :current="pageIndex"
-                      :page-size="pageSize"
-                      :total="dataCount"
-                      show-size-changer
-                      :page-size-options="['10', '20', '50']"
-                      @change="onPageChange"
-                      @show-size-change="onSizeChange"/>
-      </div>
-    </a-spin>
-  </a-modal>
+    <div v-if="data.length > 0" class="py-2 flex justify-end">
+      <MfPagination :current="pageIndex"
+                    :page-size="pageSize"
+                    :total="dataCount"
+                    show-size
+                    :page-sizes="[10, 20, 50]"
+                    @change="onPageChange"
+                    @update:page-size="(size: number) => onSizeChange(1, size)"/>
+    </div>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

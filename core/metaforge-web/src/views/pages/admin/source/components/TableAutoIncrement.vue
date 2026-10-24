@@ -1,37 +1,36 @@
 <template>
-  <a-modal v-model:open="localVisible"
+  <MfModal v-model:open="localVisible"
            :title="$t('source.common.resetAutoIncrement')"
-           :mask-closable="false"
-           :footer="null"
-           @cancel="onCancel">
-    <a-form :model="formState" layout="vertical" @finish="onSubmit">
-      <a-form-item name="autoIncrement" :label="$t('source.common.resetTo')">
-        <a-input-number v-model:value="formState.autoIncrement"
-                        :min="1"
-                        :style="{ width: '100%' }"
-                        :placeholder="$t('snippet.placeholder.name')"/>
-      </a-form-item>
+           :close-on-overlay="false"
+           @close="onCancel">
+    <MfForm :model="formState" layout="vertical" @finish="onSubmit">
+      <MfFormItem name="autoIncrement" :label="$t('source.common.resetTo')">
+        <MfInputNumber v-model="formState.autoIncrement"
+                       :min="1"
+                       :style="{ width: '100%' }"
+                       :placeholder="$t('snippet.placeholder.name')"/>
+      </MfFormItem>
 
       <div class="flex justify-end">
-        <a-space>
-          <a-button @click="onCancel">
+        <MfSpace>
+          <MfButton @click="onCancel">
             {{ $t('common.cancel') }}
-          </a-button>
+          </MfButton>
 
-          <a-button type="primary" html-type="submit" :loading="loading">
+          <MfButton variant="primary" type="submit" :loading="loading">
             {{ $t('common.apply') }}
-          </a-button>
-        </a-space>
+          </MfButton>
+        </MfSpace>
       </div>
-    </a-form>
-  </a-modal>
+    </MfForm>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata.ts'
 
 const emit = defineEmits(['close'])
@@ -64,11 +63,11 @@ const onSubmit = () => {
     MetadataService.updateAutoIncrement(code, database, table, configure)
                    .then((response) => {
                      if (response.status && response.data && response.data.isSuccessful) {
-                       message.success(t('source.tip.resetAutoIncrementSuccess').replace('$VALUE', String(formState.value.autoIncrement)))
+                       MfMessage.success(t('source.tip.resetAutoIncrementSuccess').replace('$VALUE', String(formState.value.autoIncrement)))
                        onCancel()
                      }
                      else {
-                       message.error(response.message)
+                       MfMessage.error(response.message)
                      }
                    })
                    .finally(() => (loading.value = false))
