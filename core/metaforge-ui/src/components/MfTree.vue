@@ -54,7 +54,7 @@ provide('mfTree', {
             loadingKeys.value.add(node.key)
             try {
                 const children = await props.loadData(node)
-                if (children?.length) {
+                if (children && children.length > 0) {
                     node.children = children
                 }
             }

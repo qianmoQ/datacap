@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject } from 'vue'
 import clsx from 'clsx'
 
 const props = withDefaults(defineProps<{
@@ -44,7 +44,6 @@ const itemClass = computed(() => clsx(
 
 <template>
     <li
-        ref="root"
         role="menuitem"
         :aria-selected="selected"
         :class="itemClass"

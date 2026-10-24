@@ -1,14 +1,6 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
 import clsx from 'clsx'
-
-export interface MfMessageItem {
-    id: number
-    type: 'success' | 'error' | 'info' | 'warning' | 'loading'
-    content: string
-}
-
-export const messageState = reactive<{ items: MfMessageItem[] }>({ items: [] })
+import { messageState } from '../theme/message-state'
 
 const ICONS = {
     success: 'M5 13l4 4L19 7',

@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { theme } from 'ant-design-vue'
+import { applyMfTheme, mfDarkPreset, mfLightPreset, setMfThemeMode } from 'metaforge-ui'
 
 /**
  * 全局主题（明/暗 + 品牌色板）composable。
@@ -53,6 +54,9 @@ function applyToDocument(dark: boolean): void {
         el.classList.remove('dark')
     }
     el.setAttribute('data-theme', dark ? 'dark' : 'light')
+    // metaforge-ui token（Mf* 组件与语义工具类直接消费 --mf-* 变量）
+    setMfThemeMode(dark ? 'dark' : 'light')
+    applyMfTheme(dark ? mfDarkPreset : mfLightPreset)
 }
 
 function applyBrand(key: string): void {

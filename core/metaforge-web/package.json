@@ -3,6 +3,7 @@
   "description": "MetaForge web console",
   "version": "2026.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --skipLibCheck && vite build",
@@ -26,9 +27,9 @@
     "ant-design-vue": "^4.2.6",
     "axios": "^1.7.4",
     "clsx": "^2.1.0",
-    "metaforge-ui": "workspace:*",
     "lodash": "^4.17.21",
     "md-editor-v3": "^4.12.1",
+    "metaforge-ui": "workspace:*",
     "pinia": "^3.0.1",
     "uuid": "^9.0.1",
     "vue": "^3.4.21",
@@ -41,9 +42,11 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/lodash": "^4.17.0",
     "@types/node": "^20.11.26",
     "@vitejs/plugin-vue": "^5.0.4",
+    "tailwindcss": "^4.3.3",
     "typescript": "5.4.5",
     "vite": "^5.4.8",
     "vue-tsc": "^1.8.27"

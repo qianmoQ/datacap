@@ -6,7 +6,8 @@
  *   const hide = MfMessage.loading('Working…'); hide()
  */
 import { createApp, type App } from 'vue'
-import MfMessageHost, { messageState, type MfMessageItem } from '../components/MfMessageHost.vue'
+import MfMessageHost from '../components/MfMessageHost.vue'
+import { messageState, type MfMessageItem } from './message-state'
 
 let hostApp: App | undefined
 let counter = 0

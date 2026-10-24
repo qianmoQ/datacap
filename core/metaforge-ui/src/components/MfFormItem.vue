@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import clsx from 'clsx'
 import type { MfFormRule } from './MfForm.vue'
 
 const props = withDefaults(defineProps<{

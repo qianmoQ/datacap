@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import clsx from 'clsx'
 
 const props = withDefaults(defineProps<{
     open?: boolean

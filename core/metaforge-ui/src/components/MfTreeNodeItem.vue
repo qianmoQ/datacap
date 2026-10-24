@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, type Ref } from 'vue'
+import { computed, inject, type Ref } from 'vue'
 import clsx from 'clsx'
 import type { MfTreeNode } from './MfTree.vue'
 
