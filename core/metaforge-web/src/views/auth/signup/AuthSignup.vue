@@ -2,100 +2,104 @@
   <BaseLayout>
     <div class="h-screen flex items-center justify-center">
       <div class="w-full max-w-md px-4 mx-auto">
-        <a-card class="w-full">
-          <template #title>
+        <MfCard class="w-full">
+          <template #header>
             <div class='flex items-center justify-center'>
-              <a-avatar src="/static/images/logo.png" alt="MetaForge"/>
+              <MfAvatar src="/static/images/logo.png" alt="MetaForge"/>
             </div>
           </template>
 
-          <div class="text-center text-gray-600 mb-2">
+          <div class="text-center text-content-secondary mb-2">
             {{ $t('user.auth.signupTip') }}
           </div>
 
           <div class="px-6 py-8 relative">
             <div v-if="loading" class="flex items-center justify-center py-8">
-              <a-spin size="large"/>
+              <MfSpinner size="lg" label="Loading..."/>
             </div>
-            <a-form v-else
+            <MfForm v-else
                     ref="formRef"
                     :model="formState"
                     layout="vertical"
                     @finish="onSubmit"
-                    @finishFailed="onError">
-              <a-form-item name="username"
-                           :label="$t('user.common.username')"
-                           :rules="[
-                             { required: true, message: $t('user.auth.usernameTip') },
-                             { min: 3, message: $t('user.auth.usernameSizeTip') },
-                             { max: 20, message: $t('user.auth.usernameSizeTip') }
-                         ]">
-                <a-input v-model:value="formState.username"
+                    @finish-failed="onError">
+              <MfFormItem name="username"
+                          :label="$t('user.common.username')"
+                          :rules="[
+                            { required: true, message: $t('user.auth.usernameTip') },
+                            { min: 3, message: $t('user.auth.usernameSizeTip') },
+                            { max: 20, message: $t('user.auth.usernameSizeTip') }
+                        ]">
+                <MfInput v-model="formState.username"
                          :placeholder="$t('user.auth.usernameTip')"/>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-form-item name="password"
-                           :label="$t('user.common.password')"
-                           :rules="[
-                             { required: true, message: $t('user.auth.passwordTip') },
-                             { min: 6, message: $t('user.auth.passwordSizeTip') },
-                             { max: 20, message: $t('user.auth.passwordSizeTip') }
-                         ]">
-                <a-input-password v-model:value="formState.password"
-                                  :placeholder="$t('user.auth.passwordTip')"/>
-              </a-form-item>
+              <MfFormItem name="password"
+                          :label="$t('user.common.password')"
+                          :rules="[
+                            { required: true, message: $t('user.auth.passwordTip') },
+                            { min: 6, message: $t('user.auth.passwordSizeTip') },
+                            { max: 20, message: $t('user.auth.passwordSizeTip') }
+                        ]">
+                <MfInput v-model="formState.password"
+                         type="password"
+                         show-password
+                         :placeholder="$t('user.auth.passwordTip')"/>
+              </MfFormItem>
 
-              <a-form-item name="confirmPassword"
-                           :label="$t('user.common.confirmPassword')"
-                           :rules="[
-                             { required: true, message: $t('user.auth.passwordTip') },
-                             { validator: validatePassword }
-                         ]">
-                <a-input-password v-model:value="formState.confirmPassword"
-                                  :placeholder="$t('user.auth.confirmPasswordTip')"/>
-              </a-form-item>
+              <MfFormItem name="confirmPassword"
+                          :label="$t('user.common.confirmPassword')"
+                          :rules="[
+                            { required: true, message: $t('user.auth.passwordTip') },
+                            { validator: validatePassword }
+                        ]">
+                <MfInput v-model="formState.confirmPassword"
+                         type="password"
+                         show-password
+                         :placeholder="$t('user.auth.confirmPasswordTip')"/>
+              </MfFormItem>
 
-              <a-form-item v-if="showCaptcha"
-                           name="captcha"
-                           :label="$t('user.common.captcha')"
-                           :rules="[
-                             { required: true, message: $t('user.auth.captchaTip') },
-                             { min: 1, message: $t('user.auth.captchaSizeTip') },
-                             { max: 6, message: $t('user.auth.captchaSizeTip') }
-                         ]">
+              <MfFormItem v-if="showCaptcha"
+                          name="captcha"
+                          :label="$t('user.common.captcha')"
+                          :rules="[
+                            { required: true, message: $t('user.auth.captchaTip') },
+                            { min: 1, message: $t('user.auth.captchaSizeTip') },
+                            { max: 6, message: $t('user.auth.captchaSizeTip') }
+                        ]">
                 <div class="flex items-center gap-2">
-                  <a-input v-model:value="formState.captcha"
+                  <MfInput v-model="formState.captcha"
                            :placeholder="$t('user.auth.captchaTip')"/>
-                  <a-button style="padding: 0"
-                            type="text"
+                  <MfButton variant="ghost"
+                            class="px-0!"
                             :loading="captchaLoading"
                             :disabled="captchaLoading"
                             @click="initCaptcha">
                     <img v-if="!captchaLoading" style="min-width: 120px; height: 100%;" :src="'data:image/png;base64,' + captchaImage"/>
-                  </a-button>
+                  </MfButton>
                 </div>
-              </a-form-item>
+              </MfFormItem>
 
-              <a-space direction="vertical" :style="{ width: '100%' }">
-                <a-button type="primary"
-                          html-type="submit"
+              <MfSpace direction="vertical" fill>
+                <MfButton variant="primary"
+                          type="submit"
                           block
                           :disabled="submitting"
                           :loading="submitting">
                   {{ $t('user.common.signup') }}
-                </a-button>
+                </MfButton>
 
-                <a-divider class="text-sm text-gray-400 py-2" orientation="center">
+                <MfDivider class="text-sm py-2">
                   {{ $t('user.auth.hasUserTip') }}
-                </a-divider>
+                </MfDivider>
 
-                <a-button block class="text-center" @click="$router.push('/auth/signin')">
+                <MfButton block @click="$router.push('/auth/signin')">
                   {{ $t('user.common.signin') }}
-                </a-button>
-              </a-space>
-            </a-form>
+                </MfButton>
+              </MfSpace>
+            </MfForm>
           </div>
-        </a-card>
+        </MfCard>
       </div>
     </div>
   </BaseLayout>
@@ -104,7 +108,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import CaptchaService from '@/services/captcha'
 import UserService from '@/services/user'
 import router from '@/router'
@@ -123,6 +127,7 @@ defineOptions({ name: 'AuthSignup' })
 
 const { t } = useI18n()
 
+const formRef = ref()
 const formState = ref<Props>({} as Props)
 const submitting = ref(false)
 const loading = ref(false)
@@ -146,16 +151,16 @@ const initCaptcha = () => {
                 })
 }
 
-const validatePassword = (_rule: any, value: string) => {
+const validatePassword = (value: unknown) => {
   if (value !== formState.value.password) {
-    return Promise.reject(new Error(t('user.auth.passwordNotMatchTip')))
+    return t('user.auth.passwordNotMatchTip')
   }
-  return Promise.resolve(true)
+  return true
 }
 
 const onError = (error: any) => {
   const names = (error?.errorFields || []).map((field: any) => (Array.isArray(field.name) ? field.name.join('.') : field.name))
-  message.error(`Validation error field: [ ${ names.join(', ') } ]`)
+  MfMessage.error(`Validation error field: [ ${ names.join(', ') } ]`)
 }
 
 const onSubmit = async () => {
@@ -166,7 +171,7 @@ const onSubmit = async () => {
                  router.push('/auth/signin')
                }
                else {
-                 message.error(response.message)
+                 MfMessage.error(response.message)
                  initCaptcha()
                }
              })

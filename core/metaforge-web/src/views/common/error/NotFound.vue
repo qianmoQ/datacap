@@ -1,19 +1,19 @@
 <template>
   <BaseLayout>
     <div class="h-screen">
-      <a-result status="404"
+      <MfResult status="404"
                 :title="$t('common.pageNotFound')"
                 :sub-title="$t('common.pageNotFoundTip')">
         <template #extra>
-          <a-button v-if="$route.redirectedFrom"
+          <MfButton v-if="$route.redirectedFrom"
                     @click="$router.push($route.redirectedFrom.fullPath)">
             {{ $t('common.backTo') }}
-          </a-button>
-          <a-button type="primary" @click="$router.push('/')">
+          </MfButton>
+          <MfButton variant="primary" @click="$router.push('/')">
             {{ $t('common.backToHome') }}
-          </a-button>
+          </MfButton>
         </template>
-      </a-result>
+      </MfResult>
     </div>
   </BaseLayout>
 </template>

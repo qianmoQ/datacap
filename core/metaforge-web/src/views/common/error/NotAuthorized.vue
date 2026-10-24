@@ -1,21 +1,21 @@
 <template>
   <BaseLayout>
     <div class='h-screen'>
-      <a-result status="403"
+      <MfResult status="403"
                 :title="$t('common.pageNotAuthorized')"
                 :sub-title="$t('common.pageNotAuthorizedTip')">
         <template #extra>
-          <a-button @click="$router.push(String($route.query.redirect || '/'))">
+          <MfButton @click="$router.push(String($route.query.redirect || '/'))">
             {{ $t('common.backTo') }}
-          </a-button>
-          <a-button type="primary" @click="$router.push('/')">
+          </MfButton>
+          <MfButton variant="primary" @click="$router.push('/')">
             {{ $t('common.backToHome') }}
-          </a-button>
-          <a-button @click="$router.push('/auth/signin')">
+          </MfButton>
+          <MfButton @click="$router.push('/auth/signin')">
             {{ $t('common.backToSignin') }}
-          </a-button>
+          </MfButton>
         </template>
-      </a-result>
+      </MfResult>
     </div>
   </BaseLayout>
 </template>
