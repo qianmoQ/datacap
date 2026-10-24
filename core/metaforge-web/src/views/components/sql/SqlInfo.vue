@@ -1,13 +1,13 @@
 <template>
-  <a-modal v-model:open="visible" title="Show Content" width="40%" :footer="null">
+  <MfModal v-model:open="visible" title="Show Content" width="40%">
     <AceEditor v-if="content" :value="content" :read-only="true"/>
 
     <template #footer>
-      <a-button danger @click="onCancel">
+      <MfButton variant="danger" @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

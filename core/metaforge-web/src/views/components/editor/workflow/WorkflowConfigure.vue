@@ -15,76 +15,74 @@
             {{ item.label }}
           </div>
 
-          <a-input v-if="item.type === 'input'"
-                   :value="item.value"
+          <MfInput v-if="item.type === 'input'"
+                   :model-value="item.value"
                    :disabled="item.disabled"
                    :placeholder="item.placeholder"
-                   :class="{ 'border-red-500': item.validated && !item.validated.valid }"
-                   @change="onChange(item, $event.target.value)"/>
+                   :invalid="item.validated && !item.validated.valid"
+                   @update:model-value="(value) => onChange(item, value)"/>
 
-          <a-input-password v-else-if="item.type === 'password'"
-                            :value="item.value"
-                            :disabled="item.disabled"
-                            :placeholder="item.placeholder"
-                            :class="{ 'border-red-500': item.validated && !item.validated.valid }"
-                            @change="onChange(item, $event.target.value)"/>
+          <MfInput v-else-if="item.type === 'password'"
+                   type="password"
+                   show-password
+                   :model-value="item.value"
+                   :disabled="item.disabled"
+                   :placeholder="item.placeholder"
+                   :invalid="item.validated && !item.validated.valid"
+                   @update:model-value="(value) => onChange(item, value)"/>
 
-          <a-textarea v-else-if="item.type === 'textarea'"
-                      :value="item.value"
+          <MfTextarea v-else-if="item.type === 'textarea'"
+                      :model-value="item.value"
                       :disabled="item.disabled"
                       :rows="3"
                       :placeholder="item.placeholder"
-                      :class="{ 'border-red-500': item.validated && !item.validated.valid }"
-                      @change="onChange(item, $event.target.value)"/>
+                      :invalid="item.validated && !item.validated.valid"
+                      @update:model-value="(value) => onChange(item, value)"/>
 
-          <a-input-number v-else-if="item.type === 'number'"
-                          :value="item.value"
-                          :disabled="item.disabled"
-                          :placeholder="item.placeholder"
-                          class="w-full"
-                          :class="{ 'border-red-500': item.validated && !item.validated.valid }"
-                          @change="(value) => onChange(item, value)"/>
+          <MfInputNumber v-else-if="item.type === 'number'"
+                         :model-value="item.value"
+                         :disabled="item.disabled"
+                         :placeholder="item.placeholder"
+                         class="w-full"
+                         :invalid="item.validated && !item.validated.valid"
+                         @change="(value: any) => onChange(item, value)"/>
 
-          <a-switch v-else-if="item.type === 'switch'"
-                    :checked="item.value === true || item.value === 'true'"
+          <MfSwitch v-else-if="item.type === 'switch'"
+                    :model-value="item.value === true || item.value === 'true'"
                     :disabled="item.disabled"
-                    @change="(value) => onChange(item, value)"/>
+                    @update:model-value="(value: any) => onChange(item, value)"/>
 
-          <a-select v-else-if="item.type === 'select'"
-                    :value="item.value"
+          <MfSelect v-else-if="item.type === 'select'"
+                    :model-value="item.value"
                     :disabled="item.disabled"
                     :placeholder="item.placeholder"
-                    allow-clear
+                    clearable
                     class="w-full"
-                    @change="(value) => onChange(item, value)">
-            <a-select-option v-for="option in item.options || []"
-                             :key="option.value"
-                             :value="option.value">
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
+                    :options="(item.options || []) as any"
+                    @change="(value: any) => onChange(item, value)"/>
 
-          <a-select v-else-if="item.type === 'array'"
-                    :value="toArrayValue(item.value)"
+          <MfSelect v-else-if="item.type === 'array'"
+                    :model-value="toArrayValue(item.value)"
                     :disabled="item.disabled"
-                    mode="tags"
+                    multiple
                     :placeholder="item.placeholder"
                     class="w-full"
-                    @change="(value) => onChange(item, value)"/>
+                    :options="toArrayValue(item.value).map((v) => ({ label: v, value: v }))"
+                    @change="(value: any) => onChange(item, value)"/>
 
-          <a-textarea v-else-if="item.type === 'map'"
-                      :value="toMapText(item.value)"
+          <MfTextarea v-else-if="item.type === 'map'"
+                      :model-value="toMapText(item.value)"
                       :disabled="item.disabled"
                       :rows="3"
                       placeholder="key=value"
-                      :class="{ 'border-red-500': item.validated && !item.validated.valid }"
-                      @change="onChange(item, fromMapText($event.target.value))"/>
+                      :invalid="item.validated && !item.validated.valid"
+                      @update:model-value="(value) => onChange(item, fromMapText(value))"/>
 
-          <a-input v-else
-                   :value="item.value"
+          <MfInput v-else
+                   :model-value="item.value"
                    :disabled="item.disabled"
                    :placeholder="item.placeholder"
-                   @change="onChange(item, $event.target.value)"/>
+                   @update:model-value="(value) => onChange(item, value)"/>
 
           <div v-if="item.description" class="text-[10px] text-gray-400 mt-1">{{ item.description }}</div>
           <div v-if="item.validated && !item.validated.valid" class="text-xs text-red-500 mt-1">

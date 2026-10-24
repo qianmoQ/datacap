@@ -21,9 +21,9 @@
                :key="weekIndex"
                class="flex flex-col"
                :style="{ gap: `${ cellGap }px` }">
-            <a-tooltip v-for="(day, dayIndex) in week"
+            <MfTooltip v-for="(day, dayIndex) in week"
                        :key="dayIndex"
-                       :title="day ? tooltipText(day) : ''">
+                       :content="day ? tooltipText(day) : ''">
               <div class="rounded-[2px] cursor-pointer"
                    :style="{
                        width: `${ cellSize }px`,
@@ -32,7 +32,7 @@
                    }"
                    @click="day && onSelect(day)">
               </div>
-            </a-tooltip>
+            </MfTooltip>
           </div>
         </div>
       </div>

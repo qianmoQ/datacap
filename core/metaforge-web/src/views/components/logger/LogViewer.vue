@@ -1,19 +1,16 @@
 <template>
   <div class="dc-logger w-full font-mono text-xs">
     <div v-if="toolbar" class="flex items-center gap-2 p-2">
-      <a-select v-model:value="filterLevel" class="w-32" size="small">
-        <a-select-option value="">{{ $t('logger.text.allLevel') }}</a-select-option>
-        <a-select-option v-for="level in Object.keys(levelColors)"
-                         :key="level"
-                         :value="level">
-          {{ level }}
-        </a-select-option>
-      </a-select>
+      <MfSelect v-model="filterLevel"
+                class="w-32"
+                size="sm"
+                :options="levelOptions"
+                :placeholder="$t('logger.text.allLevel')"/>
 
-      <a-input v-model:value="searchText"
+      <MfInput v-model="searchText"
                class="flex-1"
-               size="small"
-               allow-clear
+               size="sm"
+               clearable
                :placeholder="$t('logger.placeholder.search')"/>
     </div>
 
@@ -47,6 +44,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, PropType } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface LogEntry
 {
@@ -123,8 +121,15 @@ export default defineComponent({
   },
   setup(props)
   {
+    const { t } = useI18n()
+
     const filterLevel = ref('')
     const searchText = ref('')
+
+    const levelOptions = computed(() => [
+      { label: t('logger.text.allLevel'), value: '' },
+      ...Object.keys(props.highlightConfig).map((level) => ({ label: level, value: level }))
+    ])
 
     const parseLine = (line: string): LogEntry => {
       const entry: LogEntry = { timestamp: '', level: '', thread: '', logger: '', file: '', message: '' }
@@ -170,6 +175,7 @@ export default defineComponent({
     return {
       filterLevel,
       searchText,
+      levelOptions,
       entries,
       filteredEntries,
       levelColors: props.highlightConfig,

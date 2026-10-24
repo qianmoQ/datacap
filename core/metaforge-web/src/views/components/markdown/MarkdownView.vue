@@ -1,13 +1,13 @@
 <template>
-  <a-modal v-model:open="visible" :title="$t('common.content')" :footer="null" @cancel="onCancel">
+  <MfModal v-model:open="visible" :title="$t('common.content')">
     <MdPreview v-if="content" :modelValue="content" style="padding: 0"/>
 
     <template #footer>
-      <a-button @click="onCancel">
+      <MfButton @click="onCancel">
         {{ $t('common.cancel') }}
-      </a-button>
+      </MfButton>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

@@ -1,15 +1,12 @@
 <template>
-  <div>
-    <a-select v-model:value="applySource"
-              :options="options"
+  <div @scroll.capture="onPopupScroll">
+    <MfSelect v-model="applySource"
+              :options="options as any"
               :loading="loading"
-              show-search
-              option-filter-prop="label"
               :style="{ width: '100%' }"
               :placeholder="$t('source.tip.selectSource')"
-              @change="onChange"
-              @popup-scroll="onPopupScroll">
-    </a-select>
+              @change="onChange">
+    </MfSelect>
   </div>
 </template>
 

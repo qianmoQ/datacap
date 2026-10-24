@@ -8,41 +8,35 @@
       </div>
       <div class="dc-table__head-tools">
         <slot name="tools"/>
-        <a-tooltip :title="t('common.refresh')">
-          <a-button type="text" @click="emit('refresh')">
-            <template #icon>
-              <ReloadOutlined/>
-            </template>
-          </a-button>
-        </a-tooltip>
+        <MfTooltip :content="t('common.refresh')">
+          <MfButton variant="ghost" @click="emit('refresh')">
+            <ReloadOutlined/>
+          </MfButton>
+        </MfTooltip>
 
-        <a-popover trigger="click" placement="bottomRight">
+        <MfPopover trigger="click" placement="bottomRight">
           <template #content>
             <div class="dc-table__columns">
-              <a-checkbox v-for="col in toggleableColumns"
+              <MfCheckbox v-for="col in toggleableColumns"
                           :key="col.key"
-                          :checked="!hiddenKeys.has(col.key)"
-                          @change="(e: any) => toggleColumn(col.key, e.target.checked)">
+                          :model-value="!hiddenKeys.has(col.key)"
+                          @update:model-value="(checked: any) => toggleColumn(col.key, !!checked)">
                 {{ col.title }}
-              </a-checkbox>
+              </MfCheckbox>
             </div>
           </template>
-          <a-tooltip :title="columnsText">
-            <a-button>
-              <template #icon>
-                <SettingOutlined/>
-              </template>
-            </a-button>
-          </a-tooltip>
-        </a-popover>
+          <MfTooltip :content="columnsText">
+            <MfButton>
+              <SettingOutlined/>
+            </MfButton>
+          </MfTooltip>
+        </MfPopover>
 
-        <a-tooltip :title="downloadText">
-          <a-button @click="onDownload">
-            <template #icon>
-              <DownloadOutlined/>
-            </template>
-          </a-button>
-        </a-tooltip>
+        <MfTooltip :content="downloadText">
+          <MfButton @click="onDownload">
+            <DownloadOutlined/>
+          </MfButton>
+        </MfTooltip>
       </div>
     </div>
 
@@ -57,45 +51,51 @@
     </div>
 
     <!-- 表格 + 分页 -->
-    <a-spin :spinning="loading">
-      <a-table :columns="displayColumns"
-               :data-source="dataSource"
-               :pagination="false"
-               :row-key="rowKey"
-               :size="size"
-               :row-selection="rowSelection ? rowSelectionConfig : undefined"
-               :scroll="{ x: 'max-content' }">
-        <template #bodyCell="slotProps">
-          <slot name="bodyCell" v-bind="slotProps"/>
-        </template>
-      </a-table>
+    <MfTable :columns="tableColumns"
+             :data-source="dataSource"
+             :loading="loading"
+             :row-key="rowKey"
+             :empty-text="$t('common.noData')">
+      <!-- 行多选：复选框列 -->
+      <template v-if="rowSelection" #header-__selection__>
+        <MfCheckbox :model-value="allSelected"
+                    :indeterminate="indeterminate"
+                    @update:model-value="(checked: any) => onToggleSelectAll(!!checked)"/>
+      </template>
+      <template v-if="rowSelection" #cell-__selection__="{ record }">
+        <MfCheckbox :model-value="selectedRowKeys.includes(record[rowKey])"
+                    @update:model-value="() => onToggleRow(record)"/>
+      </template>
 
-      <!-- 页脚：已选择 + 批量操作 | 分页 -->
-      <div class="dc-table__footer">
-        <div v-if="rowSelection" class="dc-table__batch">
-          <span class="dc-table__selected">{{ $t('dataTable.selected', { count: selectedRowKeys.length }) }}</span>
-          <a-button v-for="action in batchActions"
-                    :key="action.key"
-                    size="small"
-                    :danger="action.danger"
-                    :disabled="selectedRowKeys.length === 0 || loading"
-                    @click="emit('batch', action.key, selectedRows)">
-            {{ action.label }}
-          </a-button>
-        </div>
+      <!-- bodyCell 插槽契约透传：与原 a-table 的 #bodyCell="{ column, record, text }" 保持一致 -->
+      <template v-for="col in displayColumns" :key="col.key" #[`cell-${col.key}`]="cellProps">
+        <slot name="bodyCell" v-bind="cellProps">{{ cellProps.text }}</slot>
+      </template>
+    </MfTable>
 
-        <div v-if="total > 0" class="dc-table__pagination">
-          <span class="dc-table__total">{{ $t('dataTable.total', { count: total }) }}</span>
-          <a-pagination :current="pageIndex"
-                        :page-size="pageSize"
-                        :total="total"
-                        show-size-changer
-                        :page-size-options="pageSizeOptions"
-                        @change="(page: number, size: number) => emit('page-change', page, size)"
-                        @show-size-change="(current: number, size: number) => emit('size-change', current, size)"/>
-        </div>
+    <!-- 页脚：已选择 + 批量操作 | 分页 -->
+    <div class="dc-table__footer">
+      <div v-if="rowSelection" class="dc-table__batch">
+        <span class="dc-table__selected">{{ $t('dataTable.selected', { count: selectedRowKeys.length }) }}</span>
+        <MfButton v-for="action in batchActions"
+                  :key="action.key"
+                  size="sm"
+                  :variant="action.danger ? 'danger' : 'secondary'"
+                  :disabled="selectedRowKeys.length === 0 || loading"
+                  @click="emit('batch', action.key, selectedRows)">
+          {{ action.label }}
+        </MfButton>
       </div>
-    </a-spin>
+
+      <div v-if="total > 0" class="dc-table__pagination">
+        <span class="dc-table__total">{{ $t('dataTable.total', { count: total }) }}</span>
+        <MfPagination :current="pageIndex"
+                      :page-size="pageSize"
+                      :total="total"
+                      :page-sizes="pageSizeOptions.map(Number)"
+                      @change="onPageChange"/>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -196,22 +196,47 @@ const toggleColumn = (key: string, checked: boolean) => {
   hiddenKeys.value = next
 }
 
+// 行多选内部复选框列
+const SELECTION_KEY = '__selection__'
+
+const tableColumns = computed<any[]>(() => {
+  const columns = displayColumns.value
+  return props.rowSelection
+      ? [{ key: SELECTION_KEY, dataIndex: SELECTION_KEY, title: '', width: '40px' }, ...columns]
+      : columns
+})
+
 // ---- 行多选 ----
 const selectedRowKeys = ref<any[]>([])
 
-const rowSelectionConfig = computed(() => ({
-  type: 'checkbox' as const,
-  selectedRowKeys: selectedRowKeys.value,
-  onChange: (keys: any[], rows: any[]) => {
-    selectedRowKeys.value = keys
-    emit('selection-change', keys, rows)
-  },
-  onSelectAll: (selected: boolean) => {
-    if (!selected) {
-      selectedRowKeys.value = []
-    }
-  }
-}))
+const rowKeyValue = (row: any) => row[props.rowKey as string]
+
+const allSelected = computed(() =>
+  props.dataSource.length > 0 && props.dataSource.every((row) => selectedRowKeys.value.includes(rowKeyValue(row)))
+)
+
+const indeterminate = computed(() =>
+  !allSelected.value && props.dataSource.some((row) => selectedRowKeys.value.includes(rowKeyValue(row)))
+)
+
+const applySelection = (keys: any[]) => {
+  selectedRowKeys.value = keys
+  emit('selection-change', keys, props.dataSource.filter((row) => keys.includes(rowKeyValue(row))))
+}
+
+const onToggleRow = (record: any) => {
+  const key = rowKeyValue(record)
+  applySelection(selectedRowKeys.value.includes(key)
+      ? selectedRowKeys.value.filter((k) => k !== key)
+      : [...selectedRowKeys.value, key])
+}
+
+const onToggleSelectAll = (checked: boolean) => {
+  const keys = props.dataSource.map(rowKeyValue)
+  applySelection(checked
+      ? Array.from(new Set([...selectedRowKeys.value, ...keys]))
+      : selectedRowKeys.value.filter((k) => !keys.includes(k)))
+}
 
 const selectedRows = computed(() =>
   props.dataSource.filter(row => selectedRowKeys.value.includes(row[props.rowKey as string]))
@@ -222,6 +247,14 @@ watch(() => props.dataSource, () => {
   const keys = new Set(props.dataSource.map(row => row[props.rowKey as string]))
   selectedRowKeys.value = selectedRowKeys.value.filter(key => keys.has(key))
 })
+
+// 分页：页码点击与每页条数变更都通过 change 触发；条数变化时同时对外发出 size-change（对齐原 a-pagination 行为）
+const onPageChange = (page: number, size: number) => {
+  if (size !== props.pageSize) {
+    emit('size-change', page, size)
+  }
+  emit('page-change', page, size)
+}
 
 // 默认下载：把当前页数据按可见列导出为 CSV；父组件可监听 @download 覆盖
 const onDownload = () => {

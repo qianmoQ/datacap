@@ -1,19 +1,19 @@
 <template>
   <div>
-    <a-button class="p-0 w-full">
+    <MfButton class="p-0 w-full">
       <input ref="uploadInput" type="file" accept="image/jpg, image/jpeg, image/png, image/gif" @change="selectFile"/>
-    </a-button>
+    </MfButton>
   </div>
 
   <div v-if="result.blobURL || pic" class="mt-2.5 flex justify-center">
-    <a-avatar shape="square"
+    <MfAvatar shape="square"
               :size="160"
               class="bg-transparent"
               :src="result.blobURL ? result.blobURL : propPic">
-    </a-avatar>
+    </MfAvatar>
   </div>
 
-  <a-modal v-if="isShowModal" v-model:open="isShowModal" :title="$t('common.cropper')" :footer="null">
+  <MfModal v-if="isShowModal" v-model:open="isShowModal" :title="$t('common.cropper')">
     <div class="p-0">
       <VuePictureCropper style="max-height: 400px"
                          :boxStyle="{ width: '100%', height: '100%', backgroundColor: '#f8f8f8', margin: 'auto' }"
@@ -23,24 +23,24 @@
     </div>
     <template #footer>
       <div class="space-x-2">
-        <a-button size="small" @click="isShowModal = false">
+        <MfButton size="sm" @click="isShowModal = false">
           {{ $t('common.cancel') }}
-        </a-button>
+        </MfButton>
 
-        <a-button size="small" danger @click="clear">
+        <MfButton size="sm" variant="danger" @click="clear">
           {{ $t('common.clear') }}
-        </a-button>
+        </MfButton>
 
-        <a-button size="small" danger @click="reset">
+        <MfButton size="sm" variant="danger" @click="reset">
           {{ $t('common.reset') }}
-        </a-button>
+        </MfButton>
 
-        <a-button size="small" type="primary" @click="getResult">
+        <MfButton size="sm" variant="primary" @click="getResult">
           {{ $t('common.cropper') }}
-        </a-button>
+        </MfButton>
       </div>
     </template>
-  </a-modal>
+  </MfModal>
 </template>
 
 <script setup lang="ts">

@@ -1,64 +1,62 @@
 <template>
   <div>
-    <a-drawer v-model:open="visible"
+    <MfDrawer v-model:open="visible"
               width="25%"
               :title="`[ ${ data?.name } ] ${ $t('common.configure') }`"
               @close="onCancel">
-      <a-form :model="formState" layout="vertical">
+      <MfForm :model="formState" layout="vertical">
         <div v-if="data" v-for="item in data.configure" :key="item.field">
-          <a-form-item v-if="item.input"
-                       :name="item.field"
-                       :label="item.field"
-                       :extra="item.description">
+          <MfFormItem v-if="item.input"
+                      :name="item.field"
+                      :label="item.field">
             <div v-if="item.type === 'INPUT'" class="flex flex-row items-start font-normal space-x-1">
-              <a-input v-model:value="item.value" :disabled="item.override && item.tooltip"/>
-              <a-tooltip v-if="item.tooltip" :title="item.tooltip">
-                <a-checkbox v-model:checked="item.override"/>
-              </a-tooltip>
+              <MfInput v-model="item.value" :disabled="item.override && item.tooltip"/>
+              <MfTooltip v-if="item.tooltip" :content="item.tooltip">
+                <MfCheckbox v-model="item.override"/>
+              </MfTooltip>
             </div>
 
             <div v-if="item.type === 'TEXT'" class="flex flex-row items-start font-normal space-x-1">
-              <a-textarea v-model:value="item.value" :disabled="item.override && item.tooltip"/>
-              <a-tooltip v-if="item.tooltip" :title="item.tooltip">
-                <a-checkbox v-model:checked="item.override"/>
-              </a-tooltip>
+              <MfTextarea v-model="item.value" :disabled="item.override && item.tooltip"/>
+              <MfTooltip v-if="item.tooltip" :content="item.tooltip">
+                <MfCheckbox v-model="item.override"/>
+              </MfTooltip>
             </div>
 
             <div v-if="item.type === 'SWITCH'" class="flex flex-row items-start font-normal space-x-1">
-              <a-switch v-model:checked="item.value" :disabled="item.override && item.tooltip"/>
-              <a-tooltip v-if="item.tooltip" :title="item.tooltip">
-                <a-checkbox v-model:checked="item.override" class="ml-2"/>
-              </a-tooltip>
+              <MfSwitch v-model="item.value" :disabled="item.override && item.tooltip"/>
+              <MfTooltip v-if="item.tooltip" :content="item.tooltip">
+                <MfCheckbox v-model="item.override" class="ml-2"/>
+              </MfTooltip>
             </div>
 
             <div v-if="item.type === 'SELECT'" class="flex flex-row items-start font-normal space-x-1">
-              <a-select v-model:value="item.value" :disabled="item.override && item.tooltip" :style="{ width: '100%' }">
-                <a-select-option v-for="option in item.defaultValues" :key="option" :value="option">
-                  {{ option }}
-                </a-select-option>
-              </a-select>
-              <a-tooltip v-if="item.tooltip" :title="item.tooltip">
-                <a-checkbox v-model:checked="item.override" class="ml-2"/>
-              </a-tooltip>
+              <MfSelect v-model="item.value" :disabled="item.override && item.tooltip" :style="{ width: '100%' }"
+                        :options="(item.defaultValues || []).map((option: any) => ({ label: option, value: option }))"/>
+              <MfTooltip v-if="item.tooltip" :content="item.tooltip">
+                <MfCheckbox v-model="item.override" class="ml-2"/>
+              </MfTooltip>
             </div>
 
             <div v-if="item.type === 'NUMBER'" class="flex flex-row items-start font-normal space-x-1">
-              <a-input-number v-model:value="item.value" :disabled="item.override && item.tooltip" :style="{width: item.width + 'px'}"/>
-              <a-tooltip v-if="item.tooltip" :title="item.tooltip">
-                <a-checkbox v-model:checked="item.override" class="ml-2"/>
-              </a-tooltip>
+              <MfInputNumber v-model="item.value" :disabled="item.override && item.tooltip" :style="{width: item.width + 'px'}"/>
+              <MfTooltip v-if="item.tooltip" :content="item.tooltip">
+                <MfCheckbox v-model="item.override" class="ml-2"/>
+              </MfTooltip>
             </div>
-          </a-form-item>
+
+            <div v-if="item.description" class="text-xs text-content-tertiary mt-1">{{ item.description }}</div>
+          </MfFormItem>
         </div>
-      </a-form>
+      </MfForm>
 
       <template #footer>
-        <a-button type="primary" @click="onSubmit()">
+        <MfButton variant="primary" @click="onSubmit()">
           <SaveOutlined :style="{ fontSize: '16px' }"/>
           <span>{{ $t('common.save') }}</span>
-        </a-button>
+        </MfButton>
       </template>
-    </a-drawer>
+    </MfDrawer>
   </div>
 </template>
 

@@ -1,34 +1,34 @@
 <template>
   <div v-if="data" class="space-y-2">
-    <a-card>
-      <template #title>
+    <MfCard>
+      <template #header>
         <span class="text-gray-500 text-sm">{{ $t('pipeline.common.input') }}</span>
       </template>
 
       <div v-for="node in inputs" :key="node.id" class="dndflow p-1">
         <div class="nodes">
           <div :class="'flex items-center space-x-1 vue-flow__node-' + node.nodeType" :draggable="true" @dragstart="onDragStart($event, node.nodeType, node)">
-            <a-avatar size="small" :src="'/static/images/plugin/' + (node.type as string).toLowerCase().split(' ')[0] + '.svg'"/>
+            <MfAvatar size="sm" :src="'/static/images/plugin/' + (node.type as string).toLowerCase().split(' ')[0] + '.svg'"/>
             <span>{{ node.name }}</span>
           </div>
         </div>
       </div>
-    </a-card>
+    </MfCard>
 
-    <a-card>
-      <template #title>
+    <MfCard>
+      <template #header>
         <span class="text-gray-500 text-sm">{{ $t('pipeline.common.output') }}</span>
       </template>
 
       <div v-for="node in outputs" :key="node.id" class="dndflow p-1">
         <div class="nodes">
           <div :class="'flex items-center space-x-1 vue-flow__node-' + node.nodeType" :draggable="true" @dragstart="onDragStart($event, node.nodeType, node)">
-            <a-avatar size="small" :src="'/static/images/plugin/' + (node.type as string).toLowerCase().split(' ')[0] + '.svg'"/>
+            <MfAvatar size="sm" :src="'/static/images/plugin/' + (node.type as string).toLowerCase().split(' ')[0] + '.svg'"/>
             <span>{{ node.name }}</span>
           </div>
         </div>
       </div>
-    </a-card>
+    </MfCard>
   </div>
 </template>
 

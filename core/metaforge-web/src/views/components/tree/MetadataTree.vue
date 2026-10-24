@@ -1,15 +1,15 @@
 <template>
   <div class="relative overflow-auto" style="height: 500px; max-height: 500px; max-width: 300px;">
-    <a-skeleton v-if="loading" active class="mt-2"/>
+    <MfSkeleton v-if="loading" active class="mt-2"/>
 
-    <a-alert v-else-if="data.length === 0 && errorMessage" class="mt-2" type="error" :message="errorMessage"/>
+    <MfAlert v-else-if="data.length === 0 && errorMessage" class="mt-2" variant="danger" :title="errorMessage"/>
 
-    <a-tree v-else-if="data.length > 0"
-            v-model:selectedKeys="selectedKeys"
-            :tree-data="data"
+    <MfTree v-else-if="data.length > 0"
+            v-model:selected-keys="selectedKeys"
+            :data="data as any"
             :load-data="onLoadData"
             @select="onSelect">
-      <template #title="node">
+      <template #title="{ node }">
         <div class="flex items-center space-x-1">
           <component :is="node.level === 2 ? DatabaseOutlined :
                           node.level === 3 ? TableOutlined :
@@ -19,13 +19,13 @@
           <span class="text-sm font-normal text-gray-500">{{ node.title }}</span>
         </div>
       </template>
-    </a-tree>
+    </MfTree>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { StructureEnum, StructureModel } from '@/model/structure'
 import MetadataService from '@/services/metadata.ts'
 import { ObjectUtils } from '@/utils/object'
@@ -80,11 +80,11 @@ const handleInitialize = () => {
   }
 }
 
-const onLoadData = (treeNode: any): Promise<void> => {
-  const item = treeNode.dataRef as any
-  return new Promise<void>((resolve) => {
+const onLoadData = (treeNode: any): Promise<any[]> => {
+  const item = treeNode as any
+  return new Promise<any[]>((resolve) => {
     if (item.children) {
-      resolve()
+      resolve([])
       return
     }
 
@@ -105,12 +105,12 @@ const onLoadData = (treeNode: any): Promise<void> => {
                          }))
                        }
                        else {
-                         message.error(response.data.message)
+                         MfMessage.error(response.data.message)
                        }
                      })
                      .finally(() => {
                        data.value = updateTreeChildren(data.value, item.key, children)
-                       resolve()
+                       resolve(children)
                      })
     }
     else if (item.level === StructureEnum.TABLE) {
@@ -132,22 +132,22 @@ const onLoadData = (treeNode: any): Promise<void> => {
                                  }))
                        }
                        else {
-                         message.error(response.data.message)
+                         MfMessage.error(response.data.message)
                        }
                      })
                      .finally(() => {
                        data.value = updateTreeChildren(data.value, item.key, children)
-                       resolve()
+                       resolve(children)
                      })
     }
     else {
-      resolve()
+      resolve([])
     }
   })
 }
 
 const onSelect = (_keys: any[], info: any) => {
-  const item = info.node.dataRef as StructureModel
+  const item = info.node as any as StructureModel
   let text: string = item.title as string
   switch (item.level) {
     case StructureEnum.TABLE:

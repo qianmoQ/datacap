@@ -86,23 +86,23 @@
                  class="mb-2">
               <div class="text-xs text-gray-600 mb-1">{{ entry.label }}</div>
 
-              <a-textarea v-if="entry.type === 'textarea'"
-                         :value="entry.value"
-                         :rows="3"
-                         :placeholder="entry.placeholder"
-                         @change="onEntryChange(entry, $event.target.value)"/>
+              <MfTextarea v-if="entry.type === 'textarea'"
+                          :model-value="entry.value"
+                          :rows="3"
+                          :placeholder="entry.placeholder"
+                          @update:model-value="(value) => onEntryChange(entry, value)"/>
 
-              <a-input-number v-else-if="entry.type === 'number'"
-                              :value="entry.value"
-                              class="w-full"
-                              :min="entry.min"
-                              :max="entry.max"
-                              @change="(value) => onEntryChange(entry, value)"/>
+              <MfInputNumber v-else-if="entry.type === 'number'"
+                             :model-value="entry.value"
+                             class="w-full"
+                             :min="entry.min"
+                             :max="entry.max"
+                             @change="(value: any) => onEntryChange(entry, value)"/>
 
-              <a-input v-else
-                       :value="entry.value"
+              <MfInput v-else
+                       :model-value="entry.value"
                        :placeholder="entry.placeholder"
-                       @change="onEntryChange(entry, $event.target.value)"/>
+                       @update:model-value="(value) => onEntryChange(entry, value)"/>
             </div>
           </div>
         </div>

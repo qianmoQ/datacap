@@ -1,14 +1,14 @@
 <template>
   <div class="dc-workflow-panel flex flex-col h-full bg-white" :style="{ width: `${ width }px` }">
     <div class="p-2 border-b">
-      <a-input v-model:value="searchTextValue"
-               size="small"
-               allow-clear
+      <MfInput v-model="searchTextValue"
+               size="sm"
+               clearable
                :placeholder="$t('common.search') || 'Search'">
         <template #prefix>
           <SearchOutlined :style="{ fontSize: '12px' }"/>
         </template>
-      </a-input>
+      </MfInput>
     </div>
 
     <div class="flex-1 overflow-y-auto p-2">

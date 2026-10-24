@@ -1,11 +1,11 @@
 <template>
-  <a-layout style="height: calc(100vh - 35px)" @drop="onDrop">
-    <a-layout has-sider>
-      <a-layout-sider theme="light">
+  <div class="flex flex-col" style="height: calc(100vh - 35px)" @drop="onDrop">
+    <div class="flex flex-1 min-h-0">
+      <aside class="w-[200px] shrink-0 overflow-y-auto bg-surface">
         <FlowSider v-if="data" :data="data"/>
-      </a-layout-sider>
+      </aside>
 
-      <a-layout-content>
+      <div class="flex-1 min-w-0 relative">
         <VueFlow :default-viewport="{ zoom: 1.5 }"
                  :min-zoom="0.2"
                  :max-zoom="4"
@@ -15,27 +15,23 @@
           <Controls/>
           <Panel position="top-right">
             <div class="space-x-2">
-              <a-tooltip :title="$t('pipeline.common.resetTransform')">
-                <a-button type="text" shape="circle" @click="resetTransform">
-                  <template #icon>
-                    <SyncOutlined :style="{ fontSize: '16px' }"/>
-                  </template>
-                </a-button>
-              </a-tooltip>
+              <MfTooltip :content="$t('pipeline.common.resetTransform')">
+                <MfButton variant="ghost" size="sm" class="rounded-full!" @click="resetTransform">
+                  <SyncOutlined :style="{ fontSize: '16px' }"/>
+                </MfButton>
+              </MfTooltip>
 
-              <a-tooltip :title="$t('common.save')">
-                <a-button type="text" shape="circle" @click="saveConfigure(configure)">
-                  <template #icon>
-                    <SaveOutlined :style="{ fontSize: '16px' }"/>
-                  </template>
-                </a-button>
-              </a-tooltip>
+              <MfTooltip :content="$t('common.save')">
+                <MfButton variant="ghost" size="sm" class="rounded-full!" @click="saveConfigure(configure)">
+                  <SaveOutlined :style="{ fontSize: '16px' }"/>
+                </MfButton>
+              </MfTooltip>
             </div>
           </Panel>
         </VueFlow>
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+      </div>
+    </div>
+  </div>
 
   <FlowConfigure v-if="configureVisible"
                  :isVisible="configureVisible"
@@ -51,7 +47,7 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { v4 as uuidv4 } from 'uuid'
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { MfMessage } from 'metaforge-ui'
 import { Configuration } from '@/views/components/editor/flow/Configuration.ts'
 import FlowSider from '@/views/components/editor/flow/components/FlowSider.vue'
 import FlowConfigure from '@/views/components/editor/flow/components/FlowConfigure.vue'
@@ -122,17 +118,17 @@ const resetTransform = () => {
 const saveConfigure = (conf: any) => {
   const data = toObject()
   if (!conf.from) {
-    message.error(i18n.t('pipeline.validator.from'))
+    MfMessage.error(i18n.t('pipeline.validator.from'))
     return
   }
 
   if (!conf.to) {
-    message.error(i18n.t('pipeline.validator.to'))
+    MfMessage.error(i18n.t('pipeline.validator.to'))
     return
   }
 
   if (data.edges.length === 0) {
-    message.error(i18n.t('pipeline.validator.edge'))
+    MfMessage.error(i18n.t('pipeline.validator.edge'))
     return
   }
   conf.flow = data
