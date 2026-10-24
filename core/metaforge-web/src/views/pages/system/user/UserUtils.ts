@@ -5,7 +5,7 @@ export function useHeaders()
 {
     const { t } = useI18n()
 
-    // ant-design-vue Table 列格式：title + dataIndex/key；
+    // MfTable 列格式（bodyCell 契约）：title + dataIndex/key；
     // role / action 列没有 dataIndex，通过 <template #bodyCell> 按 column.key 自定义渲染
     const headers = computed(() => [
             { title: t('common.id'), dataIndex: 'id', key: 'id' },

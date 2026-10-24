@@ -8,7 +8,7 @@ export function useDatasetHeaders()
 {
     const { t } = useI18n()
 
-    // ant-design-vue Table 列格式（DatasetHome 已迁 antd）；source/syncMode/state/action 走 #bodyCell
+    // MfTable 列格式（bodyCell 契约）；source/syncMode/state/action 走 #bodyCell
     const headers = computed(() => [
         { title: t('common.id'), dataIndex: 'id', key: 'id' },
         { title: t('common.name'), dataIndex: 'name', key: 'name' },
@@ -25,7 +25,7 @@ export function useDatasetHeaders()
         { title: t('common.action'), key: 'action' }
     ])
 
-    // ant-design-vue Table 列格式（DatasetHistory 已迁 antd）；progress/state/action 走 #bodyCell
+    // MfTable 列格式（bodyCell 契约）；progress/state/action 走 #bodyCell
     const historyHeaders = computed(() => [
         { title: t('common.id'), dataIndex: 'id', key: 'id' },
         { title: t('common.elapsed'), dataIndex: 'elapsed', key: 'elapsed' },

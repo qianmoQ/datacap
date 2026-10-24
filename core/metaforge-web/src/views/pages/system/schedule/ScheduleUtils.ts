@@ -5,7 +5,7 @@ export function useHeaders()
 {
     const { t } = useI18n()
 
-    // ant-design-vue Table 列格式（ScheduleHome 已迁 antd）；active/system/action 走 #bodyCell
+    // MfTable 列格式（bodyCell 契约）；active/system/action 走 #bodyCell
     const headers = computed(() => [
         { title: t('common.id'), dataIndex: 'id', key: 'id' },
         { title: t('common.name'), dataIndex: 'name', key: 'name' },
@@ -19,7 +19,7 @@ export function useHeaders()
         { title: t('common.action'), key: 'action' }
     ])
 
-    // ant-design-vue Table 列格式（ScheduleHistory 已迁 antd）
+    // MfTable 列格式（bodyCell 契约）
     const historyHeaders = computed(() => [
             { title: t('common.id'), dataIndex: 'id', key: 'id' },
             { title: t('common.name'), dataIndex: 'name', key: 'name' },

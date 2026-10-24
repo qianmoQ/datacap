@@ -1,6 +1,6 @@
 import GridOptions from '@/views/components/grid/GridOptions'
 
-// ant-design-vue Table 列格式（SourceTableStructure 已迁 antd）；object_nullable 走 #bodyCell
+// MfTable 列格式（bodyCell 契约）；object_nullable 走 #bodyCell
 const createHeaders = (i18n: any) => {
     return [
         { title: i18n.t('common.name'), dataIndex: 'object_name', key: 'object_name' },

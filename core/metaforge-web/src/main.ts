@@ -10,7 +10,6 @@ import App from './App.vue'
 import router from '@/router'
 import i18n from '@/i18n/I18n'
 import { createIcons } from '@/fontawesome'
-import Antd from 'ant-design-vue'
 import MetaforgeUI from 'metaforge-ui'
 
 const app = createApp(App)
@@ -20,7 +19,5 @@ app.config.warnHandler = () => null
 app.use(router)
 app.use(i18n)
 app.use(createPinia())
-// 过渡期：antd 与 metaforge-ui 并存，视图逐批迁移到 Mf* 组件后移除 antd
-app.use(Antd)
 app.use(MetaforgeUI)
 app.provide('$t', i18n.global.t).mount('#app')

@@ -1,5 +1,4 @@
-import { computed, ref, watch } from 'vue'
-import { theme } from 'ant-design-vue'
+import { ref, watch } from 'vue'
 import { applyMfTheme, mfDarkPreset, mfLightPreset, setMfThemeMode } from 'metaforge-ui'
 
 /**
@@ -24,21 +23,12 @@ export interface BrandTheme
 {
     key: string
     label: string
-    /** 传给 antd token 的品牌色 */
-    antd: {
-        colorPrimary: string
-        colorLink: string
-    }
 }
 
 const BRANDS: Record<string, BrandTheme> = {
     metaforge: {
         key: 'metaforge',
-        label: 'MetaForge Green',
-        antd: {
-            colorPrimary: '#0A8F67',
-            colorLink: '#0A8F67'
-        }
+        label: 'MetaForge Green'
     }
 }
 
@@ -84,45 +74,8 @@ watch(brandKey, (value) => {
 })
 
 export function useTheme() {
-    const brand = computed<BrandTheme>(() => BRANDS[brandKey.value] || BRANDS.metaforge)
+    const brand = ref<BrandTheme>(BRANDS[brandKey.value] || BRANDS.metaforge)
 
-    /** 传给 <a-config-provider :theme> 的主题配置。 */
-    const antdTheme = computed(() => {
-        // antd 会从 colorPrimary 自动推导浅色阶（colorPrimaryBg 等），
-        // 但推导结果与设计文档手调的色板不一致（偏灰绿），这里按
-        // design/ui-color-system.md 显式覆盖
-        const primaryScale = isDark.value
-            ? {
-                colorPrimaryBg: 'rgba(18, 166, 106, 0.16)',
-                colorPrimaryBgHover: 'rgba(18, 166, 106, 0.24)',
-                colorPrimaryBorder: 'rgba(18, 166, 106, 0.4)',
-                colorPrimaryBorderHover: '#49C399'
-            }
-            : {
-                colorPrimaryBg: '#DDF5EC',
-                colorPrimaryBgHover: '#B9EAD9',
-                colorPrimaryBorder: '#87D9BE',
-                colorPrimaryBorderHover: '#0A8F67'
-            }
-
-        return {
-            algorithm: isDark.value ? theme.darkAlgorithm : theme.defaultAlgorithm,
-            token: {
-                // 品牌色（design/ui-color-system.md）
-                colorPrimary: brand.value.antd.colorPrimary,
-                colorLink: brand.value.antd.colorLink,
-                ...primaryScale,
-                // 状态色对齐 ui-color-system.md 第 8 节
-                colorSuccess: '#16A66A',
-                colorWarning: '#E5A11A',
-                colorError: '#DC5656',
-                colorInfo: '#3B82F6',
-                // 布局层透明，露出 body 的环境光背景
-                colorBgLayout: 'transparent',
-                borderRadius: 8
-            }
-        }
-    })
 
     const toggle = (): void => {
         isDark.value = !isDark.value
@@ -143,7 +96,6 @@ export function useTheme() {
         isDark,
         brand,
         brands: BRANDS,
-        antdTheme,
         toggle,
         setDark,
         setBrand

@@ -5,7 +5,7 @@ export function useHeaders()
 {
     const { t } = useI18n()
 
-    // ant-design-vue Table 列格式（WorkflowHome 已迁 antd）；executor/state/action 走 #bodyCell
+    // MfTable 列格式（bodyCell 契约）；executor/state/action 走 #bodyCell
     const headers = computed(() => [
         { title: t('common.id'), dataIndex: 'id', key: 'id' },
         { title: t('common.name'), dataIndex: 'name', key: 'name' },
