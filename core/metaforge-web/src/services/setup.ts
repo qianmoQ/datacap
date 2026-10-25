@@ -15,9 +15,9 @@ class SetupService
         return new HttpUtils().get(`${DEFAULT_PATH}/environment`)
     }
 
-    testConnection(): Promise<ResponseModel>
+    testConnection(configure?: Record<string, unknown>): Promise<ResponseModel>
     {
-        return new HttpUtils().post(`${DEFAULT_PATH}/test`, {})
+        return new HttpUtils().post(`${DEFAULT_PATH}/test`, configure || {})
     }
 
     install(configure: Record<string, unknown>): Promise<ResponseModel>

@@ -20,8 +20,22 @@ const DEFAULT_MESSAGES = {
             installedTip: '该实例已完成安装，即将前往登录页',
             steps: {
                 environment: '环境检查',
+                database: '数据库',
                 account: '管理员账号',
                 finish: '完成安装'
+            },
+            database: {
+                current: '使用当前数据库',
+                currentTip: '应用已连接外部数据库，直接在当前库中初始化',
+                embedded: '使用内置存储（推荐）',
+                embeddedTip: '无需外部数据库，数据保存在本地文件中，开箱即用，重启不丢失',
+                mysql: '连接 MySQL',
+                mysqlTip: '安装到外部 MySQL，请先创建空数据库；配置将写入 config/application.properties，安装后需重启服务',
+                host: '主机',
+                port: '端口',
+                name: '数据库名',
+                username: '用户名',
+                password: '密码'
             },
             env: {
                 database: '数据库',
@@ -32,7 +46,8 @@ const DEFAULT_MESSAGES = {
                 test: '测试连接',
                 testing: '测试中...',
                 elapsed: '耗时',
-                testFailed: '连接测试失败'
+                testFailed: '连接测试失败',
+                embeddedMode: '内置模式'
             },
             account: {
                 username: '用户名',
@@ -47,10 +62,13 @@ const DEFAULT_MESSAGES = {
             },
             install: {
                 running: '正在初始化数据库并创建管理员账号...',
+                submit: '开始安装',
                 success: '安装完成',
                 successTip: '管理员账号已创建，请使用该账号登录系统',
                 failed: '安装失败',
                 goToSignin: '前往登录',
+                restartTip: '数据库配置已写入下方文件，请重启服务后刷新页面完成安装',
+                acknowledge: '我已重启，刷新页面',
                 retry: '重试'
             },
             next: '下一步',
@@ -69,8 +87,22 @@ const DEFAULT_MESSAGES = {
             installedTip: 'This instance is already installed, redirecting to sign in',
             steps: {
                 environment: 'Environment',
+                database: 'Database',
                 account: 'Administrator',
                 finish: 'Finish'
+            },
+            database: {
+                current: 'Use current database',
+                currentTip: 'The app is already connected to an external database, initialize it directly',
+                embedded: 'Use embedded storage (recommended)',
+                embeddedTip: 'No external database needed, data is kept in a local file and survives restarts',
+                mysql: 'Connect MySQL',
+                mysqlTip: 'Install into an external MySQL (create an empty database first); the datasource is persisted to config/application.properties and a restart is required',
+                host: 'Host',
+                port: 'Port',
+                name: 'Database',
+                username: 'Username',
+                password: 'Password'
             },
             env: {
                 database: 'Database',
@@ -96,10 +128,13 @@ const DEFAULT_MESSAGES = {
             },
             install: {
                 running: 'Initializing database and creating administrator...',
+                submit: 'Install',
                 success: 'Installation finished',
                 successTip: 'The administrator account is ready, sign in with it',
                 failed: 'Installation failed',
                 goToSignin: 'Go to sign in',
+                restartTip: 'The datasource was persisted to the file below, restart the server and refresh to finish',
+                acknowledge: 'Restarted, refresh page',
                 retry: 'Retry'
             },
             next: 'Next',

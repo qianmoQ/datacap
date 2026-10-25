@@ -1,6 +1,6 @@
 <template>
   <BaseLayout>
-    <div class="h-screen flex items-center justify-center">
+    <div class="h-screen flex items-center justify-center overflow-y-auto py-8">
       <div class="w-full max-w-xl px-4 mx-auto">
         <MfCard class="w-full">
           <template #header>
@@ -14,7 +14,7 @@
           </template>
 
           <!-- 自绘步骤条 -->
-          <div class="flex items-center justify-center gap-0 px-6 pt-2 pb-6">
+          <div class="flex flex-wrap items-center justify-center gap-0 px-4 pt-2 pb-6">
             <template v-for="(label, index) in stepLabels" :key="label">
               <div class="flex items-center">
                 <div class="flex flex-col items-center gap-1">
@@ -28,7 +28,7 @@
                   </span>
                   <span class="text-xs" :class="step >= index ? 'text-content' : 'text-content-tertiary'">{{ label }}</span>
                 </div>
-                <div v-if="index < stepLabels.length - 1" class="mx-3 mb-5 h-px w-16 sm:w-24" :class="step > index ? 'bg-primary' : 'bg-line'"/>
+                <div v-if="index < stepLabels.length - 1" class="mx-2 mb-5 h-px w-10 sm:w-16" :class="step > index ? 'bg-primary' : 'bg-line'"/>
               </div>
             </template>
           </div>
@@ -47,7 +47,10 @@
                   </div>
                   <div class="flex items-center justify-between rounded-mf-md border border-line px-4 py-3 text-sm">
                     <span class="text-content-tertiary">{{ $t('setup.env.product') }}</span>
-                    <span class="font-medium text-content">{{ environment.product || '--' }}</span>
+                    <span class="font-medium text-content">
+                      {{ environment.product || '--' }}
+                      <MfTag v-if="environment.embedded" variant="warning" size="sm">{{ $t('setup.env.embeddedMode') }}</MfTag>
+                    </span>
                   </div>
                   <div class="flex items-center justify-between rounded-mf-md border border-line px-4 py-3 text-sm">
                     <span class="text-content-tertiary">{{ $t('setup.env.version') }}</span>
@@ -56,7 +59,7 @@
                 </div>
 
                 <div class="mt-4 flex items-center gap-3">
-                  <MfButton variant="outline" :loading="testing" @click="onTestConnection">
+                  <MfButton variant="outline" :loading="testing" @click="onTestConnection()">
                     {{ testing ? $t('setup.env.testing') : $t('setup.env.test') }}
                   </MfButton>
                   <MfTag v-if="testResult === 'ok'" variant="success">{{ $t('setup.env.connected') }} · {{ testElapsed }}ms</MfTag>
@@ -73,9 +76,71 @@
               </template>
             </div>
 
-            <!-- Step 2: administrator account -->
+            <!-- Step 2: database target -->
             <div v-else-if="step === 1">
-              <MfForm ref="formRef" :model="formState" layout="vertical" @finish="step = 2; onInstall()" @finish-failed="onInvalid">
+              <MfRadioGroup v-model="databaseType" class="flex-col! items-stretch gap-3">
+                <label class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
+                       :class="databaseType === 'current' ? 'border-primary bg-surface-active' : 'border-line hover:border-line-strong'">
+                  <MfRadio value="current"/>
+                  <div>
+                    <div class="text-sm font-medium text-content">{{ $t('setup.database.current') }}</div>
+                    <div class="mt-1 text-xs text-content-tertiary">{{ $t('setup.database.currentTip') }}</div>
+                  </div>
+                </label>
+                <label class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
+                       :class="databaseType === 'embedded' ? 'border-primary bg-surface-active' : 'border-line hover:border-line-strong'">
+                  <MfRadio value="embedded"/>
+                  <div>
+                    <div class="text-sm font-medium text-content">{{ $t('setup.database.embedded') }}</div>
+                    <div class="mt-1 text-xs text-content-tertiary">{{ $t('setup.database.embeddedTip') }}</div>
+                  </div>
+                </label>
+                <label class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
+                       :class="databaseType === 'mysql' ? 'border-primary bg-surface-active' : 'border-line hover:border-line-strong'">
+                  <MfRadio value="mysql"/>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium text-content">{{ $t('setup.database.mysql') }}</div>
+                    <div class="mt-1 text-xs text-content-tertiary">{{ $t('setup.database.mysqlTip') }}</div>
+                  </div>
+                </label>
+              </MfRadioGroup>
+
+              <div v-if="databaseType === 'mysql'" class="mt-4 grid gap-3 sm:grid-cols-2">
+                <MfFormItem :label="$t('setup.database.host')">
+                  <MfInput v-model="databaseConfigure.host" placeholder="127.0.0.1"/>
+                </MfFormItem>
+                <MfFormItem :label="$t('setup.database.port')">
+                  <MfInputNumber v-model="databaseConfigure.port" :min="1" :max="65535" placeholder="3306"/>
+                </MfFormItem>
+                <MfFormItem :label="$t('setup.database.name')">
+                  <MfInput v-model="databaseConfigure.database" placeholder="metaforge"/>
+                </MfFormItem>
+                <MfFormItem :label="$t('setup.database.username')">
+                  <MfInput v-model="databaseConfigure.username" placeholder="root"/>
+                </MfFormItem>
+                <MfFormItem :label="$t('setup.database.password')" class="sm:col-span-2">
+                  <MfInput v-model="databaseConfigure.password" type="password" show-password placeholder="******"/>
+                </MfFormItem>
+                <div class="sm:col-span-2">
+                  <MfButton variant="outline" size="sm" :loading="dbTesting" @click="onTestDatabase">
+                    {{ dbTesting ? $t('setup.env.testing') : $t('setup.env.test') }}
+                  </MfButton>
+                  <MfTag v-if="dbTestResult === 'ok'" variant="success" class="ml-2">{{ $t('setup.env.connected') }} · {{ dbTestElapsed }}ms</MfTag>
+                  <MfTag v-else-if="dbTestResult === 'failed'" variant="danger" class="ml-2">{{ dbTestFailedMessage }}</MfTag>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-between">
+                <MfButton @click="step = 0">{{ $t('setup.back') }}</MfButton>
+                <MfButton variant="primary" :disabled="databaseType === 'mysql' && dbTestResult !== 'ok'" @click="step = 2">
+                  {{ $t('setup.next') }}
+                </MfButton>
+              </div>
+            </div>
+
+            <!-- Step 3: administrator account -->
+            <div v-else-if="step === 2">
+              <MfForm ref="formRef" :model="formState" layout="vertical" @finish="onInstall" @finish-failed="onInvalid">
                 <MfFormItem name="username" :label="$t('setup.account.username')"
                             :rules="[
                               { required: true, message: $t('setup.account.usernameTip') },
@@ -107,13 +172,13 @@
                 </MfFormItem>
 
                 <div class="mt-2 flex justify-between">
-                  <MfButton @click="step = 0">{{ $t('setup.back') }}</MfButton>
-                  <MfButton variant="primary" type="submit">{{ $t('setup.next') }}</MfButton>
+                  <MfButton @click="step = 1">{{ $t('setup.back') }}</MfButton>
+                  <MfButton variant="primary" type="submit">{{ $t('setup.install.submit') }}</MfButton>
                 </div>
               </MfForm>
             </div>
 
-            <!-- Step 3: install result -->
+            <!-- Step 4: install result -->
             <div v-else class="flex flex-col items-center gap-4 py-6 text-center">
               <template v-if="installState === 'running'">
                 <MfSpinner size="lg"/>
@@ -121,9 +186,14 @@
               </template>
               <template v-else-if="installState === 'success'">
                 <MfAlert variant="success" :title="$t('setup.install.success')" class="text-left">
-                  {{ $t('setup.install.successTip') }}
+                  <div v-if="restartRequired">{{ $t('setup.install.restartTip') }}</div>
+                  <div v-else>{{ $t('setup.install.successTip') }}</div>
                 </MfAlert>
-                <MfButton variant="primary" @click="$router.push('/auth/signin')">
+                <p v-if="restartRequired && configPath" class="font-mono text-xs text-content-tertiary">{{ configPath }}</p>
+                <MfButton v-if="restartRequired" variant="outline" @click="onFinished">
+                  {{ $t('setup.install.acknowledge') }}
+                </MfButton>
+                <MfButton v-else variant="primary" @click="$router.push('/auth/signin')">
                   {{ $t('setup.install.goToSignin') }}
                 </MfButton>
               </template>
@@ -131,7 +201,7 @@
                 <MfAlert variant="danger" :title="$t('setup.install.failed')" class="text-left">
                   {{ installMessage }}
                 </MfAlert>
-                <MfButton variant="outline" @click="step = 1">{{ $t('setup.install.retry') }}</MfButton>
+                <MfButton variant="outline" @click="step = 2">{{ $t('setup.install.retry') }}</MfButton>
               </template>
             </div>
           </div>
@@ -156,6 +226,7 @@ const { t } = useI18n()
 const step = ref(0)
 const stepLabels = computed(() => [
   t('setup.steps.environment'),
+  t('setup.steps.database'),
   t('setup.steps.account'),
   t('setup.steps.finish'),
 ])
@@ -165,6 +236,19 @@ const environment = ref<Record<string, any>>({})
 const testing = ref(false)
 const testResult = ref<'idle' | 'ok' | 'failed'>('idle')
 const testElapsed = ref(0)
+
+const databaseType = ref<'current' | 'embedded' | 'mysql'>('current')
+const databaseConfigure = ref({
+  host: '127.0.0.1',
+  port: 3306,
+  database: 'metaforge',
+  username: 'root',
+  password: '',
+})
+const dbTesting = ref(false)
+const dbTestResult = ref<'idle' | 'ok' | 'failed'>('idle')
+const dbTestElapsed = ref(0)
+const dbTestFailedMessage = ref('')
 
 const formRef = ref()
 const formState = ref({
@@ -176,6 +260,8 @@ const formState = ref({
 
 const installState = ref<'idle' | 'running' | 'success' | 'failed'>('idle')
 const installMessage = ref('')
+const restartRequired = ref(false)
+const configPath = ref('')
 
 const validatePassword = (value: unknown) => {
   if (value !== formState.value.password) {
@@ -192,6 +278,10 @@ const loadEnvironment = () => {
               .then(response => {
                 if (response.status) {
                   environment.value = response.data || {}
+                  // 未配置外部数据源且当前是内置库时，推荐嵌入式存储
+                  if (!environment.value.datasourceConfigured && environment.value.embedded) {
+                    databaseType.value = 'embedded'
+                  }
                 }
               })
               .finally(() => (envLoading.value = false))
@@ -202,28 +292,53 @@ const onTestConnection = () => {
   testResult.value = 'idle'
   SetupService.testConnection()
               .then(response => {
-                if (response.status && response.data?.connected) {
-                  testResult.value = 'ok'
-                  testElapsed.value = response.data.elapsed ?? 0
-                }
-                else {
-                  testResult.value = 'failed'
-                }
+                testResult.value = response.status && response.data?.connected ? 'ok' : 'failed'
+                testElapsed.value = response.data?.elapsed ?? 0
               })
               .catch(() => (testResult.value = 'failed'))
               .finally(() => (testing.value = false))
 }
 
+const onTestDatabase = () => {
+  dbTesting.value = true
+  dbTestResult.value = 'idle'
+  dbTestFailedMessage.value = ''
+  SetupService.testConnection({ type: 'mysql', ...databaseConfigure.value })
+              .then(response => {
+                if (response.status && response.data?.connected) {
+                  dbTestResult.value = 'ok'
+                  dbTestElapsed.value = response.data.elapsed ?? 0
+                }
+                else {
+                  dbTestResult.value = 'failed'
+                  dbTestFailedMessage.value = response.message || ''
+                }
+              })
+              .catch((error) => {
+                dbTestResult.value = 'failed'
+                dbTestFailedMessage.value = String(error)
+              })
+              .finally(() => (dbTesting.value = false))
+}
+
 const onInstall = () => {
   installState.value = 'running'
-  SetupService.install({
+  const payload: Record<string, unknown> = {
     username: formState.value.username,
     password: formState.value.password,
     name: formState.value.name,
-  })
+  }
+  if (databaseType.value !== 'current') {
+    payload.database = databaseType.value === 'embedded'
+      ? { type: 'embedded' }
+      : { type: 'mysql', ...databaseConfigure.value }
+  }
+  SetupService.install(payload)
               .then(response => {
                 if (response.status) {
                   installState.value = 'success'
+                  restartRequired.value = Boolean(response.data?.restartRequired)
+                  configPath.value = response.data?.configPath || ''
                   invalidateSetupCheck()
                 }
                 else {
@@ -235,6 +350,11 @@ const onInstall = () => {
                 installState.value = 'failed'
                 installMessage.value = String(error)
               })
+}
+
+const onFinished = () => {
+  // 重启前停留在完成页提示；重启后用户刷新即可进入登录
+  window.location.reload()
 }
 
 onMounted(loadEnvironment)
