@@ -3,8 +3,10 @@ package org.devlive.metaforge.server.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.common.response.CommonResponse;
+import org.devlive.metaforge.server.configure.SetupDatasourceGuardEnvironmentPostProcessor;
 import org.devlive.metaforge.service.initializer.DataSetConfigure;
 import org.devlive.metaforge.service.initializer.InitializerConfigure;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
@@ -25,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -54,9 +57,11 @@ public class SetupService
     private final DataSetConfigure dataSetConfigure;
     private final InitializerConfigure initializer;
     private final Environment environment;
+    private final ApplicationArguments applicationArguments;
 
     public SetupService(JdbcTemplate jdbcTemplate, DataSource dataSource, PasswordEncoder passwordEncoder,
-            DataSetConfigure dataSetConfigure, InitializerConfigure initializer, Environment environment)
+            DataSetConfigure dataSetConfigure, InitializerConfigure initializer, Environment environment,
+            ApplicationArguments applicationArguments)
     {
         this.jdbcTemplate = jdbcTemplate;
         this.dataSource = dataSource;
@@ -64,6 +69,7 @@ public class SetupService
         this.dataSetConfigure = dataSetConfigure;
         this.initializer = initializer;
         this.environment = environment;
+        this.applicationArguments = applicationArguments;
     }
 
     /**
@@ -99,6 +105,9 @@ public class SetupService
         }
         info.put("datasourceConfigured", environment.containsProperty("spring.datasource.url")
                 || environment.containsProperty("spring.datasource.hikari.jdbc-url"));
+        String fallbackFrom = System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY);
+        info.put("degraded", fallbackFrom != null);
+        info.put("degradedFrom", fallbackFrom);
         info.put("installed", isInstalled());
         return info;
     }
@@ -148,6 +157,11 @@ public class SetupService
 
         try {
             boolean restartRequired;
+            if (System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY) != null
+                    && (body.getDatabase() == null || StringUtils.isBlank(body.getDatabase().getType())
+                        || "current".equalsIgnoreCase(body.getDatabase().getType()))) {
+                return CommonResponse.failure("The configured datasource is unavailable, choose a database target instead");
+            }
             if (body.getDatabase() == null || StringUtils.isBlank(body.getDatabase().getType())
                     || "current".equalsIgnoreCase(body.getDatabase().getType())) {
                 // install on the datasource this instance already runs on
@@ -164,7 +178,7 @@ public class SetupService
             result.put("installed", Boolean.TRUE);
             result.put("restartRequired", restartRequired);
             if (restartRequired) {
-                result.put("configPath", new File(CONFIG_OVERRIDE).getAbsolutePath());
+                result.put("configPath", resolveOverrideFile().getAbsolutePath());
             }
             log.info("Setup finished, administrator [ {} ] created", body.getUsername());
             return CommonResponse.success(result);
@@ -250,7 +264,7 @@ public class SetupService
     private void persistDatasourceOverride(TargetDatabase target)
             throws IOException
     {
-        File override = new File(CONFIG_OVERRIDE);
+        File override = resolveOverrideFile();
         Map<String, String> lines = new LinkedHashMap<>();
         if (override.exists()) {
             for (String line : Files.readAllLines(override.toPath(), StandardCharsets.UTF_8)) {
@@ -276,6 +290,37 @@ public class SetupService
             override.getParentFile().mkdirs();
         }
         Files.write(override.toPath(), content.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private File resolveOverrideFile()
+    {
+        // --spring.config.location is a framework arg stripped from the
+        // environment, so read it from the raw application arguments first
+        String location = null;
+        List<String> values = applicationArguments.getOptionValues("spring.config.location");
+        if (values != null && !values.isEmpty()) {
+            location = String.join(",", values);
+        }
+        if (location == null || location.trim().isEmpty()) {
+            location = environment.getProperty("spring.config.additional-location");
+        }
+        if (location != null && !location.trim().isEmpty()) {
+            for (String candidate : location.split(",")) {
+                String cleaned = candidate.trim();
+                if (cleaned.isEmpty()) {
+                    continue;
+                }
+                cleaned = cleaned.replace("file:", "");
+                if (cleaned.endsWith(".properties")) {
+                    return new File(cleaned);
+                }
+                File dir = new File(cleaned);
+                if (dir.isDirectory()) {
+                    return new File(dir, "application.properties");
+                }
+            }
+        }
+        return new File(CONFIG_OVERRIDE);
     }
 
     private void executeScript(Connection connection, String path)

@@ -78,8 +78,11 @@
 
             <!-- Step 2: database target -->
             <div v-else-if="step === 1">
+              <MfAlert v-if="environment.degraded" variant="warning" :title="$t('setup.database.degradedTitle')" class="mb-4">
+                {{ $t('setup.database.degradedTip') }} <span class="font-mono">{{ environment.degradedFrom }}</span>
+              </MfAlert>
               <MfRadioGroup v-model="databaseType" class="flex-col! items-stretch gap-3">
-                <label class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
+                <label v-if="!environment.degraded" class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
                        :class="databaseType === 'current' ? 'border-primary bg-surface-active' : 'border-line hover:border-line-strong'">
                   <MfRadio value="current"/>
                   <div>
@@ -281,6 +284,9 @@ const loadEnvironment = () => {
                   // 未配置外部数据源且当前是内置库时，推荐嵌入式存储
                   if (!environment.value.datasourceConfigured && environment.value.embedded) {
                     databaseType.value = 'embedded'
+                  }
+                  if (environment.value.degraded) {
+                    databaseType.value = 'mysql'
                   }
                 }
               })
