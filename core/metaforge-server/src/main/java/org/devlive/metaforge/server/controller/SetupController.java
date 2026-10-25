@@ -41,9 +41,9 @@ public class SetupController
     }
 
     @PostMapping(value = "test")
-    public CommonResponse<Object> test()
+    public CommonResponse<Object> test(@RequestBody(required = false) SetupInstallBody.DatabaseConfigure configure)
     {
-        return setupService.testConnection();
+        return setupService.testConnection(configure);
     }
 
     @PostMapping(value = "install")

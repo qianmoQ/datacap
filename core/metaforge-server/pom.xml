@@ -56,6 +56,17 @@
             <artifactId>jedis</artifactId>
             <version>${redis.version}</version>
         </dependency>
+        <!-- Built-in fallback metadata store so the server boots without any
+             external database configured; the setup wizard then installs
+             into either this embedded H2 store or an external MySQL. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <!-- 1.4.x pairs safely with the Hibernate version shipped by
+                 Boot 2.7; 2.x triggers query validation NPEs at startup -->
+            <version>1.4.200</version>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

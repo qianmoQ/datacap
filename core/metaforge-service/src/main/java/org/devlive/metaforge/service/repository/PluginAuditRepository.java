@@ -18,11 +18,11 @@ public interface PluginAuditRepository
 
     Long countByUser(UserEntity user);
 
-    @Query(value = "SELECT new org.devlive.metaforge.service.activity.HeatmapActivity(COUNT(1), FUNCTION('DATE', p.createTime)) " +
+    @Query(value = "SELECT new org.devlive.metaforge.service.activity.HeatmapActivity(COUNT(1), CAST(p.createTime AS date)) " +
             "FROM PluginAuditEntity AS p " +
             "WHERE p.user = :user " +
-            "GROUP BY FUNCTION('DATE', p.createTime) " +
-            "ORDER BY FUNCTION('DATE', p.createTime) ASC")
+            "GROUP BY CAST(p.createTime AS date) " +
+            "ORDER BY CAST(p.createTime AS date) ASC")
     List<HeatmapActivity> countByCreateTimeAndFindByUser(@Param(value = "user") UserEntity user);
 
     @Query(value = "SELECT count(1) AS dataOfCount, s.name AS dataOfLabel\n" +
