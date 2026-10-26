@@ -87,3 +87,7 @@ core/metaforge-ui/yarn.lock
 
 # Test #
 test/metaforge-test-convert/*convertservice
+
+# Local assistant memory (never commit)
+.claude/
+.Codex/
