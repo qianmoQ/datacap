@@ -38,7 +38,12 @@ const DEFAULT_MESSAGES = {
                 port: '端口',
                 name: '数据库名',
                 username: '用户名',
-                password: '密码'
+                password: '密码',
+                passwordPlaceholder: '请输入数据库密码',
+                connectionSettings: 'MySQL 连接信息',
+                connectionSettingsTip: '填写数据库凭据，测试连接通过后即可继续',
+                connectionFailedHint: '请检查数据库地址、用户名和密码，确认数据库已启动并允许访问后重试。',
+                errorDetails: '查看错误详情'
             },
             env: {
                 database: '数据库',
@@ -110,7 +115,12 @@ const DEFAULT_MESSAGES = {
                 port: 'Port',
                 name: 'Database',
                 username: 'Username',
-                password: 'Password'
+                password: 'Password',
+                passwordPlaceholder: 'Enter the database password',
+                connectionSettings: 'MySQL connection',
+                connectionSettingsTip: 'Enter your database credentials and test the connection to continue',
+                connectionFailedHint: 'Check the host, username and password, and make sure the database is running and allows connections.',
+                errorDetails: 'View error details'
             },
             env: {
                 database: 'Database',

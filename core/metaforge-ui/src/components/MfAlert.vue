@@ -52,7 +52,7 @@ function onClose(): void {
             <circle cx="12" cy="12" r="10" />
             <path :d="ICON_PATHS[variant]" />
         </svg>
-        <div class="flex-1">
+        <div class="min-w-0 flex-1">
             <p v-if="title" class="font-medium">{{ title }}</p>
             <div class="text-content-secondary">
                 <slot />

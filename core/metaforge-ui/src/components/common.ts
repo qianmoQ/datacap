@@ -13,6 +13,8 @@ export type MfControlSize = keyof typeof CONTROL_SIZES
 
 export const FOCUS_RING = 'outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface'
 
+export const FIELD_FOCUS_RING = 'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15'
+
 export const TRANSITION = 'transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-(--mf-duration-base) ease-(--mf-easing)'
 
 export const DISABLED = 'disabled:pointer-events-none disabled:opacity-50'

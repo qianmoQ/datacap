@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import clsx from 'clsx'
+import { CONTROL_SIZES, FIELD_FOCUS_RING, TRANSITION, type MfControlSize } from './common'
 
 const inputRef = ref<HTMLInputElement>()
-import clsx from 'clsx'
-import { CONTROL_SIZES, FOCUS_RING, TRANSITION, type MfControlSize } from './common'
 
 const props = withDefaults(defineProps<{
     modelValue?: string | number
@@ -41,9 +41,10 @@ const actualType = computed(() => props.showPassword || props.type === 'password
 const wrapperClass = computed(() => clsx(
     'mf-invalidable inline-flex items-center w-full rounded-mf-md border bg-surface',
     CONTROL_SIZES[props.size],
-    'px-0!',
+    'px-0! gap-0!',
     TRANSITION,
     props.invalid ? 'border-danger' : 'border-line',
+    !props.disabled && (props.invalid ? 'focus-within:ring-2 focus-within:ring-danger/15' : FIELD_FOCUS_RING),
     props.disabled && 'opacity-60 cursor-not-allowed',
 ))
 
@@ -74,8 +75,8 @@ defineExpose({
             :disabled="disabled"
             :readonly="readonly"
             :maxlength="maxlength"
-            class="min-w-0 flex-1 bg-transparent px-3 text-sm text-content placeholder:text-content-placeholder outline-none"
-            :class="[FOCUS_RING, readonly ? 'cursor-default' : '']"
+            class="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent px-3 text-sm text-content placeholder:text-content-placeholder outline-none focus:ring-0"
+            :class="readonly ? 'cursor-default' : ''"
             autocomplete="off"
             @input="onInput"
             @blur="emit('blur', $event)"
@@ -84,8 +85,9 @@ defineExpose({
         <button
             v-if="showPassword && !disabled"
             type="button"
-            class="mr-2 inline-flex size-5 items-center justify-center rounded-mf-full text-content-tertiary hover:bg-surface-hover hover:text-content"
+            class="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-mf-sm text-content-tertiary outline-none hover:bg-surface-hover hover:text-content focus-visible:bg-surface-hover focus-visible:text-content"
             :aria-label="passwordVisible ? 'hide password' : 'show password'"
+            :aria-pressed="passwordVisible"
             @click="passwordVisible = !passwordVisible"
         >
             <svg v-if="passwordVisible" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -99,7 +101,7 @@ defineExpose({
         <button
             v-if="clearable && modelValue && !disabled && !readonly"
             type="button"
-            class="mr-2 inline-flex size-5 items-center justify-center rounded-mf-full text-content-tertiary hover:bg-surface-hover hover:text-content"
+            class="mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-mf-sm text-content-tertiary outline-none hover:bg-surface-hover hover:text-content focus-visible:bg-surface-hover focus-visible:text-content"
             aria-label="clear"
             @click="clear"
         >

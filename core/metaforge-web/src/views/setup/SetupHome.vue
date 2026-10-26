@@ -1,8 +1,8 @@
 <template>
   <BaseLayout>
-    <div class="h-screen flex items-center justify-center overflow-y-auto py-8">
+    <div class="min-h-dvh flex items-center justify-center py-8">
       <div class="w-full max-w-xl px-4 mx-auto">
-        <MfCard class="w-full">
+        <MfCard class="w-full" padding="none">
           <template #header>
             <div class="flex items-center justify-center gap-3">
               <MfAvatar src="/static/images/logo.png" alt="MetaForge"/>
@@ -14,23 +14,19 @@
           </template>
 
           <!-- 自绘步骤条 -->
-          <div class="flex flex-wrap items-center justify-center gap-0 px-4 pt-2 pb-6">
-            <template v-for="(label, index) in stepLabels" :key="label">
-              <div class="flex items-center">
-                <div class="flex flex-col items-center gap-1">
-                  <span
-                    class="flex size-7 items-center justify-center rounded-mf-full text-xs font-semibold transition-colors duration-(--mf-duration-base)"
-                    :class="step > index ? 'bg-primary text-on-primary' : step === index ? 'border-2 border-primary text-primary' : 'border border-line text-content-tertiary'">
-                    <svg v-if="step > index" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                      <path d="M5 13l4 4L19 7" />
-                    </svg>
-                    <template v-else>{{ index + 1 }}</template>
-                  </span>
-                  <span class="text-xs" :class="step >= index ? 'text-content' : 'text-content-tertiary'">{{ label }}</span>
-                </div>
-                <div v-if="index < stepLabels.length - 1" class="mx-2 mb-5 h-px w-10 sm:w-16" :class="step > index ? 'bg-primary' : 'bg-line'"/>
-              </div>
-            </template>
+          <div class="grid grid-cols-4 px-6 pt-6 pb-6">
+            <div v-for="(label, index) in stepLabels" :key="label" class="relative flex min-w-0 flex-col items-center gap-2 text-center">
+              <span v-if="index < stepLabels.length - 1" class="absolute top-3.5 left-[calc(50%+1rem)] right-[calc(-50%+1rem)] h-px" :class="step > index ? 'bg-primary' : 'bg-line'" aria-hidden="true"/>
+              <span
+                class="relative flex size-7 shrink-0 items-center justify-center rounded-mf-full text-xs font-semibold transition-colors duration-(--mf-duration-base)"
+                :class="step > index ? 'bg-primary text-on-primary' : step === index ? 'border-2 border-primary text-primary' : 'border border-line text-content-tertiary'">
+                <svg v-if="step > index" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+                <template v-else>{{ index + 1 }}</template>
+              </span>
+              <span class="text-xs" :class="step >= index ? 'text-content' : 'text-content-tertiary'">{{ label }}</span>
+            </div>
           </div>
 
           <div class="px-6 pb-6">
@@ -116,29 +112,49 @@
               </MfRadioGroup>
               <p v-if="!databaseType" class="mt-3 text-xs text-content-tertiary">{{ $t('setup.database.choose') }}</p>
 
-              <div v-if="databaseType === 'mysql'" class="mt-4 grid gap-3 sm:grid-cols-2">
-                <MfFormItem :label="$t('setup.database.host')">
-                  <MfInput v-model="databaseConfigure.host" placeholder="127.0.0.1"/>
-                </MfFormItem>
-                <MfFormItem :label="$t('setup.database.port')">
-                  <MfInputNumber v-model="databaseConfigure.port" :min="1" :max="65535" placeholder="3306"/>
-                </MfFormItem>
-                <MfFormItem :label="$t('setup.database.name')">
-                  <MfInput v-model="databaseConfigure.database" placeholder="metaforge"/>
-                </MfFormItem>
-                <MfFormItem :label="$t('setup.database.username')">
-                  <MfInput v-model="databaseConfigure.username" placeholder="root"/>
-                </MfFormItem>
-                <MfFormItem :label="$t('setup.database.password')" class="sm:col-span-2">
-                  <MfInput v-model="databaseConfigure.password" type="password" show-password placeholder="******"/>
-                </MfFormItem>
-                <div class="sm:col-span-2">
-                  <MfButton variant="outline" size="sm" :loading="dbTesting" @click="onTestDatabase">
+              <div v-if="databaseType === 'mysql'" class="mt-5 space-y-4 rounded-mf-lg border border-line bg-page/60 p-4">
+                <div>
+                  <h2 class="text-sm font-medium text-content">{{ $t('setup.database.connectionSettings') }}</h2>
+                  <p class="mt-1 text-xs leading-5 text-content-tertiary">{{ $t('setup.database.connectionSettingsTip') }}</p>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <MfFormItem name="databaseHost" :label="$t('setup.database.host')">
+                    <MfInput v-model="databaseConfigure.host" placeholder="127.0.0.1"/>
+                  </MfFormItem>
+                  <MfFormItem name="databasePort" :label="$t('setup.database.port')">
+                    <MfInputNumber v-model="databaseConfigure.port" :controls="false" :min="1" :max="65535" placeholder="3306"/>
+                  </MfFormItem>
+                  <MfFormItem name="databaseName" :label="$t('setup.database.name')">
+                    <MfInput v-model="databaseConfigure.database" placeholder="metaforge"/>
+                  </MfFormItem>
+                  <MfFormItem name="databaseUsername" :label="$t('setup.database.username')">
+                    <MfInput v-model="databaseConfigure.username" placeholder="root"/>
+                  </MfFormItem>
+                  <MfFormItem name="databasePassword" :label="$t('setup.database.password')" class="sm:col-span-2">
+                    <MfInput v-model="databaseConfigure.password" type="password" show-password :placeholder="$t('setup.database.passwordPlaceholder')"/>
+                  </MfFormItem>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+                  <MfButton :loading="dbTesting" @click="onTestDatabase">
                     {{ dbTesting ? $t('setup.env.testing') : $t('setup.env.test') }}
                   </MfButton>
-                  <MfTag v-if="dbTestResult === 'ok'" variant="success" class="ml-2">{{ $t('setup.env.connected') }} · {{ dbTestElapsed }}ms</MfTag>
-                  <MfTag v-else-if="dbTestResult === 'failed'" variant="danger" class="ml-2">{{ dbTestFailedMessage }}</MfTag>
+                  <span v-if="dbTestResult === 'ok'" class="inline-flex items-center gap-1.5 text-xs text-success" role="status">
+                    <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="m8 12 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {{ $t('setup.env.connected') }} · {{ dbTestElapsed }}ms
+                  </span>
                 </div>
+                <MfAlert v-if="dbTestResult === 'failed'" variant="danger" :title="$t('setup.env.testFailed')" class="border border-danger/15">
+                  <p class="mt-1 text-xs leading-5">{{ $t('setup.database.connectionFailedHint') }}</p>
+                  <details v-if="dbTestFailedMessage" class="mt-2">
+                    <summary class="w-fit cursor-pointer rounded-mf-sm text-xs font-medium outline-none hover:text-content focus-visible:ring-2 focus-visible:ring-primary/40">
+                      {{ $t('setup.database.errorDetails') }}
+                    </summary>
+                    <pre class="mt-2 whitespace-pre-wrap rounded-mf-md bg-surface/80 p-3 font-mono text-xs leading-5 text-content-secondary [overflow-wrap:anywhere]">{{ dbTestFailedMessage }}</pre>
+                  </details>
+                </MfAlert>
               </div>
 
               <div class="mt-6 flex justify-between">

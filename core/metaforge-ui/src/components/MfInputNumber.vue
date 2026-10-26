@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import clsx from 'clsx'
-import { CONTROL_SIZES, FOCUS_RING, TRANSITION, type MfControlSize } from './common'
+import { CONTROL_SIZES, FIELD_FOCUS_RING, TRANSITION, type MfControlSize } from './common'
 
 const props = withDefaults(defineProps<{
     modelValue?: number | string
@@ -71,6 +71,7 @@ const display = computed(() => (props.modelValue === undefined || props.modelVal
 const wrapperClass = computed(() => clsx(
     'mf-invalidable inline-flex items-center w-full rounded-mf-md border bg-surface overflow-hidden',
     props.invalid ? 'border-danger' : 'border-line',
+    !props.disabled && (props.invalid ? 'focus-within:ring-2 focus-within:ring-danger/15' : FIELD_FOCUS_RING),
     CONTROL_SIZES[props.size].split(' ').filter(c => !c.startsWith('px-') && !c.startsWith('gap-')).join(' '),
     'px-0!',
     TRANSITION,
@@ -96,8 +97,8 @@ const wrapperClass = computed(() => clsx(
             inputmode="decimal"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="min-w-0 flex-1 bg-transparent px-2 text-center text-sm text-content placeholder:text-content-placeholder outline-none"
-            :class="FOCUS_RING"
+            class="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent text-sm text-content placeholder:text-content-placeholder outline-none focus:ring-0"
+            :class="controls ? 'px-2 text-center' : 'px-3 text-left'"
             @input="onInput"
             @change="onInput"
         >

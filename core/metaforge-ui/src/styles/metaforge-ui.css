@@ -42,6 +42,7 @@
     --color-content: var(--mf-color-content);
     --color-content-secondary: var(--mf-color-content-secondary);
     --color-content-tertiary: var(--mf-color-content-tertiary);
+    --color-content-placeholder: var(--mf-color-content-placeholder);
     --color-content-disabled: var(--mf-color-content-disabled);
     --color-content-inverse: var(--mf-color-content-inverse);
     --color-line: var(--mf-color-line);
