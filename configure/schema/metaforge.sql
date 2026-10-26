@@ -15,6 +15,21 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Runtime configuration storage (2026.0.0).
+CREATE TABLE IF NOT EXISTS `metaforge_configure` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL,
+  `code` varchar(64) DEFAULT NULL,
+  `active` tinyint(1) DEFAULT '1',
+  `category` varchar(32) NOT NULL,
+  `configure` text,
+  `description` varchar(512) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_configure_category_name` (`category`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 -- Table structure for table `metaforge_chat`
 --
@@ -268,6 +283,12 @@ CREATE TABLE `metaforge_dataset_history` (
   `message` text,
   `elapsed` bigint DEFAULT NULL,
   `count` int DEFAULT NULL,
+  `total_count` bigint DEFAULT NULL,
+  `processed_count` bigint DEFAULT NULL,
+  `progress` decimal(5,2) DEFAULT NULL,
+  `task_name` varchar(64) DEFAULT NULL,
+  `work_home` varchar(512) DEFAULT NULL,
+  `executor_configure` text,
   `query_mode` varchar(255) DEFAULT NULL,
   `state` varchar(255) DEFAULT NULL,
   `code` varchar(100) DEFAULT NULL,
@@ -1091,6 +1112,24 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+-- 新菜单：管理员 → 系统 → 运行时配置（/system/configure）
+-- Admin menu entry for the runtime configuration page. Idempotent insert by `code`.
+INSERT INTO `metaforge_menu` (`name`, `code`, `description`, `url`, `group_name`, `sorted`, `type`, `parent`, `active`, `i18n_key`, `icon`)
+SELECT '管理员 - 系统 - 运行时配置', 'RUNTIME_CONFIGURE',
+       '管理员：管理员权限用户可以访问\n位置：顶部管理一级子菜单',
+       '/system/configure', NULL, 7, 'VIEW', 8, 1, 'configure.runtime.title', 'Settings2'
+WHERE NOT EXISTS (SELECT 1 FROM `metaforge_menu` WHERE `code` = 'RUNTIME_CONFIGURE');
+
+-- 绑定该菜单到 admin 角色（role_id=1）。menu_id 字段为 mediumtext，CAST 后插入。
+INSERT INTO `metaforge_role_menu_relation` (`role_id`, `menu_id`)
+SELECT '1', CAST(`id` AS CHAR)
+FROM `metaforge_menu`
+WHERE `code` = 'RUNTIME_CONFIGURE'
+  AND NOT EXISTS (
+    SELECT 1 FROM `metaforge_role_menu_relation` r
+    WHERE r.role_id = '1' AND r.menu_id = CAST(`metaforge_menu`.id AS CHAR)
+);
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

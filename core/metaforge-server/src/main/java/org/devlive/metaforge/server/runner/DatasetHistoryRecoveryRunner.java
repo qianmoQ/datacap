@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.devlive.metaforge.executor.common.RunState;
 import org.devlive.metaforge.service.entity.DatasetHistoryEntity;
+import org.devlive.metaforge.service.initializer.InstallationState;
 import org.devlive.metaforge.service.repository.DatasetHistoryRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -35,15 +36,21 @@ public class DatasetHistoryRecoveryRunner
     );
 
     private final DatasetHistoryRepository historyRepository;
+    private final InstallationState installationState;
 
-    public DatasetHistoryRecoveryRunner(DatasetHistoryRepository historyRepository)
+    public DatasetHistoryRecoveryRunner(DatasetHistoryRepository historyRepository, InstallationState installationState)
     {
         this.historyRepository = historyRepository;
+        this.installationState = installationState;
     }
 
     @Override
     public void run(String... args)
     {
+        if (!installationState.isInstalled()) {
+            log.info("Dataset history recovery skipped: instance is not installed");
+            return;
+        }
         try {
             List<DatasetHistoryEntity> stale = historyRepository.findAllByStateIn(TRANSIENT_STATES);
             if (stale.isEmpty()) {

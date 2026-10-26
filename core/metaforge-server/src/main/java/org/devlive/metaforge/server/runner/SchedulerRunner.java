@@ -6,6 +6,7 @@ import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.scheduler.SchedulerRequest;
 import org.devlive.metaforge.scheduler.SchedulerService;
 import org.devlive.metaforge.service.enums.SyncMode;
+import org.devlive.metaforge.service.initializer.InstallationState;
 import org.devlive.metaforge.service.initializer.job.DatasetJob;
 import org.devlive.metaforge.service.repository.DataSetRepository;
 import org.quartz.Scheduler;
@@ -21,17 +22,23 @@ public class SchedulerRunner
     private final PluginManager pluginManager;
     private final DataSetRepository repository;
     private final Scheduler scheduler;
+    private final InstallationState installationState;
 
-    public SchedulerRunner(PluginManager pluginManager, DataSetRepository repository, Scheduler scheduler)
+    public SchedulerRunner(PluginManager pluginManager, DataSetRepository repository, Scheduler scheduler, InstallationState installationState)
     {
         this.pluginManager = pluginManager;
         this.repository = repository;
         this.scheduler = scheduler;
+        this.installationState = installationState;
     }
 
     @Override
     public void run(String... args)
     {
+        if (!installationState.isInstalled()) {
+            log.info("Scheduler initializer skipped: instance is not installed");
+            return;
+        }
         log.info("Start scheduler initializer");
         try {
             repository.findAllBySyncMode(SyncMode.TIMING)

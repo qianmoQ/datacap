@@ -34,15 +34,21 @@ public class DataSetConfigure
     private String tablePrefix;
 
     private final RuntimeConfigureService runtimeConfigureService;
+    private final InstallationState installationState;
 
-    public DataSetConfigure(RuntimeConfigureService runtimeConfigureService)
+    public DataSetConfigure(RuntimeConfigureService runtimeConfigureService, InstallationState installationState)
     {
         this.runtimeConfigureService = runtimeConfigureService;
+        this.installationState = installationState;
     }
 
     @PostConstruct
     public void load()
     {
+        if (!installationState.isInstalled()) {
+            log.info("Dataset configuration skipped: instance is not installed");
+            return;
+        }
         try {
             doLoad();
         }

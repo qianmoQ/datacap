@@ -26,7 +26,8 @@ const DEFAULT_MESSAGES = {
             },
             database: {
                 current: '使用当前数据库',
-                currentTip: '应用已连接外部数据库，直接在当前库中初始化',
+                currentTip: '应用已连接配置的数据库，直接在当前库中初始化',
+                choose: '请选择用于安装的数据库',
                 embedded: '使用内置存储（推荐）',
                 embeddedTip: '无需外部数据库，数据保存在本地文件中，开箱即用，重启不丢失',
                 mysql: '连接 MySQL',
@@ -49,7 +50,9 @@ const DEFAULT_MESSAGES = {
                 testing: '测试中...',
                 elapsed: '耗时',
                 testFailed: '连接测试失败',
-                embeddedMode: '内置模式'
+                embeddedMode: '内置模式',
+                notConfigured: '尚未配置数据库',
+                chooseDatabase: '请在下一步选择内置存储或配置 MySQL 数据库'
             },
             account: {
                 username: '用户名',
@@ -95,7 +98,8 @@ const DEFAULT_MESSAGES = {
             },
             database: {
                 current: 'Use current database',
-                currentTip: 'The app is already connected to an external database, initialize it directly',
+                currentTip: 'Initialize the database already configured for this instance',
+                choose: 'Choose the database to use for installation',
                 embedded: 'Use embedded storage (recommended)',
                 embeddedTip: 'No external database needed, data is kept in a local file and survives restarts',
                 mysql: 'Connect MySQL',
@@ -117,7 +121,10 @@ const DEFAULT_MESSAGES = {
                 test: 'Test connection',
                 testing: 'Testing...',
                 elapsed: 'Elapsed',
-                testFailed: 'Connection test failed'
+                testFailed: 'Connection test failed',
+                embeddedMode: 'Embedded mode',
+                notConfigured: 'No database configured',
+                chooseDatabase: 'Choose embedded storage or configure MySQL in the next step'
             },
             account: {
                 username: 'Username',

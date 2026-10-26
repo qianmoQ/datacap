@@ -40,7 +40,14 @@
                 <MfSpinner size="lg" label="Loading..."/>
               </div>
               <template v-else>
-                <div class="grid gap-3">
+                <MfAlert v-if="envError" variant="danger" :title="$t('common.loadingFailed')">
+                  {{ envError }}
+                  <MfButton class="mt-3" @click="loadEnvironment">{{ $t('setup.install.retry') }}</MfButton>
+                </MfAlert>
+                <MfAlert v-else-if="!environment.currentAvailable" variant="info" :title="$t('setup.env.notConfigured')">
+                  {{ $t('setup.env.chooseDatabase') }}
+                </MfAlert>
+                <div v-else class="grid gap-3">
                   <div class="flex items-center justify-between rounded-mf-md border border-line px-4 py-3 text-sm">
                     <span class="text-content-tertiary">{{ $t('setup.env.database') }}</span>
                     <span class="font-medium text-content">{{ environment.database || '--' }}</span>
@@ -58,7 +65,7 @@
                   </div>
                 </div>
 
-                <div class="mt-4 flex items-center gap-3">
+                <div v-if="environment.currentAvailable" class="mt-4 flex items-center gap-3">
                   <MfButton variant="outline" :loading="testing" @click="onTestConnection()">
                     {{ testing ? $t('setup.env.testing') : $t('setup.env.test') }}
                   </MfButton>
@@ -69,7 +76,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                  <MfButton variant="primary" :disabled="environment.connected === false" @click="step = 1">
+                  <MfButton variant="primary" :disabled="Boolean(envError)" @click="step = 1">
                     {{ $t('setup.next') }}
                   </MfButton>
                 </div>
@@ -82,7 +89,7 @@
                 {{ $t('setup.database.degradedTip') }} <span class="font-mono">{{ environment.degradedFrom }}</span>
               </MfAlert>
               <MfRadioGroup v-model="databaseType" class="flex-col! items-stretch gap-3">
-                <label v-if="!environment.degraded" class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
+                <label v-if="environment.currentAvailable && environment.connected" class="flex cursor-pointer items-start gap-3 rounded-mf-md border p-4 transition-colors duration-(--mf-duration-fast)"
                        :class="databaseType === 'current' ? 'border-primary bg-surface-active' : 'border-line hover:border-line-strong'">
                   <MfRadio value="current"/>
                   <div>
@@ -107,6 +114,7 @@
                   </div>
                 </label>
               </MfRadioGroup>
+              <p v-if="!databaseType" class="mt-3 text-xs text-content-tertiary">{{ $t('setup.database.choose') }}</p>
 
               <div v-if="databaseType === 'mysql'" class="mt-4 grid gap-3 sm:grid-cols-2">
                 <MfFormItem :label="$t('setup.database.host')">
@@ -135,7 +143,7 @@
 
               <div class="mt-6 flex justify-between">
                 <MfButton @click="step = 0">{{ $t('setup.back') }}</MfButton>
-                <MfButton variant="primary" :disabled="databaseType === 'mysql' && dbTestResult !== 'ok'" @click="step = 2">
+                <MfButton variant="primary" :disabled="!canContinueDatabase" @click="step = 2">
                   {{ $t('setup.next') }}
                 </MfButton>
               </div>
@@ -215,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import SetupService from '@/services/setup'
@@ -236,11 +244,12 @@ const stepLabels = computed(() => [
 
 const envLoading = ref(true)
 const environment = ref<Record<string, any>>({})
+const envError = ref('')
 const testing = ref(false)
 const testResult = ref<'idle' | 'ok' | 'failed'>('idle')
 const testElapsed = ref(0)
 
-const databaseType = ref<'current' | 'embedded' | 'mysql'>('current')
+const databaseType = ref<'current' | 'embedded' | 'mysql' | ''>('')
 const databaseConfigure = ref({
   host: '127.0.0.1',
   port: 3306,
@@ -252,6 +261,17 @@ const dbTesting = ref(false)
 const dbTestResult = ref<'idle' | 'ok' | 'failed'>('idle')
 const dbTestElapsed = ref(0)
 const dbTestFailedMessage = ref('')
+const canContinueDatabase = computed(() => {
+  if (databaseType.value === 'current') {
+    return environment.value.currentAvailable && environment.value.connected
+  }
+  return databaseType.value === 'embedded' || (databaseType.value === 'mysql' && dbTestResult.value === 'ok')
+})
+
+watch(databaseConfigure, () => {
+  dbTestResult.value = 'idle'
+  dbTestFailedMessage.value = ''
+}, { deep: true })
 
 const formRef = ref()
 const formState = ref({
@@ -277,19 +297,17 @@ const onInvalid = () => MfMessage.error(t('setup.account.passwordNotMatchTip'))
 
 const loadEnvironment = () => {
   envLoading.value = true
+  envError.value = ''
   SetupService.getEnvironment()
               .then(response => {
                 if (response.status) {
                   environment.value = response.data || {}
-                  // 未配置外部数据源且当前是内置库时，推荐嵌入式存储
-                  if (!environment.value.datasourceConfigured && environment.value.embedded) {
-                    databaseType.value = 'embedded'
-                  }
-                  if (environment.value.degraded) {
-                    databaseType.value = 'mysql'
-                  }
+                }
+                else {
+                  envError.value = response.message || t('common.loadingFailed')
                 }
               })
+              .catch(error => (envError.value = String(error)))
               .finally(() => (envLoading.value = false))
 }
 
@@ -309,8 +327,10 @@ const onTestDatabase = () => {
   dbTesting.value = true
   dbTestResult.value = 'idle'
   dbTestFailedMessage.value = ''
-  SetupService.testConnection({ type: 'mysql', ...databaseConfigure.value })
+  const configure = { ...databaseConfigure.value }
+  SetupService.testConnection({ type: 'mysql', ...configure })
               .then(response => {
+                if (JSON.stringify(configure) !== JSON.stringify(databaseConfigure.value)) return
                 if (response.status && response.data?.connected) {
                   dbTestResult.value = 'ok'
                   dbTestElapsed.value = response.data.elapsed ?? 0
@@ -328,16 +348,16 @@ const onTestDatabase = () => {
 }
 
 const onInstall = () => {
+  if (!canContinueDatabase.value || installState.value === 'running') return
+  step.value = 3
   installState.value = 'running'
   const payload: Record<string, unknown> = {
     username: formState.value.username,
     password: formState.value.password,
     name: formState.value.name,
-  }
-  if (databaseType.value !== 'current') {
-    payload.database = databaseType.value === 'embedded'
-      ? { type: 'embedded' }
-      : { type: 'mysql', ...databaseConfigure.value }
+    database: databaseType.value === 'mysql'
+      ? { type: 'mysql', ...databaseConfigure.value }
+      : { type: databaseType.value },
   }
   SetupService.install(payload)
               .then(response => {

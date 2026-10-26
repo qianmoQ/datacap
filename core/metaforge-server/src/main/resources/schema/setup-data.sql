@@ -3,3 +3,21 @@ INSERT IGNORE INTO `metaforge_menu` VALUES (1,'全局 - 首页','HOME','全局�
 INSERT IGNORE INTO `metaforge_role` VALUES (1,'系统管理员','这是管理员路由，可以管理站点所有功能',NULL,1,'ADMIN','2025-02-08 09:26:54'),(2,'普通用户','我是一个普通用户的路由',NULL,1,'USER','2024-11-25 21:32:56'),(3,'Test001','这是一个测试路由，没有任何权限',NULL,1,'ROLE_TEST001',NULL),(4,'测试路由','用于测试功能，修改数据','2024-11-25 20:52:48.00000',1,'cc4','2024-11-26 13:50:55');
 INSERT IGNORE INTO `metaforge_role_menu_relation` VALUES ('2','6'),('2','16'),('2','5'),('2','1'),('2','3'),('2','7'),('2','2'),('2','17'),('2','4'),('2','15'),('4','20'),('1','10'),('1','6'),('1','4'),('1','12'),('1','15'),('1','14'),('1','5'),('1','3'),('1','18'),('1','13'),('1','17'),('1','9'),('1','1'),('1','8'),('1','16'),('1','2'),('1','21'),('1','7');
 INSERT IGNORE INTO `metaforge_scheduled` VALUES (1,'Synchronize table structure','Synchronize the table structure of the data source library at 1 am every day','0 0 * * * ?',1,1,'2023-07-04 21:47:24','2023-10-10 11:59:29','SOURCE_SYNCHRONIZE',NULL),(2,'Check source available','Check the availability of the data source every 1 hour','0 0 * * * ?',1,1,'2023-08-08 11:54:01','2023-08-09 18:25:26','SOURCE_CHECK',NULL);
+
+-- 新菜单：管理员 → 系统 → 运行时配置（/system/configure）
+-- Admin menu entry for the runtime configuration page. Idempotent insert by `code`.
+INSERT INTO `metaforge_menu` (`name`, `code`, `description`, `url`, `group_name`, `sorted`, `type`, `parent`, `active`, `i18n_key`, `icon`)
+SELECT '管理员 - 系统 - 运行时配置', 'RUNTIME_CONFIGURE',
+       '管理员：管理员权限用户可以访问\n位置：顶部管理一级子菜单',
+       '/system/configure', NULL, 7, 'VIEW', 8, 1, 'configure.runtime.title', 'Settings2'
+WHERE NOT EXISTS (SELECT 1 FROM `metaforge_menu` WHERE `code` = 'RUNTIME_CONFIGURE');
+
+-- 绑定该菜单到 admin 角色（role_id=1）。menu_id 字段为 mediumtext，CAST 后插入。
+INSERT INTO `metaforge_role_menu_relation` (`role_id`, `menu_id`)
+SELECT '1', CAST(`id` AS CHAR)
+FROM `metaforge_menu`
+WHERE `code` = 'RUNTIME_CONFIGURE'
+  AND NOT EXISTS (
+    SELECT 1 FROM `metaforge_role_menu_relation` r
+    WHERE r.role_id = '1' AND r.menu_id = CAST(`metaforge_menu`.id AS CHAR)
+);

@@ -6,6 +6,7 @@ import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.schedule.ScheduledCronRegistrar;
 import org.devlive.metaforge.service.entity.ScheduledEntity;
 import org.devlive.metaforge.service.enums.ScheduledType;
+import org.devlive.metaforge.service.initializer.InstallationState;
 import org.devlive.metaforge.service.repository.ScheduledRepository;
 import org.devlive.metaforge.service.repository.SourceRepository;
 import org.devlive.metaforge.service.service.SourceService;
@@ -35,18 +36,21 @@ public class ScheduleRunner
     private final ScheduledCronRegistrar scheduledCronRegistrar;
     private final ExecutorService executorService;
     private final Map<ScheduledType, Function<String, Runnable>> taskFactories;
+    private final InstallationState installationState;
 
     public ScheduleRunner(PluginManager pluginManager,
             ScheduledRepository scheduledRepository,
             SourceRepository sourceRepository,
             SourceService sourceService,
-            ScheduledCronRegistrar scheduledCronRegistrar)
+            ScheduledCronRegistrar scheduledCronRegistrar,
+            InstallationState installationState)
     {
         this.pluginManager = pluginManager;
         this.scheduledRepository = scheduledRepository;
         this.sourceRepository = sourceRepository;
         this.sourceService = sourceService;
         this.scheduledCronRegistrar = scheduledCronRegistrar;
+        this.installationState = installationState;
         this.executorService = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r, "schedule-runner");
             thread.setDaemon(true);
@@ -73,6 +77,10 @@ public class ScheduleRunner
     @Override
     public void run(String... args)
     {
+        if (!installationState.isInstalled()) {
+            log.info("Scheduled tasks skipped: instance is not installed");
+            return;
+        }
         try {
             scheduledRepository.findAllByActiveIsTrueAndIsSystemIsTrue()
                     .forEach(this::scheduleTask);

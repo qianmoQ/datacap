@@ -1,3 +1,16 @@
+CREATE TABLE IF NOT EXISTS `metaforge_configure` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL,
+  `code` varchar(64) DEFAULT NULL,
+  `active` tinyint(1) DEFAULT '1',
+  `category` varchar(32) NOT NULL,
+  `configure` text,
+  `description` varchar(512) DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_configure_category_name` (`category`, `name`)
+);
 CREATE TABLE IF NOT EXISTS `metaforge_chat` (
 `id` bigint NOT NULL AUTO_INCREMENT,
 `name` varchar(255) NOT NULL,
@@ -100,6 +113,12 @@ CREATE TABLE IF NOT EXISTS `metaforge_dataset_history` (
 `message` text,
 `elapsed` bigint DEFAULT NULL,
 `count` int DEFAULT NULL,
+`total_count` bigint DEFAULT NULL,
+`processed_count` bigint DEFAULT NULL,
+`progress` decimal(5,2) DEFAULT NULL,
+`task_name` varchar(64) DEFAULT NULL,
+`work_home` varchar(512) DEFAULT NULL,
+`executor_configure` text,
 `query_mode` varchar(255) DEFAULT NULL,
 `state` varchar(255) DEFAULT NULL,
 `code` varchar(100) DEFAULT NULL,

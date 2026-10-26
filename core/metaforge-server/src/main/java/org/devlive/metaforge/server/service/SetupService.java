@@ -6,6 +6,7 @@ import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.server.configure.SetupDatasourceGuardEnvironmentPostProcessor;
 import org.devlive.metaforge.service.initializer.DataSetConfigure;
 import org.devlive.metaforge.service.initializer.InitializerConfigure;
+import org.devlive.metaforge.service.initializer.InstallationState;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -58,10 +59,11 @@ public class SetupService
     private final InitializerConfigure initializer;
     private final Environment environment;
     private final ApplicationArguments applicationArguments;
+    private final InstallationState installationState;
 
     public SetupService(JdbcTemplate jdbcTemplate, DataSource dataSource, PasswordEncoder passwordEncoder,
             DataSetConfigure dataSetConfigure, InitializerConfigure initializer, Environment environment,
-            ApplicationArguments applicationArguments)
+            ApplicationArguments applicationArguments, InstallationState installationState)
     {
         this.jdbcTemplate = jdbcTemplate;
         this.dataSource = dataSource;
@@ -70,6 +72,7 @@ public class SetupService
         this.initializer = initializer;
         this.environment = environment;
         this.applicationArguments = applicationArguments;
+        this.installationState = installationState;
     }
 
     /**
@@ -78,19 +81,24 @@ public class SetupService
      */
     public boolean isInstalled()
     {
-        try {
-            Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM metaforge_user", Long.class);
-            return count != null && count > 0;
-        }
-        catch (DataAccessException e) {
-            // table missing -> fresh database, not installed yet
-            return false;
-        }
+        return installationState.isInstalled();
     }
 
     public Map<String, Object> environment()
     {
         Map<String, Object> info = new HashMap<>();
+        boolean configured = isDatasourceConfigured();
+        String fallbackFrom = System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY);
+        info.put("datasourceConfigured", configured);
+        info.put("degraded", fallbackFrom != null);
+        info.put("degradedFrom", fallbackFrom);
+        info.put("currentAvailable", isCurrentDatasourceAvailable());
+        info.put("connected", Boolean.FALSE);
+        // The temporary startup store is not a database selected by the user.
+        if (!isCurrentDatasourceAvailable()) {
+            info.put("installed", isInstalled());
+            return info;
+        }
         try (Connection connection = dataSource.getConnection()) {
             info.put("connected", Boolean.TRUE);
             info.put("database", connection.getCatalog());
@@ -103,13 +111,20 @@ public class SetupService
             info.put("connected", Boolean.FALSE);
             info.put("error", e.getMessage());
         }
-        info.put("datasourceConfigured", environment.containsProperty("spring.datasource.url")
-                || environment.containsProperty("spring.datasource.hikari.jdbc-url"));
-        String fallbackFrom = System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY);
-        info.put("degraded", fallbackFrom != null);
-        info.put("degradedFrom", fallbackFrom);
         info.put("installed", isInstalled());
         return info;
+    }
+
+    private boolean isDatasourceConfigured()
+    {
+        return StringUtils.isNotBlank(environment.getProperty("spring.datasource.url"))
+                || StringUtils.isNotBlank(environment.getProperty("spring.datasource.hikari.jdbc-url"));
+    }
+
+    private boolean isCurrentDatasourceAvailable()
+    {
+        return isDatasourceConfigured()
+                && System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY) == null;
     }
 
     public CommonResponse<Object> testConnection(SetupInstallBody.DatabaseConfigure configure)
@@ -117,6 +132,9 @@ public class SetupService
         long begin = System.currentTimeMillis();
         try {
             if (configure == null || StringUtils.isBlank(configure.getType())) {
+                if (!isCurrentDatasourceAvailable()) {
+                    return CommonResponse.failure("Choose a database target before testing the connection");
+                }
                 // no body: probe the active datasource
                 jdbcTemplate.execute("SELECT 1");
                 return successProbe(begin);
@@ -157,13 +175,13 @@ public class SetupService
 
         try {
             boolean restartRequired;
-            if (System.getProperty(SetupDatasourceGuardEnvironmentPostProcessor.FALLBACK_FROM_PROPERTY) != null
-                    && (body.getDatabase() == null || StringUtils.isBlank(body.getDatabase().getType())
-                        || "current".equalsIgnoreCase(body.getDatabase().getType()))) {
-                return CommonResponse.failure("The configured datasource is unavailable, choose a database target instead");
+            if (body.getDatabase() == null || StringUtils.isBlank(body.getDatabase().getType())) {
+                return CommonResponse.failure("Choose a database before installing");
             }
-            if (body.getDatabase() == null || StringUtils.isBlank(body.getDatabase().getType())
-                    || "current".equalsIgnoreCase(body.getDatabase().getType())) {
+            if ("current".equalsIgnoreCase(body.getDatabase().getType())) {
+                if (!isCurrentDatasourceAvailable()) {
+                    return CommonResponse.failure("No configured datasource is available, choose a database target instead");
+                }
                 // install on the datasource this instance already runs on
                 installOnActiveDatasource(body);
                 restartRequired = false;

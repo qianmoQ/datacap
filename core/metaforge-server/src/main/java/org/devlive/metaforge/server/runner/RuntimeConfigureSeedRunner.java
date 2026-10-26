@@ -6,6 +6,7 @@ import org.devlive.metaforge.plugin.Plugin;
 import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.plugin.PluginType;
 import org.devlive.metaforge.plugin.configure.PluginConfigureField;
+import org.devlive.metaforge.service.initializer.InstallationState;
 import org.devlive.metaforge.service.service.RuntimeConfigureService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -32,16 +33,22 @@ public class RuntimeConfigureSeedRunner
 {
     private final PluginManager pluginManager;
     private final RuntimeConfigureService runtimeConfigureService;
+    private final InstallationState installationState;
 
-    public RuntimeConfigureSeedRunner(PluginManager pluginManager, RuntimeConfigureService runtimeConfigureService)
+    public RuntimeConfigureSeedRunner(PluginManager pluginManager, RuntimeConfigureService runtimeConfigureService, InstallationState installationState)
     {
         this.pluginManager = pluginManager;
         this.runtimeConfigureService = runtimeConfigureService;
+        this.installationState = installationState;
     }
 
     @Override
     public void run(String... args)
     {
+        if (!installationState.isInstalled()) {
+            log.info("Runtime configuration seed skipped: instance is not installed");
+            return;
+        }
         try {
             pluginManager.getPluginInfos().stream()
                     .filter(meta -> meta.getType() == PluginType.EXECUTOR)
