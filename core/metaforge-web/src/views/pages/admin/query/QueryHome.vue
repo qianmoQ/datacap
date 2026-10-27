@@ -106,6 +106,13 @@
             {{ $t('common.save') }}
           </MfButton>
 
+          <MfButton :loading="loading.planning"
+                    :disabled="(!selectSource.id && !loading.planning) || loading.running || loading.planning"
+                    @click="onRunPlan()">
+            <ListTree :size="15"/>
+            {{ $t('query.common.plan') }}
+          </MfButton>
+
           <MfButton v-if="selectSource.id && (responseConfigure.response?.data || !responseConfigure.response?.status)"
                     @click="visibleQueryHelp(true)">
             <Bot :size="15"/>
@@ -213,7 +220,7 @@
 
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
         <QueryResultPanel :response="responseConfigure.response"
-                          :running="loading.running"
+                          :running="loading.running || loading.planning"
                           :source-id="selectSource.id as unknown as number"
                           :source-code="(selectSource.code as string)"
                           :query="responseConfigure.query"
@@ -255,7 +262,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
-import { Bot, ChevronDown, Clock, Eraser, Maximize2, Minimize2, Play, Plus, Save, Search, Settings, Trash2, X } from '@lucide/vue'
+import { Bot, ChevronDown, Clock, Eraser, ListTree, Maximize2, Minimize2, Play, Plus, Save, Search, Settings, Trash2, X } from '@lucide/vue'
 import SnippetService from '@/services/snippet'
 import AuditService from '@/services/audit'
 import UserService from '@/services/user'
@@ -305,6 +312,7 @@ const themeOptions = ['chrome', 'sqlserver', 'github', 'eclipse', 'dreamweaver',
 const loading = reactive({
   running: false,
   formatting: false,
+  planning: false,
   froming: false
 })
 const visibility = reactive({
@@ -471,6 +479,36 @@ const onRun = () => {
 const onCancel = () => {
   queryConfigure.cancelToken.cancel('Cancel query')
   loading.running = false
+}
+
+const onRunPlan = () => {
+  responseConfigure.response = null
+  responseConfigure.message = null
+  responseConfigure.query = ''
+  queryConfigure.queryType = [HelpType.ANALYSIS, HelpType.OPTIMIZE]
+  queryConfigure.configure!.name = selectSource.code as string
+  const editor = editors.value[activeEditor.value as string]
+  queryConfigure.configure!.content = editor.content
+
+  // The editor keeps the user SQL; the plan rows render in the result grid.
+  loading.planning = true
+  ExecuteService.plan(queryConfigure.configure!)
+                .then((response) => {
+                  responseConfigure.query = editor.content
+                  if (response.status) {
+                    responseConfigure.response = response
+                  }
+                  else {
+                    MfMessage.error(response.message)
+                    responseConfigure.message = response.message
+                    responseConfigure.response = response
+                    queryConfigure.queryType.push(HelpType.FIXEDBUGS)
+                  }
+                })
+                .finally(() => {
+                  loading.planning = false
+                  sidePanelRefresh.value += 1
+                })
 }
 
 const onFormat = () => {
