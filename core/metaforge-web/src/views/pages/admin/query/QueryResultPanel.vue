@@ -5,7 +5,7 @@
         <button v-for="tab in tabs"
                 :key="tab.key"
                 type="button"
-                class="border-b-2 px-3 py-2.5 text-sm font-medium transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
                 :class="activeTab === tab.key ? 'border-b-primary text-primary' : 'border-b-transparent text-content-secondary hover:text-content'"
                 @click="activeTab = tab.key">
           {{ tab.label }}

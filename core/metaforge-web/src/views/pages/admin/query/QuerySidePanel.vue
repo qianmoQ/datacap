@@ -1,14 +1,17 @@
 <template>
   <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
     <div class="flex shrink-0 items-center border-b border-line px-1">
-      <button v-for="tab in tabs"
-              :key="tab.key"
-              type="button"
-              class="flex-1 border-b-2 px-1 py-2.5 text-center text-sm font-medium transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
-              :class="activeTab === tab.key ? 'border-b-primary text-primary' : 'border-b-transparent text-content-secondary hover:text-content'"
-              @click="activeTab = tab.key">
-        {{ tab.label }}
-      </button>
+      <MfTooltip v-for="tab in tabs"
+                 :key="tab.key"
+                 :content="tab.label"
+                 class="min-w-0 flex-1">
+        <button type="button"
+                class="w-full truncate whitespace-nowrap border-b-2 px-1 py-2.5 text-center text-sm font-medium transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
+                :class="activeTab === tab.key ? 'border-b-primary text-primary' : 'border-b-transparent text-content-secondary hover:text-content'"
+                @click="activeTab = tab.key">
+          {{ tab.label }}
+        </button>
+      </MfTooltip>
     </div>
 
     <div class="flex flex-col gap-2.5 p-3">

@@ -37,23 +37,29 @@
       <div :style="{ height: editorHeight }"
            class="flex max-h-[70%] min-h-[220px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
         <div class="flex shrink-0 items-center border-b border-line pl-2 pr-1.5">
-          <button v-for="item in Object.values(editors)"
-                  :key="item.key"
-                  type="button"
-                  class="group flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
-                  :class="activeEditor === item.key ? 'border-b-primary font-medium text-content' : 'border-b-transparent text-content-secondary hover:text-content'"
-                  @click="activeEditor = item.key">
-            <span class="size-1.5 rounded-full" :class="activeEditor === item.key ? 'bg-primary' : 'bg-content-placeholder'"></span>
-            {{ item.title }}
-            <span v-if="Object.keys(editors).length > 1"
-                  class="inline-flex size-4 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
-                  role="button"
-                  @click.stop="onEditTabs(item.key, 'remove')">
-              <X :size="11"/>
-            </span>
-          </button>
+          <div ref="tabStripRef" class="flex min-w-0 flex-1 items-center overflow-x-auto">
+            <MfTooltip v-for="item in Object.values(editors)"
+                       :key="item.key"
+                       :content="item.title"
+                       class="shrink-0">
+              <button type="button"
+                      :data-tab-key="item.key"
+                      class="group flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
+                      :class="activeEditor === item.key ? 'border-b-primary font-medium text-content' : 'border-b-transparent text-content-secondary hover:text-content'"
+                      @click="activeEditor = item.key">
+                <span class="size-1.5 rounded-full" :class="activeEditor === item.key ? 'bg-primary' : 'bg-content-placeholder'"></span>
+                {{ item.title }}
+                <span v-if="Object.keys(editors).length > 1"
+                      class="inline-flex size-4 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
+                      role="button"
+                      @click.stop="onEditTabs(item.key, 'remove')">
+                  <X :size="11"/>
+                </span>
+              </button>
+            </MfTooltip>
+          </div>
 
-          <div class="ml-auto">
+          <div class="ml-1 shrink-0">
             <MfTooltip :content="$t('common.createEditor')">
               <MfButton variant="ghost" size="sm" shape="circle" :disabled="!selectSource.code" @click="onPlusEditor">
                 <Plus :size="15"/>
@@ -280,7 +286,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
 import { Bot, ChevronDown, Clock, Eraser, ListTree, Maximize2, Minimize2, Play, Plus, Save, Search, Settings, Trash2, X } from '@lucide/vue'
@@ -319,6 +325,7 @@ const router = useRouter()
 const auth = TokenUtils.getAuthUser()
 
 const treeSearchRef = ref<{ focus: () => void } | null>(null)
+const tabStripRef = ref<HTMLElement | null>(null)
 const treeKeyword = ref('')
 const focusMode = ref(false)
 const selectedTable = ref<{ database: string; table: string } | null>(null)
@@ -430,6 +437,14 @@ const dataInfoVisible = ref(false)
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 
 const activeEditorInstance = computed(() => editors.value[activeEditor.value as string])
+
+// Keep the active editor tab visible inside the scrollable strip.
+watch(activeEditor, (key) => {
+  nextTick(() => {
+    tabStripRef.value?.querySelector(`[data-tab-key="${ key }"]`)
+       ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  })
+})
 
 const activeEditorContent = computed(() => {
   const editor = activeEditorInstance.value
