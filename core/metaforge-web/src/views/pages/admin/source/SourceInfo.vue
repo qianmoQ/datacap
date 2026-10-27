@@ -149,16 +149,41 @@
                   </MfUpload>
 
                   <div v-else class="dc-src__kv">
-                    <div v-for="(element, index) in configure.value || []" :key="index" class="dc-src__kv-row">
-                      <MfInput v-model="element.field" :placeholder="$t('common.field')"/>
-                      <MfInput v-model="element.value" :placeholder="$t('common.value')"/>
-                      <button type="button" class="dc-src__kv-remove" @click="onMinusConfigure(element, configure.value)">
-                        <MinusOutlined/>
+                    <div class="dc-src__kv-tabs">
+                      <button type="button"
+                              class="dc-src__kv-tab"
+                              :class="{ 'dc-src__kv-tab--active': !kvTextModes[configure.field] }"
+                              title="Form"
+                              @click="toggleKvMode(configure, false)">
+                        <UnorderedListOutlined/>
+                      </button>
+                      <button type="button"
+                              class="dc-src__kv-tab"
+                              :class="{ 'dc-src__kv-tab--active': kvTextModes[configure.field] }"
+                              title="Text"
+                              @click="toggleKvMode(configure, true)">
+                        <FileTextOutlined/>
                       </button>
                     </div>
-                    <button type="button" class="dc-src__kv-add" @click="onPlusConfigure(configure)">
-                      <PlusOutlined :style="{ fontSize: '14px' }"/>
-                    </button>
+
+                    <template v-if="!kvTextModes[configure.field]">
+                      <div v-for="(element, index) in configure.value || []" :key="index" class="dc-src__kv-row">
+                        <MfInput v-model="element.field" :placeholder="$t('common.field')"/>
+                        <MfInput v-model="element.value" :placeholder="$t('common.value')"/>
+                        <button type="button" class="dc-src__kv-remove" @click="onMinusConfigure(element, configure.value)">
+                          <MinusOutlined/>
+                        </button>
+                      </div>
+                      <button type="button" class="dc-src__kv-add" @click="onPlusConfigure(configure)">
+                        <PlusOutlined :style="{ fontSize: '14px' }"/>
+                      </button>
+                    </template>
+
+                    <MfTextarea v-else
+                                :model-value="kvTextValues[configure.field] || ''"
+                                :rows="8"
+                                placeholder="key=value"
+                                @update:model-value="(value: string) => onKvTextChange(configure, value)"/>
                   </div>
                 </MfFormItem>
 
@@ -177,40 +202,42 @@
     </div>
 
     <!-- 底部 -->
-    <div class="dc-src__footer">
-      <div v-if="currentStep === 0" class="dc-src__footer-left">
-        <InfoCircleOutlined class="dc-src__footer-info-icon"/>
-        <span>{{ $t('source.wizard.notFound') }}</span>
-        <a href="https://github.com/devlive-community/metaforge/issues" target="_blank" rel="noopener noreferrer" class="dc-src__footer-link">
-          {{ $t('source.common.requestNew') }}
-        </a>
+    <template #footer>
+      <div class="dc-src__footer">
+        <div v-if="currentStep === 0" class="dc-src__footer-left">
+          <InfoCircleOutlined class="dc-src__footer-info-icon"/>
+          <span>{{ $t('source.wizard.notFound') }}</span>
+          <a href="https://github.com/devlive-community/metaforge/issues" target="_blank" rel="noopener noreferrer" class="dc-src__footer-link">
+            {{ $t('source.common.requestNew') }}
+          </a>
+        </div>
+        <div class="dc-src__footer-actions">
+          <MfButton v-if="currentStep > 0" @click="currentStep--">{{ $t('source.wizard.previous') }}</MfButton>
+          <MfButton variant="danger" @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+          <MfButton v-if="currentStep < 3"
+                    variant="primary"
+                    :disabled="!formState?.type"
+                    @click="currentStep++">
+            {{ $t('source.wizard.next') }}
+          </MfButton>
+          <MfButton v-if="currentStep === 3"
+                    variant="ghost"
+                    :loading="testing"
+                    :disabled="testing || !formState.type"
+                    @click="onTest()">
+            {{ $t('common.test') }}
+          </MfButton>
+          <MfButton v-if="currentStep === 3"
+                    variant="primary"
+                    type="submit"
+                    :loading="saving"
+                    :disabled="!testInfo.connected || saving"
+                    @click="onSubmit">
+            {{ $t('common.save') }}
+          </MfButton>
+        </div>
       </div>
-      <div class="dc-src__footer-actions">
-        <MfButton v-if="currentStep > 0" @click="currentStep--">{{ $t('source.wizard.previous') }}</MfButton>
-        <MfButton variant="danger" @click="onCancel">{{ $t('common.cancel') }}</MfButton>
-        <MfButton v-if="currentStep < 3"
-                  variant="primary"
-                  :disabled="!formState?.type"
-                  @click="currentStep++">
-          {{ $t('source.wizard.next') }}
-        </MfButton>
-        <MfButton v-if="currentStep === 3"
-                  variant="ghost"
-                  :loading="testing"
-                  :disabled="testing || !formState.type"
-                  @click="onTest()">
-          {{ $t('common.test') }}
-        </MfButton>
-        <MfButton v-if="currentStep === 3"
-                  variant="primary"
-                  type="submit"
-                  :loading="saving"
-                  :disabled="!testInfo.connected || saving"
-                  @click="onSubmit">
-          {{ $t('common.save') }}
-        </MfButton>
-      </div>
-    </div>
+    </template>
   </MfModal>
 </template>
 
@@ -218,7 +245,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
-import { MinusOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { FileTextOutlined, MinusOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons-vue'
 import { ArrowRightOutlined, CheckCircleFilled, DatabaseOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 import { cloneDeep, pick } from 'lodash'
 import { SourceModel, SourceRequest } from '@/model/source'
@@ -447,7 +474,7 @@ const onTest = () => {
   const configure = {
     type: formState.value.type,
     configure: {
-      configures: configures.map((item: any) => pick(item, ['field', 'required', 'type', 'min', 'max', 'message', 'value']))
+      configures: configures.filter((item: any) => item.field).map((item: any) => pick(item, ['field', 'required', 'type', 'min', 'max', 'message', 'value']))
     }
   }
   SourceService.testConnection(configure)
@@ -476,7 +503,7 @@ const onSubmit = () => {
     code: formState.value.code,
     name: formState.value.type,
     configure: {
-      configures: configures.map((item: any) => pick(item, ['field', 'required', 'type', 'min', 'max', 'message', 'value']))
+      configures: configures.filter((item: any) => item.field).map((item: any) => pick(item, ['field', 'required', 'type', 'min', 'max', 'message', 'value']))
     },
     type: formState.value.type,
     version: formState.value.version
@@ -509,6 +536,33 @@ const onPlusConfigure = (configure: any) => {
     configure.value = []
   }
   configure.value.push({ field: '', value: '' })
+}
+
+// Array 字段双视图：false = 逐行表单（默认），true = key=value 文本（每行一条）
+const kvTextModes = ref<Record<string, boolean>>({})
+const kvTextValues = ref<Record<string, string>>({})
+
+const toggleKvMode = (configure: any, textMode: boolean) => {
+  if (textMode) {
+    kvTextValues.value[configure.field] = (configure.value || [])
+      .filter((element: any) => element.field)
+      .map((element: any) => `${element.field}=${element.value ?? ''}`)
+      .join('\n')
+  }
+  kvTextModes.value[configure.field] = textMode
+}
+
+const onKvTextChange = (configure: any, text: string) => {
+  kvTextValues.value[configure.field] = text
+  configure.value = text.split('\n')
+                       .map(line => line.trim())
+                       .filter(line => line.length > 0)
+                       .map(line => {
+                         const separator = line.indexOf('=')
+                         return separator === -1
+                           ? { field: line, value: '' }
+                           : { field: line.slice(0, separator).trim(), value: line.slice(separator + 1).trim() }
+                       })
 }
 
 const onMinusConfigure = (configure: any, array: Array<any>) => {
@@ -811,6 +865,40 @@ handleInitialize()
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+}
+
+.dc-src__kv-tabs {
+    align-self: flex-end;
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--dc-border-light);
+    border-radius: var(--dc-radius-sm);
+}
+
+.dc-src__kv-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--dc-text-secondary);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.dc-src__kv-tab:hover {
+    color: var(--dc-text-primary);
+    background: var(--dc-menu-hover);
+}
+
+.dc-src__kv-tab--active {
+    background: var(--dc-primary-light);
+    color: var(--dc-primary);
 }
 
 .dc-src__kv-row {
@@ -864,9 +952,7 @@ handleInitialize()
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    border-top: 1px solid var(--dc-border-light);
-    padding-top: 14px;
-    margin-top: 8px;
+    width: 100%;
 }
 
 .dc-src__footer-left {
