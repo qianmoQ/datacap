@@ -46,7 +46,8 @@ const createDefaultRouter = (router: Router) => {
                 path: 'query',
                 meta: {
                     title: 'common.query',
-                    isRoot: false
+                    isRoot: false,
+                    workspace: true
                 },
                 component: () => import('@/views/pages/admin/query/QueryHome.vue')
             },
@@ -55,7 +56,8 @@ const createDefaultRouter = (router: Router) => {
                 path: 'query/:type/:code?',
                 meta: {
                     title: 'common.query',
-                    isRoot: false
+                    isRoot: false,
+                    workspace: true
                 },
                 component: () => import('@/views/pages/admin/query/QueryHome.vue')
             },

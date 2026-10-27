@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 import { VAceEditor } from 'vue3-ace-editor'
 import { Ace } from 'ace-builds'
 import '@/ace-editor-theme'
@@ -68,7 +68,16 @@ export default defineComponent({
 
     const internalValue = ref(props.value)
 
+    // Keep the ace buffer in sync when the parent changes the bound value
+    // (e.g. loading a snippet/history query into the editor).
+    watch(() => props.value, (value) => {
+      if (internalValue.value !== value) {
+        internalValue.value = value
+      }
+    })
+
     const handlerUpdateValue = (value: string) => {
+      internalValue.value = value
       emit('update:value', value)
     }
 

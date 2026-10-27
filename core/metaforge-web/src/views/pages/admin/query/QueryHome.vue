@@ -1,135 +1,198 @@
 <template>
-  <div class="flex flex-col">
-    <div class="flex flex-1 min-h-0">
-      <aside class="w-[280px] shrink-0" style="top: -8px;">
-        <MfCard :bordered="false">
-          <SourceSelect v-model="selectSource.full as string" @on-change="onChange($event)"/>
+  <div class="flex h-full min-h-0 gap-3">
+    <aside v-show="!focusMode"
+           class="flex w-[280px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+      <QuerySourcePicker v-model="selectSource.full as string" @change="onChange($event)"/>
 
-          <MetadataTree v-if="selectSource.code" :code="selectSource.code as string"/>
-        </MfCard>
-      </aside>
+      <div class="border-t border-line px-3 py-2.5">
+        <MfInput ref="treeSearchRef"
+                 v-model="treeKeyword"
+                 size="sm"
+                 :placeholder="$t('query.tree.search')">
+          <template #prefix>
+            <Search :size="13"/>
+          </template>
+          <template #suffix>
+            <span class="rounded-mf-sm border border-line bg-surface-hover px-1.5 py-0.5 font-mono text-[10px] leading-none text-content-tertiary">⌘K</span>
+          </template>
+        </MfInput>
+      </div>
 
-      <main class="min-h-screen flex-1 overflow-hidden">
-        <div ref="editorContainer">
-          <MfCard :bordered="false">
-            <template #header>
-              <MfSpace v-if="selectSource.code">
-                <MfButton variant="primary" :loading="loading.running" :disabled="(!selectSource.id && !loading.running) || loading.running" @click="onRun()">
-                  <Play :size="15" />
-                  {{ $t('query.common.execute') }}
-                </MfButton>
+      <MetadataTree v-if="selectSource.code"
+                    :code="selectSource.code as string"
+                    :keyword="treeKeyword"
+                    @select-table="onSelectTable"/>
 
-                <MfButton :loading="loading.formatting"
-                          :disabled="(!selectSource.id && !loading.formatting) || loading.formatting"
-                          @click="onFormat()">
-                  <Eraser :size="15" />
-                  {{ $t('query.common.format') }}
-                </MfButton>
+      <div v-else class="flex flex-1 items-center justify-center px-4 pb-6 text-center text-xs text-content-tertiary">
+        {{ $t('source.tip.selected') }}
+      </div>
+    </aside>
 
-                <MfButton variant="danger"
-                          :loading="loading.formatting"
-                          :disabled="!selectSource.id || !loading.running"
+    <section class="flex min-w-0 flex-1 flex-col gap-3">
+      <div class="flex h-[42%] max-h-[520px] min-h-[260px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+        <div class="flex shrink-0 items-center border-b border-line pl-2 pr-1.5">
+          <button v-for="item in Object.values(editors)"
+                  :key="item.key"
+                  type="button"
+                  class="group flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-[color,border-color] duration-(--mf-duration-base) ease-(--mf-easing)"
+                  :class="activeEditor === item.key ? 'border-b-primary font-medium text-content' : 'border-b-transparent text-content-secondary hover:text-content'"
+                  @click="activeEditor = item.key">
+            <span class="size-1.5 rounded-full" :class="activeEditor === item.key ? 'bg-primary' : 'bg-content-placeholder'"></span>
+            {{ item.title }}
+            <span v-if="Object.keys(editors).length > 1"
+                  class="inline-flex size-4 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
+                  role="button"
+                  @click.stop="onEditTabs(item.key, 'remove')">
+              <X :size="11"/>
+            </span>
+          </button>
+
+          <div class="ml-auto">
+            <MfTooltip :content="$t('common.createEditor')">
+              <MfButton variant="ghost" size="sm" shape="circle" :disabled="!selectSource.code" @click="onPlusEditor">
+                <Plus :size="15"/>
+              </MfButton>
+            </MfTooltip>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
+          <div class="inline-flex items-stretch">
+            <MfButton variant="primary"
+                      class="rounded-r-none!"
+                      :loading="loading.running"
+                      :disabled="!selectSource.id || loading.running"
+                      @click="onRun()">
+              <Play :size="15"/>
+              {{ $t('query.common.execute') }}
+            </MfButton>
+
+            <MfDropdown trigger="click" placement="bottomLeft">
+              <MfButton variant="primary"
+                        class="rounded-l-none! border-l border-on-primary/30 px-1.5!"
+                        :disabled="!selectSource.id">
+                <ChevronDown :size="14"/>
+              </MfButton>
+              <template #overlay>
+                <div class="flex flex-col">
+                  <button type="button"
+                          class="rounded-mf-md px-2.5 py-1.5 text-left text-sm text-content-secondary hover:bg-surface-hover hover:text-content disabled:cursor-not-allowed disabled:opacity-40"
+                          :disabled="!loading.running"
                           @click="onCancel()">
-                  <CircleStop :size="15" />
-                  {{ $t('common.cancel') }}
-                </MfButton>
-
-                <MfButton v-if="responseConfigure.response" variant="primary" @click="visibleSnippet(true)">
-                  <Plus :size="15" />
-                  {{ $t('common.snippet') }}
-                </MfButton>
-
-                <div v-if="responseConfigure.response">
-                  <MfTooltip>
-                    <template #content>
-                      <div class="flex flex-col">
-                        <span class="text-xs">
-                          {{ $t('query.common.connectionTime') }}
-                          {{ responseConfigure.response.data.connection.elapsed }} ms
-                        </span>
-
-                        <span class="text-xs">
-                          {{ $t('query.common.executionTime') }}
-                          {{ responseConfigure.response.data.processor.elapsed }} ms
-                        </span>
-                      </div>
-                    </template>
-
-                    <MfButton>
-                      <Clock :size="15" />
-                      {{ responseConfigure.response.data.processor.elapsed }} ms
-                    </MfButton>
-                  </MfTooltip>
+                    {{ $t('common.cancel') }}
+                  </button>
                 </div>
+              </template>
+            </MfDropdown>
+          </div>
 
-                <MfButton v-if="selectSource.id && (responseConfigure.response?.data || !responseConfigure.response?.status)"
-                          variant="primary" @click="visibleQueryHelp(true)">
-                  <Bot :size="15" />
+          <MfButton :loading="loading.formatting"
+                    :disabled="(!selectSource.id && !loading.formatting) || loading.formatting"
+                    @click="onFormat()">
+            <Eraser :size="15"/>
+            {{ $t('query.common.format') }}
+          </MfButton>
 
-                  {{ $t('query.common.help') }}
-                </MfButton>
+          <MfButton variant="ghost"
+                    class="text-danger! hover:bg-danger-subtle! hover:text-danger!"
+                    :disabled="!selectSource.code"
+                    @click="onClearEditor()">
+            <Trash2 :size="15"/>
+            {{ $t('common.clear') }}
+          </MfButton>
 
-                <MfButton :disabled="!selectSource.code" @click="onPlusEditor">
-                  <Pencil :size="15" />
+          <MfButton :disabled="!activeEditorContent" @click="visibleSnippet(true)">
+            <Save :size="15"/>
+            {{ $t('common.save') }}
+          </MfButton>
 
-                  {{ $t('common.createEditor') }}
-                </MfButton>
-              </MfSpace>
-            </template>
+          <MfButton v-if="selectSource.id && (responseConfigure.response?.data || !responseConfigure.response?.status)"
+                    @click="visibleQueryHelp(true)">
+            <Bot :size="15"/>
+            {{ $t('query.common.help') }}
+          </MfButton>
 
-            <div v-if="!selectSource.code" class="flex justify-center" style="height: 300px">
-              <div class="flex items-center justify-center">
-                <MfAlert :title="$t('source.tip.selected')"/>
-              </div>
-            </div>
-
-            <MfTabs v-else
-                    v-model:active-key="activeEditor">
-              <MfTabPane v-for="item in Object.values(editors)"
-                         :key="item.key"
-                         :item-key="item.key">
-                <template #tab>
-                  <span class="inline-flex items-center gap-1.5">
-                    {{ item.title }}
-                    <!-- editable-card 关闭按钮（hide-add，仅保留 remove） -->
-                    <span v-if="Object.keys(editors).length > 1"
-                          class="inline-flex size-4 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
-                          role="button"
-                          @click.stop="onEditTabs(item.key, 'remove')">
-                      <X :size="10" />
-                    </span>
+          <div class="ml-auto flex items-center gap-2">
+            <MfTooltip v-if="responseConfigure.response?.status">
+              <template #content>
+                <div class="flex flex-col">
+                  <span class="text-xs">
+                    {{ $t('query.common.connectionTime') }}
+                    {{ responseConfigure.response.data.connection.elapsed }} ms
                   </span>
-                </template>
-                <AceEditor v-model="item.content"
-                           height="320px"
-                           :auto-complete="{
-                               endpoint: () => `${ baseUrl ? baseUrl : '' }/api/v1/metadata/${ selectSource.code }/suggests`,
-                               method: 'GET',
-                               trigger: ['.', '@'],
-                               headers: { 'Authorization': auth?.type + ' ' + auth?.token },
-                               requestParams: (context) => ({
-                                   keyword: context.word
-                               }),
-                               transform: (response: any) => {
-                                 return response[0].data.columns.map((item: any) => ({
-                                   label: item.object_name,
-                                   insertText: item.object_name,
-                                   detail: $t(item.object_key),
-                                   icon: item.object_type
-                                 }))
-                               }
-                           }">
-                </AceEditor>
-              </MfTabPane>
-            </MfTabs>
-          </MfCard>
+                  <span class="text-xs">
+                    {{ $t('query.common.executionTime') }}
+                    {{ responseConfigure.response.data.processor.elapsed }} ms
+                  </span>
+                </div>
+              </template>
+              <span class="inline-flex h-8 items-center gap-1.5 rounded-mf-md border border-line bg-surface px-2.5 text-sm text-content-secondary shadow-mf-sm">
+                <Clock :size="14" class="text-content-tertiary"/>
+                {{ responseConfigure.response.data.processor.elapsed }} ms
+              </span>
+            </MfTooltip>
+
+            <MfTooltip :content="focusMode ? $t('query.tip.exitFocus') : $t('query.tip.focus')">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="focusMode = !focusMode">
+                <Minimize2 v-if="focusMode" :size="15"/>
+                <Maximize2 v-else :size="15"/>
+              </MfButton>
+            </MfTooltip>
+          </div>
         </div>
 
-        <div class="mt-1">
-          <GridTable v-if="responseConfigure.gridConfigure" :configure="responseConfigure.gridConfigure"/>
+        <div class="min-h-0 flex-1">
+          <div v-if="!selectSource.code" class="flex h-full items-center justify-center">
+            <MfAlert :title="$t('source.tip.selected')"/>
+          </div>
+
+          <AceEditor v-else
+                     :value="activeEditorInstance?.content ?? ''"
+                     height="100%"
+                     @update:value="onEditorInput"
+                     :auto-complete="{
+                         endpoint: () => `${ baseUrl ? baseUrl : '' }/api/v1/metadata/${ selectSource.code }/suggests`,
+                         method: 'GET',
+                         trigger: ['.', '@'],
+                         headers: { 'Authorization': auth?.type + ' ' + auth?.token },
+                         requestParams: (context) => ({
+                             keyword: context.word
+                         }),
+                         transform: (response: any) => {
+                           return response[0].data.columns.map((item: any) => ({
+                             label: item.object_name,
+                             insertText: item.object_name,
+                             detail: $t(item.object_key),
+                             icon: item.object_type
+                           }))
+                         }
+                     }">
+          </AceEditor>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+        <QueryResultPanel :response="responseConfigure.response"
+                          :running="loading.running"
+                          :source-id="selectSource.id as unknown as number"
+                          :source-code="(selectSource.code as string)"
+                          :query="responseConfigure.query"
+                          @add-dataset="onAddDataset"
+                          @refresh="onRun"/>
+      </div>
+    </section>
+
+    <aside v-show="!focusMode"
+           class="flex w-[320px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+      <QuerySidePanel :source-code="(selectSource.code as string)"
+                      :selected-table="selectedTable"
+                      :refreshed="sidePanelRefresh"
+                      @run-sql="onSideRunSql"
+                      @load-sql="onSideLoadSql"
+                      @add-dataset="onAddDataset"
+                      @create-snippet="visibleSnippet(true)"
+                      @edit-snippet="onEditSnippet"/>
+    </aside>
   </div>
 
   <QueryHelp v-if="visibility.queryHelp"
@@ -144,32 +207,32 @@
   <SnippetInfo v-if="dataInfoVisible"
                :is-visible="dataInfoVisible"
                :info="dataInfo"
-               @close="visibleSnippet(false)">
+               @close="onSnippetClosed">
   </SnippetInfo>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
-import SourceSelect from '@/views/components/source/SourceSelect.vue'
+import { Bot, ChevronDown, Clock, Eraser, Maximize2, Minimize2, Play, Plus, Save, Search, Trash2, X } from '@lucide/vue'
 import SnippetService from '@/services/snippet'
 import AuditService from '@/services/audit'
 import { ExecuteModel } from '@/model/execute'
 import ExecuteService from '@/services/execute'
-import GridTable from '@/views/components/grid/GridTable.vue'
-import { GridConfigure } from '@/views/components/grid/GridConfigure'
 import { ResponseModel } from '@/model/response'
 import FormatService from '@/services/format'
 import { HelpType } from '@/views/pages/admin/query/HelpType'
 import QueryHelp from '@/views/pages/admin/query/QueryHelp.vue'
+import QuerySourcePicker from '@/views/pages/admin/query/QuerySourcePicker.vue'
+import QueryResultPanel from '@/views/pages/admin/query/QueryResultPanel.vue'
+import QuerySidePanel from '@/views/pages/admin/query/QuerySidePanel.vue'
 import MetadataTree from '@/views/components/tree/MetadataTree.vue'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 import { SnippetModel, SnippetRequest } from '@/model/snippet'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'
 import { TokenUtils } from '@/utils/token.ts'
 import axios from 'axios'
-import { Bot, CircleStop, Clock, Eraser, Pencil, Play, Plus, X } from '@lucide/vue'
 
 interface EditorInstance
 {
@@ -181,9 +244,15 @@ interface EditorInstance
 defineOptions({ name: 'QueryHome' })
 
 const route = useRoute()
+const router = useRouter()
 const auth = TokenUtils.getAuthUser()
 
-const editorContainer = ref<HTMLElement | null>(null)
+const treeSearchRef = ref<{ focus: () => void } | null>(null)
+const treeKeyword = ref('')
+const focusMode = ref(false)
+const selectedTable = ref<{ database: string; table: string } | null>(null)
+const sidePanelRefresh = ref(0)
+let editorSequence = 0
 
 const loading = reactive({
   running: false,
@@ -209,16 +278,31 @@ const queryConfigure = reactive({
 })
 const responseConfigure = reactive({
   response: null as ResponseModel | null,
-  gridConfigure: null as GridConfigure | null,
-  message: null as string | null
+  message: null as string | null,
+  query: ''
 })
 const dataInfo = ref<SnippetModel>(null as unknown as SnippetModel)
 const dataInfoVisible = ref(false)
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 
+const activeEditorInstance = computed(() => editors.value[activeEditor.value as string])
+
+const activeEditorContent = computed(() => {
+  const editor = activeEditorInstance.value
+  return editor && editor.content.trim().length > 0
+})
+
+const onEditorInput = (value: string) => {
+  const editor = activeEditorInstance.value
+  if (editor) {
+    editor.content = value
+  }
+}
+
 const createEditor = () => {
+  editorSequence += 1
   const newEditor: EditorInstance = {
-    title: `Query`,
+    title: `SQL ${ editorSequence }`,
     key: `editor-${ Date.now() }`,
     content: ''
   }
@@ -279,7 +363,6 @@ const handlerInitialize = () => {
 }
 
 const onPlusEditor = () => {
-  responseConfigure.message = null
   createEditor()
 }
 
@@ -298,46 +381,48 @@ const onEditTabs = (targetKey: any, action: string) => {
   }
 }
 
+const onClearEditor = () => {
+  const active = editors.value[activeEditor.value as string]
+  if (active) {
+    active.content = ''
+  }
+}
+
 const onRun = () => {
-  responseConfigure.gridConfigure = null
   responseConfigure.response = null
   responseConfigure.message = null
+  responseConfigure.query = ''
   queryConfigure.queryType = [HelpType.ANALYSIS, HelpType.OPTIMIZE]
   queryConfigure.cancelToken = axios.CancelToken.source()
   queryConfigure.configure!.name = selectSource.code as string
   const editor = editors.value[activeEditor.value as string]
   queryConfigure.configure!.content = editor.content
-  const container = editorContainer.value as HTMLElement
 
   loading.running = true
   ExecuteService.execute(queryConfigure.configure!, queryConfigure.cancelToken.token)
                 .then((response) => {
                   if (response.status) {
                     responseConfigure.response = response
-                    responseConfigure.gridConfigure = {
-                      headers: response.data.headers,
-                      columns: response.data.columns,
-                      height: 340,
-                      width: container.offsetWidth + 20,
-                      showSeriesNumber: false,
-                      sourceId: selectSource.id as unknown as number,
-                      query: editor.content,
-                      code: selectSource.code as string
-                    }
+                    responseConfigure.query = editor.content
                     editor.content = response.data.content
                   }
                   else {
                     MfMessage.error(response.message)
                     responseConfigure.message = response.message
+                    responseConfigure.response = response
+                    responseConfigure.query = editor.content
                     queryConfigure.queryType.push(HelpType.FIXEDBUGS)
-                    responseConfigure.gridConfigure = null
                   }
                 })
-                .finally(() => (loading.running = false))
+                .finally(() => {
+                  loading.running = false
+                  sidePanelRefresh.value += 1
+                })
 }
 
 const onCancel = () => {
   queryConfigure.cancelToken.cancel('Cancel query')
+  loading.running = false
 }
 
 const onFormat = () => {
@@ -357,19 +442,64 @@ const onFormat = () => {
                .finally(() => (loading.formatting = false))
 }
 
+const onSelectTable = (value: { database: string; table: string } | null) => {
+  selectedTable.value = value
+}
+
+const onSideLoadSql = (sql: string) => {
+  const active = editors.value[activeEditor.value as string]
+  if (active) {
+    active.content = sql
+  }
+}
+
+const onSideRunSql = (sql: string) => {
+  onSideLoadSql(sql)
+  onRun()
+}
+
+const onAddDataset = () => {
+  const active = editors.value[activeEditor.value as string]
+  if (!active || !selectSource.code) {
+    return
+  }
+  const id = Math.random().toString(36).substring(2)
+  localStorage.setItem(`QueryContent_${ id }`, active.content)
+  router.push(`/dataset/info/source/${ selectSource.code }?tempId=${ id }`)
+}
+
 const visibleQueryHelp = (value: boolean) => {
   visibility.queryHelp = value
 }
 
 const visibleSnippet = (opened: boolean) => {
   const active = editors.value[activeEditor.value as string]
-  dataInfoVisible.value = opened
-  if (active) {
-    const content = active.content
+  if (opened && active) {
     dataInfo.value = SnippetRequest.of()
-    dataInfo.value.context = content as string
+    dataInfo.value.context = active.content
+  }
+  dataInfoVisible.value = opened
+}
+
+const onEditSnippet = (snippet: SnippetModel) => {
+  dataInfo.value = snippet
+  dataInfoVisible.value = true
+}
+
+const onSnippetClosed = () => {
+  dataInfoVisible.value = false
+  sidePanelRefresh.value += 1
+}
+
+const onSearchHotkey = (event: KeyboardEvent) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    treeSearchRef.value?.focus()
   }
 }
+
+onMounted(() => window.addEventListener('keydown', onSearchHotkey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onSearchHotkey))
 
 handlerInitialize()
 </script>
