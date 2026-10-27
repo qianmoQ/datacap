@@ -132,6 +132,45 @@
               </span>
             </MfTooltip>
 
+            <MfDropdown trigger="click" placement="bottomRight">
+              <MfTooltip :content="$t('query.tip.editorSettings')">
+                <MfButton variant="ghost" size="sm" shape="circle">
+                  <Settings :size="15"/>
+                </MfButton>
+              </MfTooltip>
+              <template #overlay>
+                <div class="flex w-64 flex-col gap-3 p-1.5">
+                  <div class="flex flex-col gap-1.5">
+                    <div class="text-xs font-medium text-content-tertiary">{{ $t('user.common.fontSize') }}</div>
+                    <div class="flex items-center gap-1">
+                      <button v-for="size in fontSizeOptions"
+                              :key="size"
+                              type="button"
+                              class="rounded-mf-md border px-2 py-1 text-xs transition-[color,border-color,background-color] duration-(--mf-duration-fast)"
+                              :class="editorConfigure.fontSize === size ? 'border-primary bg-primary/10 font-medium text-primary' : 'border-line text-content-secondary hover:bg-surface-hover hover:text-content'"
+                              @click="onFontSizeSelect(size)">
+                        {{ size }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1.5">
+                    <div class="text-xs font-medium text-content-tertiary">{{ $t('user.common.theme') }}</div>
+                    <div class="flex flex-wrap items-center gap-1">
+                      <button v-for="theme in themeOptions"
+                              :key="theme"
+                              type="button"
+                              class="rounded-mf-md border px-2 py-1 text-xs transition-[color,border-color,background-color] duration-(--mf-duration-fast)"
+                              :class="editorConfigure.theme === theme ? 'border-primary bg-primary/10 font-medium text-primary' : 'border-line text-content-secondary hover:bg-surface-hover hover:text-content'"
+                              @click="onThemeSelect(theme)">
+                        {{ theme }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </MfDropdown>
+
             <MfTooltip :content="focusMode ? $t('query.tip.exitFocus') : $t('query.tip.focus')">
               <MfButton variant="ghost" size="sm" shape="circle" @click="focusMode = !focusMode">
                 <Minimize2 v-if="focusMode" :size="15"/>
@@ -147,6 +186,7 @@
           </div>
 
           <AceEditor v-else
+                     :key="`ace-configure-${ editorConfigureKey }`"
                      :value="activeEditorInstance?.content ?? ''"
                      height="100%"
                      @update:value="onEditorInput"
@@ -215,9 +255,10 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
-import { Bot, ChevronDown, Clock, Eraser, Maximize2, Minimize2, Play, Plus, Save, Search, Trash2, X } from '@lucide/vue'
+import { Bot, ChevronDown, Clock, Eraser, Maximize2, Minimize2, Play, Plus, Save, Search, Settings, Trash2, X } from '@lucide/vue'
 import SnippetService from '@/services/snippet'
 import AuditService from '@/services/audit'
+import UserService from '@/services/user'
 import { ExecuteModel } from '@/model/execute'
 import ExecuteService from '@/services/execute'
 import { ResponseModel } from '@/model/response'
@@ -230,8 +271,10 @@ import QuerySidePanel from '@/views/pages/admin/query/QuerySidePanel.vue'
 import MetadataTree from '@/views/components/tree/MetadataTree.vue'
 import AceEditor from '@/views/components/editor/AceEditor.vue'
 import { SnippetModel, SnippetRequest } from '@/model/snippet'
+import { UserEditor } from '@/model/user'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'
 import { TokenUtils } from '@/utils/token.ts'
+import Common from '@/utils/common'
 import axios from 'axios'
 
 interface EditorInstance
@@ -253,6 +296,11 @@ const focusMode = ref(false)
 const selectedTable = ref<{ database: string; table: string } | null>(null)
 const sidePanelRefresh = ref(0)
 let editorSequence = 0
+
+const editorConfigure = reactive<UserEditor>({ fontSize: 12, theme: 'chrome' })
+const editorConfigureKey = ref(0)
+const fontSizeOptions = [12, 13, 14, 16, 18]
+const themeOptions = ['chrome', 'sqlserver', 'github', 'eclipse', 'dreamweaver', 'cloud9_day']
 
 const loading = reactive({
   running: false,
@@ -496,10 +544,54 @@ const onSearchHotkey = (event: KeyboardEvent) => {
     event.preventDefault()
     treeSearchRef.value?.focus()
   }
+  else if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+    event.preventDefault()
+    if (selectSource.id && !loading.running) {
+      onRun()
+    }
+  }
+}
+
+const loadEditorConfigure = () => {
+  try {
+    const raw = localStorage.getItem(Common.userEditorConfigure)
+    if (raw) {
+      const parsed = JSON.parse(raw) as UserEditor
+      if (parsed.fontSize) {
+        editorConfigure.fontSize = parsed.fontSize
+      }
+      if (parsed.theme) {
+        editorConfigure.theme = parsed.theme
+      }
+    }
+  }
+  catch {
+    editorConfigure.fontSize = 12
+    editorConfigure.theme = 'chrome'
+  }
+}
+
+const onFontSizeSelect = (size: number) => {
+  editorConfigure.fontSize = size
+  persistEditorConfigure()
+}
+
+const onThemeSelect = (theme: string) => {
+  editorConfigure.theme = theme
+  persistEditorConfigure()
+}
+
+/** Persist through the backend user editor API and remount the editor to apply. */
+const persistEditorConfigure = () => {
+  const configure: UserEditor = { fontSize: editorConfigure.fontSize, theme: editorConfigure.theme }
+  localStorage.setItem(Common.userEditorConfigure, JSON.stringify(configure))
+  UserService.changeEditor(configure)
+  editorConfigureKey.value += 1
 }
 
 onMounted(() => window.addEventListener('keydown', onSearchHotkey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onSearchHotkey))
 
+loadEditorConfigure()
 handlerInitialize()
 </script>
