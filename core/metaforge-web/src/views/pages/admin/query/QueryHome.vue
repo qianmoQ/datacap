@@ -1,7 +1,8 @@
 <template>
-  <div class="flex h-full min-h-0 gap-3">
+  <div class="flex h-full min-h-0">
     <aside v-show="!focusMode"
-           class="flex w-[280px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+           :style="{ width: leftWidth + 'px' }"
+           class="flex shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
       <QuerySourcePicker v-model="selectSource.full as string" @change="onChange($event)"/>
 
       <div class="border-t border-line px-3 py-2.5">
@@ -28,8 +29,13 @@
       </div>
     </aside>
 
-    <section class="flex min-w-0 flex-1 flex-col gap-3">
-      <div class="flex h-[42%] max-h-[520px] min-h-[260px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+    <div v-show="!focusMode"
+         class="mx-1 w-2 shrink-0 cursor-col-resize rounded-mf-full transition-[background-color] duration-(--mf-duration-fast) hover:bg-primary/15"
+         @pointerdown="startResize('left', $event)"></div>
+
+    <section ref="centerRef" class="flex min-w-0 flex-1 flex-col">
+      <div :style="{ height: editorHeight }"
+           class="flex max-h-[70%] min-h-[220px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
         <div class="flex shrink-0 items-center border-b border-line pl-2 pr-1.5">
           <button v-for="item in Object.values(editors)"
                   :key="item.key"
@@ -218,6 +224,9 @@
         </div>
       </div>
 
+      <div class="my-1 h-2 w-full shrink-0 cursor-row-resize rounded-mf-full transition-[background-color] duration-(--mf-duration-fast) hover:bg-primary/15"
+           @pointerdown="startResize('editor', $event)"></div>
+
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
         <QueryResultPanel :response="responseConfigure.response"
                           :running="loading.running || loading.planning"
@@ -229,8 +238,13 @@
       </div>
     </section>
 
+    <div v-show="!focusMode"
+         class="mx-1 w-2 shrink-0 cursor-col-resize rounded-mf-full transition-[background-color] duration-(--mf-duration-fast) hover:bg-primary/15"
+         @pointerdown="startResize('right', $event)"></div>
+
     <aside v-show="!focusMode"
-           class="flex w-[320px] shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
+           :style="{ width: rightWidth + 'px' }"
+           class="flex shrink-0 flex-col overflow-hidden rounded-mf-lg border border-line bg-surface shadow-mf-sm">
       <QuerySidePanel :source-code="(selectSource.code as string)"
                       :selected-table="selectedTable"
                       :refreshed="sidePanelRefresh"
@@ -303,6 +317,68 @@ const focusMode = ref(false)
 const selectedTable = ref<{ database: string; table: string } | null>(null)
 const sidePanelRefresh = ref(0)
 let editorSequence = 0
+
+const centerRef = ref<HTMLElement | null>(null)
+const leftWidth = ref(280)
+const rightWidth = ref(320)
+const editorRatio = ref(0.42)
+const editorHeight = computed(() => `${ Math.round(editorRatio.value * 1000) / 10 }%`)
+
+const LAYOUT_KEY = 'MetaForgeQueryLayout'
+
+const loadLayout = () => {
+  try {
+    const raw = localStorage.getItem(LAYOUT_KEY)
+    if (!raw) {
+      return
+    }
+    const layout = JSON.parse(raw)
+    if (layout.leftWidth) {
+      leftWidth.value = layout.leftWidth
+    }
+    if (layout.rightWidth) {
+      rightWidth.value = layout.rightWidth
+    }
+    if (layout.editorRatio) {
+      editorRatio.value = layout.editorRatio
+    }
+  }
+  catch {
+    // Keep defaults when the stored layout is unreadable.
+  }
+}
+
+type ResizeKind = 'left' | 'right' | 'editor'
+
+const startResize = (kind: ResizeKind, event: PointerEvent) => {
+  event.preventDefault()
+  const start = kind === 'editor'
+    ? { startY: event.clientY, startRatio: editorRatio.value }
+    : { startX: event.clientX, startWidth: kind === 'left' ? leftWidth.value : rightWidth.value }
+
+  const onMove = (moveEvent: PointerEvent) => {
+    if (kind === 'editor') {
+      const container = centerRef.value?.clientHeight ?? 1
+      const delta = (moveEvent.clientY - start.startY) / container
+      editorRatio.value = Math.min(0.7, Math.max(0.2, start.startRatio + delta))
+    }
+    else if (kind === 'left') {
+      leftWidth.value = Math.min(420, Math.max(240, start.startWidth + (moveEvent.clientX - start.startX)))
+    }
+    else {
+      rightWidth.value = Math.min(420, Math.max(240, start.startWidth - (moveEvent.clientX - start.startX)))
+    }
+  }
+  const onUp = () => {
+    document.documentElement.style.userSelect = ''
+    window.removeEventListener('pointermove', onMove)
+    window.removeEventListener('pointerup', onUp)
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify({ leftWidth: leftWidth.value, rightWidth: rightWidth.value, editorRatio: editorRatio.value }))
+  }
+  document.documentElement.style.userSelect = 'none'
+  window.addEventListener('pointermove', onMove)
+  window.addEventListener('pointerup', onUp)
+}
 
 const editorConfigure = reactive<UserEditor>({ fontSize: 12, theme: 'chrome' })
 const editorConfigureKey = ref(0)
@@ -630,6 +706,7 @@ const persistEditorConfigure = () => {
 onMounted(() => window.addEventListener('keydown', onSearchHotkey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onSearchHotkey))
 
+loadLayout()
 loadEditorConfigure()
 handlerInitialize()
 </script>
