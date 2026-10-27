@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('report.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('report.common.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handleInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
@@ -80,10 +82,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { MfMessage } from 'metaforge-ui'
-import { FilterModel } from '@/model/filter'
+import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/admin/report/ReportUtils'
 import { ReportModel } from '@/model/report'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import ReportService from '@/services/report'
 import ReportView from '@/views/pages/admin/report/ReportView.vue'
 import ReportDelete from '@/views/pages/admin/report/ReportDelete.vue'
@@ -91,6 +94,7 @@ import { DeleteOutlined, EditOutlined, EyeOutlined, SettingOutlined } from '@ant
 
 defineOptions({ name: 'ReportHome' })
 
+const tableFilters = useTableFilters('report')
 const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 
@@ -103,10 +107,19 @@ const dataInfo = ref<ReportModel | null>(null)
 const dataViewVisible = ref(false)
 const dataDeleteVisible = ref(false)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handleInitialize()
+}
+
+let latestRequest = 0
 const handleInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  ReportService.getAll(filter)
+  ReportService.getAll({ ...filter })
                .then(response => {
+                 if (request !== latestRequest) return
                  if (response.status) {
                    data.value = response.data.content
                    dataCount.value = response.data.total
@@ -117,7 +130,7 @@ const handleInitialize = () => {
                    MfMessage.error(response.message)
                  }
                })
-               .finally(() => (loading.value = false))
+               .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {

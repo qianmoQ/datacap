@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('source.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('source.common.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handlerInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
@@ -103,17 +105,19 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { FilterModel } from '@/model/filter.ts'
+import { FilterModel, type TableFilters } from '@/model/filter.ts'
 import AuditService from '@/services/audit'
 import { useHeaders } from '@/views/pages/admin/history/HistoryUtils'
 import { HistoryModel } from '@/model/history'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import HistoryData from '@/views/pages/admin/history/HistoryData.vue'
 import { MoreOutlined, RightOutlined, SnippetsOutlined, TableOutlined, WarningOutlined } from '@ant-design/icons-vue'
 
 defineOptions({ name: 'HistoryHome' })
 
+const tableFilters = useTableFilters('history')
 const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 
@@ -127,10 +131,19 @@ const dataInfo = ref<HistoryModel | null>(null)
 const dataVisible = ref(false)
 const content = ref<string | null>(null)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handlerInitialize()
+}
+
+let latestRequest = 0
 const handlerInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  AuditService.getAll(filter)
+  AuditService.getAll({ ...filter })
               .then((response) => {
+                 if (request !== latestRequest) return
                 if (response.status) {
                   data.value = response.data.content
                   dataCount.value = response.data.total
@@ -138,7 +151,7 @@ const handlerInitialize = () => {
                   pageIndex.value = response.data.page
                 }
               })
-              .finally(() => (loading.value = false))
+              .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {

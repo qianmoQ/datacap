@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('function.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('function.common.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handlerInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
@@ -53,10 +55,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { FilterModel } from '@/model/filter'
+import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionModel } from '@/model/function'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import FunctionService from '@/services/function'
 import FunctionInfo from '@/views/pages/system/function/FunctionInfo.vue'
 import FunctionImport from '@/views/pages/system/function/FunctionImport.vue'
@@ -64,6 +67,7 @@ import { EditOutlined, ImportOutlined, PlusOutlined } from '@ant-design/icons-vu
 
 defineOptions({ name: 'FunctionHome' })
 
+const tableFilters = useTableFilters('function')
 const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 
@@ -76,10 +80,19 @@ const pageSize = ref(10)
 const dataCount = ref(0)
 const dataInfo = ref<FunctionModel | null>(null)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handlerInitialize()
+}
+
+let latestRequest = 0
 const handlerInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  FunctionService.getAll(filter)
+  FunctionService.getAll({ ...filter })
                  .then((response) => {
+                 if (request !== latestRequest) return
                    if (response.status) {
                      data.value = response.data.content
                      dataCount.value = response.data.total
@@ -87,7 +100,7 @@ const handlerInitialize = () => {
                      pageIndex.value = response.data.page
                    }
                  })
-                 .finally(() => (loading.value = false))
+                 .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {

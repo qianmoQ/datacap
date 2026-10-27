@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('workflow.text.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('workflow.text.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handleInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
@@ -140,13 +142,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FilterModel } from '@/model/filter'
+import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from './Utils'
 import WorkflowService from '@/services/workflow'
 import Common, { useUtil } from '@/utils/common.ts'
 import MarkdownPreview from '@/views/components/markdown/MarkdownView.vue'
 import { WorkflowModel } from '@/model/workflow.ts'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import WorkflowFlow from '@/views/pages/admin/wofkflow/WorkflowFlow.vue'
 import WorkflowDelete from '@/views/pages/admin/wofkflow/WorkflowDelete.vue'
 import WorkflowStop from '@/views/pages/admin/wofkflow/WorkflowStop.vue'
@@ -156,6 +159,7 @@ import { ClusterOutlined, DeleteOutlined, DeploymentUnitOutlined, InfoCircleOutl
 
 defineOptions({ name: 'PipelineHome' })
 
+const tableFilters = useTableFilters('workflow')
 const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 const { getText } = useUtil()
@@ -173,10 +177,19 @@ const dataStopVisible = ref(false)
 const dataFlowVisible = ref(false)
 const dataRestartVisible = ref(false)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handleInitialize()
+}
+
+let latestRequest = 0
 const handleInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  WorkflowService.getAll(filter)
+  WorkflowService.getAll({ ...filter })
                  .then((response) => {
+                 if (request !== latestRequest) return
                    if (response.status) {
                      data.value = response.data.content
                      dataCount.value = response.data.total
@@ -184,7 +197,7 @@ const handleInitialize = () => {
                      pageIndex.value = response.data.page
                    }
                  })
-                 .finally(() => (loading.value = false))
+                 .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {

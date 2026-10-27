@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('source.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('source.common.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handlerInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
@@ -109,9 +111,10 @@
 import { onMounted, ref } from 'vue'
 import Common from '@/utils/common'
 import { useHeaders } from '@/views/pages/admin/source/SourceUtils'
-import { FilterModel } from '@/model/filter'
+import { FilterModel, type TableFilters } from '@/model/filter'
 import { SourceModel } from '@/model/source'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import SourceService from '@/services/source'
 import SourceInfo from '@/views/pages/admin/source/SourceInfo.vue'
 import SourceHistory from '@/views/pages/admin/source/SourceHistory.vue'
@@ -121,6 +124,7 @@ import { CloseCircleOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, 
 
 defineOptions({ name: 'SourceHome' })
 
+const tableFilters = useTableFilters('source')
 const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 const loginUserCode = Common.getCurrentUserCode()
@@ -136,10 +140,19 @@ const dataDeleteVisible = ref(false)
 const dataSyncMetadataVisible = ref(false)
 const dataHistoryVisible = ref(false)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handlerInitialize()
+}
+
+let latestRequest = 0
 const handlerInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  SourceService.getAll(filter)
+  SourceService.getAll({ ...filter })
                .then((response) => {
+                 if (request !== latestRequest) return
                  if (response.status) {
                    data.value = response.data.content
                    dataCount.value = response.data.total
@@ -147,7 +160,7 @@ const handlerInitialize = () => {
                    pageIndex.value = response.data.page
                  }
                })
-               .finally(() => (loading.value = false))
+               .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {

@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable :title="$t('dataset.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('dataset.common.list')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -8,6 +8,8 @@
                :page-size="pageSize"
                :total="dataCount"
                @refresh="handleInitialize"
+               @search="onSearch"
+               @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
@@ -138,11 +140,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { FilterModel } from '@/model/filter'
+import { FilterModel, type TableFilters } from '@/model/filter'
 import { useDatasetHeaders } from './DatasetUtils'
 import { DatasetModel } from '@/model/dataset'
 import { useUtil } from '@/utils/common'
 import DataTable from '@/views/components/table/DataTable.vue'
+import { useTableFilters } from '@/views/components/table/tableFilters'
 import DatasetService from '@/services/dataset'
 import DatasetState from '@/views/pages/admin/dataset/components/DatasetState.vue'
 import DatasetSync from '@/views/pages/admin/dataset/DatasetSync.vue'
@@ -155,6 +158,7 @@ import { BarChartOutlined, CloseSquareOutlined, DeleteOutlined, HistoryOutlined,
 
 defineOptions({ name: 'DatasetHome' })
 
+const tableFilters = useTableFilters('dataset')
 const filter: FilterModel = new FilterModel()
 const { headers } = useDatasetHeaders()
 const { getDatasetStateText } = useUtil()
@@ -172,10 +176,19 @@ const clearDataVisible = ref(false)
 const errorVisible = ref(false)
 const deleteVisible = ref(false)
 
+const onSearch = (values: TableFilters) => {
+  Object.assign(filter, values, { page: 1 })
+  pageIndex.value = 1
+  handleInitialize()
+}
+
+let latestRequest = 0
 const handleInitialize = () => {
+  const request = ++latestRequest
   loading.value = true
-  DatasetService.getAll(filter)
+  DatasetService.getAll({ ...filter })
                 .then((response) => {
+                 if (request !== latestRequest) return
                   if (response.status) {
                     data.value = response.data.content
                     dataCount.value = response.data.total
@@ -183,7 +196,7 @@ const handleInitialize = () => {
                     pageIndex.value = response.data.page
                   }
                 })
-                .finally(() => (loading.value = false))
+                .finally(() => { if (request === latestRequest) loading.value = false })
 }
 
 const fetchData = (value: number) => {
