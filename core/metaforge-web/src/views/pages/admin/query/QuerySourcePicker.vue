@@ -5,7 +5,12 @@
               type="button"
               class="flex w-full min-w-0 items-center gap-2.5 rounded-mf-md border border-line bg-surface px-2.5 py-2 text-left transition-[border-color,background-color] duration-(--mf-duration-base) ease-(--mf-easing) hover:bg-surface-hover"
               :class="open && 'border-primary'">
-        <span class="flex size-8 shrink-0 items-center justify-center rounded-mf-full bg-primary/10">
+        <MfAvatar v-if="current"
+                  size="sm"
+                  :src="`/static/images/plugin/${ String(current.type).toLowerCase() }.svg`"
+                  :alt="current.type"
+                  class="shrink-0"/>
+        <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-mf-full bg-primary/10">
           <Database :size="15" class="text-primary"/>
         </span>
 
