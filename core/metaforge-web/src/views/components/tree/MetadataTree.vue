@@ -225,7 +225,6 @@ const handleInitialize = () => {
                            isLeaf: false
                          })
                        })
-                       expandFirstDatabase()
                      }
                      else {
                        errorMessage.value = response.data.message
@@ -233,21 +232,6 @@ const handleInitialize = () => {
                    })
                    .finally(() => (loading.value = false))
   }
-}
-
-/** Expand the first database so the tables group shows up without an extra click. */
-const expandFirstDatabase = () => {
-  const first = data.value[0]
-  if (!first || expandedKeys.value.length > 0) {
-    return
-  }
-  loadTables(first)
-    .then(children => {
-      const group = buildTablesGroup(first, children)
-      data.value = updateTreeChildren(data.value, first.key, [group])
-      first.children = [group]
-      expandedKeys.value = [first.key]
-    })
 }
 
 watch(() => props.code, () => handleInitialize())
