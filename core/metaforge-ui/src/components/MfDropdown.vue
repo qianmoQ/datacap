@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
     placement: 'bottomLeft',
 })
 
-const open = ref(false)
+const open = defineModel<boolean>('open', { default: false })
 const root = ref<HTMLElement>()
 const overlay = ref<HTMLElement>()
 let timer: ReturnType<typeof setTimeout> | undefined

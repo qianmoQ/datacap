@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
     trigger: 'hover',
 })
 
-const open = ref(false)
+const open = defineModel<boolean>('open', { default: false })
 const root = ref<HTMLElement>()
 const content = ref<HTMLElement>()
 let timer: ReturnType<typeof setTimeout> | undefined

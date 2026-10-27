@@ -59,7 +59,7 @@ function remove(node) {
     node.parent = null
 }
 
-export function mountHost(vnode, document = new TestDocument()) {
+export function mountHost(vnode, document = new TestDocument(), configure = () => {}) {
     const previousDocument = globalThis.document
     const previousWindow = globalThis.window
     globalThis.document = document
@@ -88,6 +88,7 @@ export function mountHost(vnode, document = new TestDocument()) {
     })
     const container = new HostNode('test-root', document)
     const app = renderer.createApp({ render: () => typeof vnode === 'function' ? vnode() : vnode })
+    configure(app)
     app.mount(container)
     function nodes() {
         const result = []
