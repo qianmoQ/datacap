@@ -14,7 +14,7 @@
                @size-change="onSizeChange">
       <template #actions>
         <MfButton variant="primary" @click="visibleInfo(true, null)">
-          <PlusOutlined :style="{ fontSize: '16px' }"/>
+          <Plus :size="16" />
           {{ $t('source.common.create') }}
         </MfButton>
       </template>
@@ -36,21 +36,21 @@
         </template>
         <template v-else-if="column.key === 'available'">
           <MfTooltip v-if="!record.available" :content="record.message">
-            <CloseCircleOutlined class="cursor-pointer text-red-500" :style="{ fontSize: '20px' }"/>
+            <CircleX :size="20" class="cursor-pointer text-red-500" />
           </MfTooltip>
-          <PlayCircleOutlined v-else="" class="text-green-500" :style="{ fontSize: '20px' }"/>
+          <CirclePlay :size="20" v-else="" class="text-green-500" />
         </template>
         <template v-else-if="column.key === 'action'">
           <MfSpace>
             <MfTooltip :content="$t('source.common.modify').replace('$NAME', record.name)">
               <MfButton variant="ghost" size="sm" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)">
-                <EditOutlined :style="{ fontSize: '15px' }"/>
+                <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
               <MfButton variant="ghost" size="sm">
-                <SettingOutlined :style="{ fontSize: '15px' }"/>
+                <Settings :size="15" />
               </MfButton>
 
               <template #overlay>
@@ -58,14 +58,14 @@
                   <MfMenuItem v-if="(loginUserCode === record.user.code) && record.available && record.isSupportMeta" key_="manager">
                     <router-link :to="`/admin/source/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
-                        <SettingOutlined :style="{ fontSize: '15px' }"/>
+                        <Settings :size="15" />
                         <span>{{ $t('source.common.manager') }}</span>
                       </div>
                     </router-link>
                   </MfMenuItem>
                   <MfMenuItem v-else key_="manager" disabled>
                     <div class="flex items-center space-x-2">
-                      <SettingOutlined :style="{ fontSize: '15px' }"/>
+                      <Settings :size="15" />
                       <span>{{ $t('source.common.manager') }}</span>
                     </div>
                   </MfMenuItem>
@@ -74,7 +74,7 @@
                               :disabled="loginUserCode !== record.user.code"
                               @click="loginUserCode === record.user.code && visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
-                      <DeleteOutlined :style="{ fontSize: '15px' }"/>
+                      <Trash2 :size="15" />
                       <span>{{ $t('common.deleteData') }}</span>
                     </div>
                   </MfMenuItem>
@@ -120,7 +120,7 @@ import SourceInfo from '@/views/pages/admin/source/SourceInfo.vue'
 import SourceHistory from '@/views/pages/admin/source/SourceHistory.vue'
 import SourceDelete from '@/views/pages/admin/source/SourceDelete.vue'
 import SourceMetadata from '@/views/pages/admin/source/SourceMetadata.vue'
-import { CloseCircleOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { CirclePlay, CircleX, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'SourceHome' })
 

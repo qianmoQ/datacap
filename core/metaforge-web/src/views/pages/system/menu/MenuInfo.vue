@@ -20,8 +20,8 @@
                    :class="iconPickerVisible ? 'border-primary' : 'border-line'"
                    @click="iconPickerVisible = !iconPickerVisible">
                 <span class="flex min-w-0 flex-1 items-center gap-2 text-left">
-                  <component v-if="formState.icon && MENU_ICONS[formState.icon]"
-                             :is="MENU_ICONS[formState.icon]" class="shrink-0 text-primary" :style="{ fontSize: '15px' }"/>
+                  <component :size="15" v-if="formState.icon && MENU_ICONS[formState.icon]"
+                             :is="MENU_ICONS[formState.icon]" class="shrink-0 text-primary" />
                   <span class="truncate" :class="formState.icon ? 'text-content' : 'text-content-placeholder'">
                     {{ formState.icon || $t('menu.tip.selectIcon') }}
                   </span>
@@ -43,7 +43,7 @@
                 <div class="p-1 pb-2">
                   <MfInput v-model="iconSearch" :placeholder="$t('menu.tip.searchIcon')">
                     <template #prefix>
-                      <SearchOutlined :style="{ fontSize: '13px', color: 'var(--dc-text-secondary)' }"/>
+                      <Search :size="13" :style="{ color: 'var(--dc-text-secondary)' }"/>
                     </template>
                   </MfInput>
                 </div>
@@ -58,7 +58,7 @@
                               ? 'bg-surface-active font-medium text-primary'
                               : 'text-content-secondary hover:bg-surface-hover hover:text-content'"
                             @click="selectIcon(name)">
-                      <component :is="component" :style="{ fontSize: '16px' }"/>
+                      <component :size="16" :is="component" />
                     </button>
                   </div>
                   <div v-if="Object.keys(filteredIcons).length === 0" class="py-6 text-center text-sm text-content-tertiary">
@@ -149,7 +149,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage, useDismissableLayer } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
-import { SearchOutlined } from '@ant-design/icons-vue'
+import { Search } from '@lucide/vue'
 import { MenuModel, MenuRequest } from '@/model/menu'
 import MenuService from '@/services/menu'
 import { FilterModel } from '@/model/filter'

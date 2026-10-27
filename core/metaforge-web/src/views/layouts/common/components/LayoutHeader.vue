@@ -20,14 +20,14 @@
               <MfSubMenu v-if="item.children" :key_="item.url || item.id">
                 <template #title>
                   <div class="flex items-center space-x-2">
-                    <component v-if="item.icon" :is="menuIcons[item.icon]" :style="{ fontSize: '16px' }"/>
+                    <component :size="16" v-if="item.icon" :is="menuIcons[item.icon]" />
                     <span>{{ item.i18nKey ? $t(item.i18nKey) : 'Unknown' }}</span>
                   </div>
                 </template>
 
                 <MfMenuItem v-for="children in item.children" :key_="children.url">
                   <router-link :to="children.url" class="flex items-center space-x-2">
-                    <component v-if="children.icon" :is="menuIcons[children.icon]" :style="{ fontSize: '16px' }"/>
+                    <component :size="16" v-if="children.icon" :is="menuIcons[children.icon]" />
                     <span>{{ children.i18nKey ? $t(children.i18nKey) : 'Unknown' }}</span>
                   </router-link>
                 </MfMenuItem>
@@ -35,7 +35,7 @@
 
               <MfMenuItem v-else :key_="item.url">
                 <router-link :to="item.url" class="flex items-center space-x-2">
-                  <component v-if="item.icon" :is="menuIcons[item.icon]" :style="{ fontSize: '16px' }"/>
+                  <component :size="16" v-if="item.icon" :is="menuIcons[item.icon]" />
                   <span>{{ item.i18nKey ? $t(item.i18nKey) : 'Unknown' }}</span>
                 </router-link>
               </MfMenuItem>
@@ -51,7 +51,7 @@
                    class="dc-header__search"
                    :placeholder="$t('common.searchPlaceholder')">
             <template #prefix>
-              <SearchOutlined :style="{ fontSize: '14px', color: 'var(--dc-text-secondary)' }"/>
+              <Search :size="14" :style="{ color: 'var(--dc-text-secondary)' }"/>
             </template>
             <template #suffix>
               <span class="dc-header__kbd">⌘K</span>
@@ -62,7 +62,7 @@
           <MfTooltip :content="$t('common.feedback')">
             <a href="https://github.com/devlive-community/metaforge" target="_blank" rel="noopener noreferrer"
                class="dc-header__icon-action" :aria-label="$t('common.feedback')">
-              <QuestionCircleOutlined :style="{ fontSize: '18px' }"/>
+              <CircleHelp :size="18" />
             </a>
           </MfTooltip>
 
@@ -106,7 +106,7 @@
 
               <MfBadge :count="userInfo?.unreadCount || 0">
                 <button type="button" class="dc-header__icon-action" :aria-label="$t('notify.text.center')">
-                  <BellOutlined :style="{ fontSize: '20px' }"/>
+                  <Bell :size="20" />
                 </button>
               </MfBadge>
             </MfPopover>
@@ -151,7 +151,7 @@
 
                   <MfMenuItem @click="logout">
                     <div class="flex items-center space-x-2">
-                      <LogoutOutlined :style="{ fontSize: '16px' }"/>
+                      <LogOut :size="16" />
                       <span>{{ $t('user.common.signout') }}</span>
                     </div>
                   </MfMenuItem>
@@ -175,7 +175,7 @@ import router from '@/router'
 import { createDefaultRouter } from '@/router/default'
 import NotificationService from '@/services/notification'
 import { FilterModel } from '@/model/filter.ts'
-import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import { Bell, CircleHelp, LogOut, Search } from '@lucide/vue'
 import { MENU_ICONS } from '@/config/menu-icons'
 
 defineOptions({ name: 'LayoutHeader' })

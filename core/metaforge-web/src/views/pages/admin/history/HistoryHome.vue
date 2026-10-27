@@ -51,13 +51,13 @@
                         class="rounded-full! text-danger!"
                         :disabled="record.state === 'SUCCESS'"
                         @click="handlerShowContent(true, record?.message)">
-                <WarningOutlined :style="{ fontSize: '15px' }"/>
+                <TriangleAlert :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
               <MfButton variant="ghost" size="sm" class="rounded-full!">
-                <MoreOutlined :style="{ fontSize: '15px' }"/>
+                <EllipsisVertical :size="15" />
               </MfButton>
 
               <template #overlay>
@@ -65,7 +65,7 @@
                   <MfMenuItem>
                     <router-link :to="`/admin/query/history/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
-                        <SnippetsOutlined :style="{ fontSize: '15px' }"/>
+                        <FileCode2 :size="15" />
                         <span>{{ $t('query.common.quoteRecord') }}</span>
                       </div>
                     </router-link>
@@ -73,14 +73,14 @@
 
                   <MfMenuItem @click="handlerShowContent(true, record?.content)">
                     <div class="flex items-center space-x-2">
-                      <RightOutlined :style="{ fontSize: '15px' }"/>
+                      <ChevronRight :size="15" />
                       <span>{{ $t('query.common.showSql') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem @click="handlerShowData(true, record)">
                     <div class="flex items-center space-x-2">
-                      <TableOutlined :style="{ fontSize: '15px' }"/>
+                      <Table :size="15" />
                       <span>{{ $t('query.common.historyData') }}</span>
                     </div>
                   </MfMenuItem>
@@ -113,7 +113,7 @@ import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import HistoryData from '@/views/pages/admin/history/HistoryData.vue'
-import { MoreOutlined, RightOutlined, SnippetsOutlined, TableOutlined, WarningOutlined } from '@ant-design/icons-vue'
+import { ChevronRight, EllipsisVertical, FileCode2, Table, TriangleAlert } from '@lucide/vue'
 
 defineOptions({ name: 'HistoryHome' })
 

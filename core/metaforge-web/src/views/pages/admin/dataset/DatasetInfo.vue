@@ -154,7 +154,7 @@
                 </template>
 
                 <MfButton variant="ghost" size="sm">
-                  <EditOutlined :style="{ fontSize: '10px' }"/>
+                  <Pencil :size="10" />
                 </MfButton>
               </MfPopover>
 
@@ -163,11 +163,11 @@
                         class="text-danger"
                         :disabled="!item.customColumn"
                         @click="onRemoveColumn(index)">
-                <DeleteOutlined :style="{ fontSize: '10px' }"/>
+                <Trash2 :size="10" />
               </MfButton>
 
               <MfButton variant="ghost" size="sm" @click="onAddColumn(index)">
-                <PlusOutlined :style="{ fontSize: '10px' }"/>
+                <Plus :size="10" />
               </MfButton>
             </div>
           </div>
@@ -271,7 +271,7 @@ import ExecuteService from '@/services/execute'
 import { ExecuteModel } from '@/model/execute.ts'
 import { ArrayUtils } from '@/utils/array.ts'
 import { join } from 'lodash'
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { Pencil, Plus, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'DatasetInfo' })
 

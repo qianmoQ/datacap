@@ -70,7 +70,7 @@
                :class="{ 'dc-src__grid-item--selected': formState?.type === src.name }"
                @click="selectSource(src.name)">
             <span v-if="formState?.type === src.name" class="dc-src__grid-check">
-              <CheckCircleFilled/>
+              <CircleCheck/>
             </span>
             <img class="dc-src__grid-logo" :src="'/static/images/plugin/' + src.name.toLowerCase() + '.svg'" :alt="src.name">
             <span class="dc-src__grid-name">{{ src.name }}</span>
@@ -96,7 +96,7 @@
             <div v-for="(feature, index) in catalogEntry.features[detailLocale] || catalogEntry.features.zh"
                  :key="index"
                  class="dc-src__detail-feature">
-              <CheckCircleFilled class="dc-src__detail-feature-icon"/>
+              <CircleCheck class="dc-src__detail-feature-icon"/>
               <span>{{ feature }}</span>
             </div>
           </template>
@@ -112,7 +112,7 @@
 
           <a class="dc-src__detail-docs" href="https://metaforge.devlive.org/" target="_blank" rel="noopener noreferrer">
             {{ $t('source.common.viewDocs') }}
-            <ArrowRightOutlined/>
+            <ArrowRight/>
           </a>
         </template>
       </div>
@@ -155,14 +155,14 @@
                               :class="{ 'dc-src__kv-tab--active': !kvTextModes[configure.field] }"
                               title="Form"
                               @click="toggleKvMode(configure, false)">
-                        <UnorderedListOutlined/>
+                        <List/>
                       </button>
                       <button type="button"
                               class="dc-src__kv-tab"
                               :class="{ 'dc-src__kv-tab--active': kvTextModes[configure.field] }"
                               title="Text"
                               @click="toggleKvMode(configure, true)">
-                        <FileTextOutlined/>
+                        <FileText/>
                       </button>
                     </div>
 
@@ -171,11 +171,11 @@
                         <MfInput v-model="element.field" :placeholder="$t('common.field')"/>
                         <MfInput v-model="element.value" :placeholder="$t('common.value')"/>
                         <button type="button" class="dc-src__kv-remove" @click="onMinusConfigure(element, configure.value)">
-                          <MinusOutlined/>
+                          <Minus/>
                         </button>
                       </div>
                       <button type="button" class="dc-src__kv-add" @click="onPlusConfigure(configure)">
-                        <PlusOutlined :style="{ fontSize: '14px' }"/>
+                        <Plus :size="14" />
                       </button>
                     </template>
 
@@ -205,7 +205,7 @@
     <template #footer>
       <div class="dc-src__footer">
         <div v-if="currentStep === 0" class="dc-src__footer-left">
-          <InfoCircleOutlined class="dc-src__footer-info-icon"/>
+          <Info class="dc-src__footer-info-icon"/>
           <span>{{ $t('source.wizard.notFound') }}</span>
           <a href="https://github.com/devlive-community/metaforge/issues" target="_blank" rel="noopener noreferrer" class="dc-src__footer-link">
             {{ $t('source.common.requestNew') }}
@@ -245,8 +245,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
-import { FileTextOutlined, MinusOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons-vue'
-import { ArrowRightOutlined, CheckCircleFilled, DatabaseOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import { ArrowRight, CircleCheck, Database, FileText, Info, List, Minus, Plus } from '@lucide/vue'
 import { cloneDeep, pick } from 'lodash'
 import { SourceModel, SourceRequest } from '@/model/source'
 import SourceService from '@/services/source'
@@ -333,7 +332,7 @@ const chips = [
 
 const categoryList = computed(() => {
   const defs: Array<{ key: SourceCategoryKey | 'all'; labelKey: string; icon?: any; count: number }> = [
-    { key: 'all', labelKey: 'source.catalog.all', icon: DatabaseOutlined, count: 0 }
+    { key: 'all', labelKey: 'source.catalog.all', icon: Database, count: 0 }
   ]
   const categoryDefs: Array<{ key: SourceCategoryKey; labelKey: string }> = [
     { key: 'rdb', labelKey: 'source.category.rdb' },

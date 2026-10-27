@@ -2,7 +2,7 @@
   <div class="dc-profile-sidebar">
     <div class="dc-profile-sidebar__head">
       <div class="dc-profile-sidebar__badge">
-        <SettingOutlined :style="{ fontSize: '18px' }"/>
+        <Settings :size="18" />
       </div>
       <div class="min-w-0">
         <div class="dc-profile-sidebar__title">{{ $t('common.system') }}</div>
@@ -25,12 +25,12 @@
 
     <div class="dc-profile-sidebar__promo">
       <div class="dc-profile-sidebar__promo-art">
-        <DatabaseOutlined :style="{ fontSize: '26px', color: '#fff' }"/>
+        <Database :size="26" :style="{ color: '#fff' }"/>
       </div>
       <div class="dc-profile-sidebar__promo-title">{{ $t('user.tip.promoTitle') }}</div>
       <div class="dc-profile-sidebar__promo-desc">{{ $t('user.tip.promoDesc') }}</div>
       <div class="dc-profile-sidebar__promo-arrow">
-        <ArrowRightOutlined :style="{ fontSize: '12px' }"/>
+        <ArrowRight :size="12" />
       </div>
     </div>
   </div>
@@ -40,19 +40,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import {
-  ArrowRightOutlined,
-  BellOutlined,
-  CodeOutlined,
-  DatabaseOutlined,
-  IdcardOutlined,
-  LockOutlined,
-  ProfileOutlined,
-  RobotOutlined,
-  SettingOutlined,
-  TrophyOutlined,
-  UserOutlined
-} from '@ant-design/icons-vue'
+import { ArrowRight, Bell, Bot, CodeXml, Database, IdCard, Lock, Settings, SquareUser, Trophy, User } from '@lucide/vue'
 
 defineOptions({ name: 'LayoutSidebar' })
 
@@ -60,14 +48,14 @@ const { t } = useI18n()
 const route = useRoute()
 
 const items = computed(() => [
-  { title: t('user.common.profile'), href: '/admin/user/profile', icon: UserOutlined },
-  { title: t('user.common.notify'), href: '/admin/user/notify', icon: BellOutlined },
-  { title: t('user.common.info'), href: '/admin/user/info', icon: TrophyOutlined },
-  { title: t('user.common.log'), href: '/admin/user/log', icon: ProfileOutlined },
-  { title: t('user.common.editor'), href: '/admin/user/editor', icon: CodeOutlined },
-  { title: t('user.common.assistant'), href: '/admin/user/assistant', icon: RobotOutlined },
-  { title: t('user.common.modifyPassword'), href: '/admin/user/password', icon: LockOutlined },
-  { title: t('user.common.modifyUsername'), href: '/admin/user/username', icon: IdcardOutlined }
+  { title: t('user.common.profile'), href: '/admin/user/profile', icon: User },
+  { title: t('user.common.notify'), href: '/admin/user/notify', icon: Bell },
+  { title: t('user.common.info'), href: '/admin/user/info', icon: Trophy },
+  { title: t('user.common.log'), href: '/admin/user/log', icon: SquareUser },
+  { title: t('user.common.editor'), href: '/admin/user/editor', icon: CodeXml },
+  { title: t('user.common.assistant'), href: '/admin/user/assistant', icon: Bot },
+  { title: t('user.common.modifyPassword'), href: '/admin/user/password', icon: Lock },
+  { title: t('user.common.modifyUsername'), href: '/admin/user/username', icon: IdCard }
 ])
 </script>
 

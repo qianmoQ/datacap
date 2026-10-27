@@ -14,11 +14,11 @@
                @size-change="onSizeChange">
       <template #actions>
         <MfButton variant="primary" @click="handlerInfo(true, null)">
-          <PlusOutlined :style="{ fontSize: '16px' }"/>
+          <Plus :size="16" />
           {{ $t('function.common.create') }}
         </MfButton>
         <MfButton @click="handlerImport(true)">
-          <ImportOutlined :style="{ fontSize: '16px' }"/>
+          <Import :size="16" />
           {{ $t('function.common.import') }}
         </MfButton>
       </template>
@@ -38,7 +38,7 @@
         <template v-else-if="column.key === 'action'">
           <MfTooltip :content="$t('common.editData')">
             <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
-              <EditOutlined :style="{ fontSize: '15px' }"/>
+              <Pencil :size="15" />
             </MfButton>
           </MfTooltip>
         </template>
@@ -63,7 +63,7 @@ import { useTableFilters } from '@/views/components/table/tableFilters'
 import FunctionService from '@/services/function'
 import FunctionInfo from '@/views/pages/system/function/FunctionInfo.vue'
 import FunctionImport from '@/views/pages/system/function/FunctionImport.vue'
-import { EditOutlined, ImportOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { Import, Pencil, Plus } from '@lucide/vue'
 
 defineOptions({ name: 'FunctionHome' })
 

@@ -28,13 +28,13 @@
           <MfSpace>
             <MfTooltip :content="$t('report.common.view').replace('$VALUE', record.name)">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="visibleView(true, record)">
-                <EyeOutlined :style="{ fontSize: '15px' }"/>
+                <Eye :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click">
               <MfButton variant="ghost" size="sm" class="rounded-full!">
-                <SettingOutlined :style="{ fontSize: '15px' }"/>
+                <Settings :size="15" />
               </MfButton>
 
               <template #overlay>
@@ -44,19 +44,19 @@
                                  :to="`/admin/dataset/adhoc/${ record.dataset?.code }/${ record.code }`"
                                  target="_blank">
                       <div class="flex items-center space-x-2">
-                        <EditOutlined :style="{ fontSize: '15px' }"/>
+                        <Pencil :size="15" />
                         <span>{{ $t('report.common.modify') }}</span>
                       </div>
                     </router-link>
                     <div v-else class="flex items-center space-x-2">
-                      <EditOutlined :style="{ fontSize: '15px' }"/>
+                      <Pencil :size="15" />
                       <span>{{ $t('report.common.modify') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem @click="visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
-                      <DeleteOutlined :style="{ fontSize: '15px' }"/>
+                      <Trash2 :size="15" />
                       <span>{{ $t('report.common.delete') }}</span>
                     </div>
                   </MfMenuItem>
@@ -90,7 +90,7 @@ import { useTableFilters } from '@/views/components/table/tableFilters'
 import ReportService from '@/services/report'
 import ReportView from '@/views/pages/admin/report/ReportView.vue'
 import ReportDelete from '@/views/pages/admin/report/ReportDelete.vue'
-import { DeleteOutlined, EditOutlined, EyeOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { Eye, Pencil, Settings, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'ReportHome' })
 

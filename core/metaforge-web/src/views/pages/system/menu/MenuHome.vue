@@ -15,7 +15,7 @@
       <template #actions>
         <MfTooltip :content="$t('menu.common.create')">
           <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
-            <PlusOutlined :style="{ fontSize: '16px' }"/>
+            <Plus :size="16" />
             {{ $t('menu.common.create') }}
           </MfButton>
         </MfTooltip>
@@ -29,7 +29,7 @@
           <MfSpace>
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
-                <EditOutlined :style="{ fontSize: '15px' }"/>
+                <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
           </MfSpace>
@@ -52,7 +52,7 @@ import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import MenuInfo from '@/views/pages/system/menu/MenuInfo.vue'
 import MenuService from '@/services/menu'
-import { EditOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { Pencil, Plus } from '@lucide/vue'
 
 defineOptions({ name: 'MenuHome' })
 

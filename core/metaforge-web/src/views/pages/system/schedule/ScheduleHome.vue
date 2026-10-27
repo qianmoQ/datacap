@@ -32,17 +32,17 @@
             <MfTooltip :content="$t('schedule.common.trigger')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerTrigger(record)">
                 <MfSpinner v-if="triggeringId === record.id" size="sm"/>
-                <PlayCircleOutlined v-else :style="{ fontSize: '15px' }"/>
+                <CirclePlay :size="15" v-else />
               </MfButton>
             </MfTooltip>
             <MfTooltip :content="$t('schedule.common.upcoming')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerUpcoming(record)">
-                <ClockCircleOutlined :style="{ fontSize: '15px' }"/>
+                <Clock :size="15" />
               </MfButton>
             </MfTooltip>
             <MfTooltip :content="$t('schedule.common.history')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
-                <HistoryOutlined :style="{ fontSize: '15px' }"/>
+                <History :size="15" />
               </MfButton>
             </MfTooltip>
           </MfSpace>
@@ -65,7 +65,7 @@
       <div v-for="(time, index) in upcomingTimes"
            :key="index"
            class="flex items-center gap-2 border-b border-line py-2 text-sm text-content last:border-b-0">
-        <ClockCircleOutlined class="text-content-tertiary"/>
+        <Clock :size="14" class="text-content-tertiary"/>
         <span>{{ time }}</span>
       </div>
       <div v-if="upcomingTimes.length === 0" class="py-6 text-center text-sm text-content-tertiary">
@@ -85,7 +85,7 @@ import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import ScheduleHistory from '@/views/pages/system/schedule/ScheduleHistory.vue'
 import { ScheduleModel } from '@/model/schedule'
-import { HistoryOutlined, ClockCircleOutlined, PlayCircleOutlined } from '@ant-design/icons-vue'
+import { CirclePlay, Clock, History } from '@lucide/vue'
 
 defineOptions({ name: 'ScheduleHome' })
 

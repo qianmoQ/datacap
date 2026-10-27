@@ -29,7 +29,7 @@
         <slot name="tools"/>
         <MfTooltip :content="t('common.refresh')">
           <MfButton :aria-label="t('common.refresh')" :disabled="loading" @click="emit('refresh')">
-            <ReloadOutlined/>
+            <RotateCw :size="14"/>
           </MfButton>
         </MfTooltip>
 
@@ -46,14 +46,14 @@
           </template>
           <MfTooltip :content="columnsText">
             <MfButton :aria-label="columnsText">
-              <SettingOutlined/>
+              <Settings :size="14"/>
             </MfButton>
           </MfTooltip>
         </MfPopover>
 
         <MfTooltip :content="downloadText">
           <MfButton :aria-label="downloadText" :disabled="loading || dataSource.length === 0" @click="onDownload">
-            <DownloadOutlined/>
+            <DownloadIcon :size="14"/>
           </MfButton>
         </MfTooltip>
       </template>
@@ -112,7 +112,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DownloadOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { DownloadIcon, RotateCw, Settings } from '@lucide/vue'
 import { emptyTableFilters, type TableFilters } from '@/model/filter'
 import TableFilterControl from './TableFilterControl.vue'
 import type { TableFilterField } from './tableFilters'

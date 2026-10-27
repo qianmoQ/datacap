@@ -14,7 +14,7 @@
                @size-change="onSizeChange">
       <template #actions>
         <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
-          <PlusOutlined :style="{ fontSize: '16px' }"/>
+          <Plus :size="16" />
           {{ $t('user.common.create') }}
         </MfButton>
       </template>
@@ -27,13 +27,13 @@
           <MfSpace>
             <MfTooltip :content="$t('user.common.assignRole')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeRole(true, record)">
-                <ArrowUpOutlined :style="{ fontSize: '15px' }"/>
+                <ArrowUp :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
-                <EditOutlined :style="{ fontSize: '15px' }"/>
+                <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
           </MfSpace>
@@ -62,7 +62,7 @@ import { useTableFilters } from '@/views/components/table/tableFilters'
 import UserInfo from '@/views/pages/system/user/UserInfo.vue'
 import UserRole from '@/views/pages/system/user/components/UserRole.vue'
 import UserService from '@/services/user'
-import { ArrowUpOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { ArrowUp, Pencil, Plus } from '@lucide/vue'
 
 defineOptions({ name: 'UserHome' })
 

@@ -4,7 +4,7 @@
       <MfTooltip :content="$t('dashboard.common.create')">
         <router-link to="/admin/dashboard/info" target="_blank">
           <MfButton variant="primary" size="sm" class="rounded-full!">
-            <PlusOutlined :style="{ fontSize: '15px' }"/>
+            <Plus :size="15" />
           </MfButton>
         </router-link>
       </MfTooltip>
@@ -26,27 +26,27 @@
                 <MfSpace class="items-center">
                   <div v-if="item.description" class="cursor-pointer mt-1">
                     <MfTooltip :content="item.description">
-                      <InfoCircleOutlined :style="{ fontSize: '20px' }"/>
+                      <Info :size="20" />
                     </MfTooltip>
                   </div>
 
                   <MfDropdown trigger="click" placement="bottomRight">
                     <MfButton variant="ghost" size="sm" class="rounded-full!">
-                      <SettingOutlined :style="{ fontSize: '18px' }"/>
+                      <Settings :size="18" />
                     </MfButton>
 
                     <template #overlay>
                       <MfMenu>
                         <MfMenuItem>
                           <router-link :to="`/admin/dashboard/info/${item.code}`" target="_blank" class="flex items-center space-x-2">
-                            <EditOutlined :style="{ fontSize: '15px' }"/>
+                            <Pencil :size="15" />
                             <span>{{ $t('dashboard.common.modify') }}</span>
                           </router-link>
                         </MfMenuItem>
 
                         <MfMenuItem @click="visibleDelete(true, item)">
                           <div class="flex items-center space-x-2">
-                            <DeleteOutlined :style="{ fontSize: '15px' }"/>
+                            <Trash2 :size="15" />
                             <span>{{ $t('dashboard.common.delete') }}</span>
                           </div>
                         </MfMenuItem>
@@ -99,7 +99,7 @@ import DashboardService from '@/services/dashboard'
 import { FilterModel } from '@/model/filter'
 import { DashboardModel } from '@/model/dashboard'
 import DashboardDelete from '@/views/pages/admin/dashboard/DashboardDelete.vue'
-import { DeleteOutlined, EditOutlined, InfoCircleOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { Info, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'DashboardHome' })
 

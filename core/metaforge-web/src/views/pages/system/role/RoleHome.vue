@@ -14,7 +14,7 @@
                @size-change="onSizeChange">
       <template #actions>
         <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
-          <PlusOutlined :style="{ fontSize: '16px' }"/>
+          <Plus :size="16" />
           {{ $t('role.common.create') }}
         </MfButton>
       </template>
@@ -24,13 +24,13 @@
           <MfSpace>
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
-                <EditOutlined :style="{ fontSize: '15px' }"/>
+                <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('role.common.assignMenu').replace('$NAME', record?.name)">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerAssignMenu(true, record)">
-                <MenuOutlined :style="{ fontSize: '15px' }"/>
+                <Menu :size="15" />
               </MfButton>
             </MfTooltip>
           </MfSpace>
@@ -58,7 +58,7 @@ import { useTableFilters } from '@/views/components/table/tableFilters'
 import RoleInfo from '@/views/pages/system/role/RoleInfo.vue'
 import RoleMenu from '@/views/pages/system/role/RoleMenu.vue'
 import RoleService from '@/services/role'
-import { EditOutlined, MenuOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { Menu, Pencil, Plus } from '@lucide/vue'
 
 defineOptions({ name: 'RoleHome' })
 

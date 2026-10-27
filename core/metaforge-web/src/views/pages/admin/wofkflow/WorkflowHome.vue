@@ -16,7 +16,7 @@
         <MfTooltip :content="$t('workflow.text.create')">
           <router-link to="/admin/workflow/info" target="_blank">
             <MfButton variant="primary" size="sm">
-              <PlusOutlined :style="{ fontSize: '15px' }"/>
+              <Plus :size="15" />
             </MfButton>
           </router-link>
         </MfTooltip>
@@ -43,13 +43,13 @@
                         class="text-danger"
                         :disabled="record.state !== 'FAILURE' && !(record.state == 'STOPPED' && record.message)"
                         @click="visibleShowMessage(true, record)">
-                <WarningOutlined :style="{ fontSize: '15px' }"/>
+                <TriangleAlert :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
               <MfButton variant="ghost" size="sm">
-                <SettingOutlined :style="{ fontSize: '15px' }"/>
+                <Settings :size="15" />
               </MfButton>
 
               <template #overlay>
@@ -57,47 +57,47 @@
                   <MfMenuItem key_="modify" :disabled="record.state === 'RUNNING'">
                     <template v-if="record.state !== 'RUNNING'">
                       <router-link :to="`/admin/workflow/info/${record.code}`" target="_blank" class="flex items-center">
-                        <InfoCircleOutlined :style="{ fontSize: '15px' }"/>
+                        <Info :size="15" />
                         <span class="ml-2">{{ $t('workflow.text.modify') }}</span>
                       </router-link>
                     </template>
                     <div v-else class="flex items-center">
-                      <InfoCircleOutlined :style="{ fontSize: '15px' }"/>
+                      <Info :size="15" />
                       <span class="ml-2">{{ $t('workflow.text.modify') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem key_="stop" :disabled="record.state !== 'RUNNING'" @click="record.state === 'RUNNING' && visibleStop(true, record)">
                     <div class="flex items-center space-x-2">
-                      <PauseCircleOutlined :style="{ fontSize: '15px' }"/>
+                      <CirclePause :size="15" />
                       <span>{{ $t('workflow.text.stop') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem key_="restart" :disabled="record.state === 'RUNNING'" @click="record.state !== 'RUNNING' && visibleRestart(true, record)">
                     <div class="flex items-center space-x-2">
-                      <PlayCircleOutlined :style="{ fontSize: '15px' }"/>
+                      <CirclePlay :size="15" />
                       <span>{{ $t('workflow.text.restart') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem key_="logger" @click="visibleLogger(true, record)">
                     <div class="flex items-center space-x-2">
-                      <DeploymentUnitOutlined :style="{ fontSize: '15px' }"/>
+                      <Boxes :size="15" />
                       <span>{{ $t('workflow.text.logger') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem key_="delete" :disabled="record.state === 'RUNNING'" @click="record.state !== 'RUNNING' && visibleDelete(true, record)">
                     <div class="flex items-center space-x-2">
-                      <DeleteOutlined :style="{ fontSize: '15px' }"/>
+                      <Trash2 :size="15" />
                       <span>{{ $t('workflow.text.delete') }}</span>
                     </div>
                   </MfMenuItem>
 
                   <MfMenuItem key_="flow" @click="visibleFlow(true, record)">
                     <div class="flex items-center space-x-2">
-                      <ClusterOutlined :style="{ fontSize: '15px' }"/>
+                      <Network :size="15" />
                       <span>{{ $t('workflow.text.flow') }}</span>
                     </div>
                   </MfMenuItem>
@@ -155,7 +155,7 @@ import WorkflowDelete from '@/views/pages/admin/wofkflow/WorkflowDelete.vue'
 import WorkflowStop from '@/views/pages/admin/wofkflow/WorkflowStop.vue'
 import WorkflowLogger from '@/views/pages/admin/wofkflow/WorkflowLogger.vue'
 import WorkflowRestart from '@/views/pages/admin/wofkflow/WorkflowRestart.vue'
-import { ClusterOutlined, DeleteOutlined, DeploymentUnitOutlined, InfoCircleOutlined, PauseCircleOutlined, PlayCircleOutlined, PlusOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons-vue'
+import { Boxes, CirclePause, CirclePlay, Info, Network, Plus, Settings, Trash2, TriangleAlert } from '@lucide/vue'
 
 defineOptions({ name: 'PipelineHome' })
 

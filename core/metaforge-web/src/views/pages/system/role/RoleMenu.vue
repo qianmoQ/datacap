@@ -20,7 +20,7 @@
                     :aria-label="$t(expandedNodes.includes(node.key) ? 'role.tip.collapseMenu' : 'role.tip.expandMenu').replace('$NAME', node.label)"
                     class="inline-flex size-5 shrink-0 items-center justify-center rounded-mf-sm text-content-tertiary hover:bg-surface-hover hover:text-content"
                     @click="toggleExpand(node.key)">
-              <RightOutlined :class="['transition-transform duration-200', expandedNodes.includes(node.key) && 'rotate-90']" :style="{ fontSize: '12px' }"/>
+              <ChevronRight :size="12" :class="['transition-transform duration-200', expandedNodes.includes(node.key) && 'rotate-90']" />
             </button>
             <span v-else class="inline-block size-5 shrink-0"/>
             <MfCheckbox :model-value="isChecked(node.key)"
@@ -45,7 +45,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
-import { RightOutlined } from '@ant-design/icons-vue'
+import { ChevronRight } from '@lucide/vue'
 import { RoleModel } from '@/model/role'
 import UserService from '@/services/user'
 import RoleService from '@/services/role'
