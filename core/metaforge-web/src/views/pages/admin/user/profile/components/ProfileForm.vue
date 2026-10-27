@@ -44,7 +44,7 @@
 
       <div class="dc-profile__hero-actions">
         <MfButton @click="triggerUpload">
-          <Camera/>
+          <Camera :size="14"/>
           {{ $t('user.common.uploadAvatar') }}
         </MfButton>
       </div>
@@ -101,7 +101,7 @@
 
           <div class="dc-profile__pref">
             <div class="dc-profile__pref-label">
-              <Globe class="dc-profile__pref-icon"/>
+              <Globe :size="14" class="dc-profile__pref-icon"/>
               <span>{{ $t('user.common.language') }}</span>
             </div>
             <MfSelect :model-value="language"
@@ -129,7 +129,7 @@
           <div class="dc-profile__tiles">
             <div class="dc-profile__tile">
               <div class="dc-profile__tile-icon dc-profile__tile-icon--info">
-                <Crown/>
+                <Crown :size="16"/>
               </div>
               <div class="min-w-0">
                 <div class="dc-profile__tile-label">{{ $t('user.common.accountRole') }}</div>
@@ -140,7 +140,7 @@
 
             <div class="dc-profile__tile">
               <div class="dc-profile__tile-icon dc-profile__tile-icon--success">
-                <ShieldCheck/>
+                <ShieldCheck :size="16"/>
               </div>
               <div class="min-w-0">
                 <div class="dc-profile__tile-label">{{ $t('user.common.accountState') }}</div>
@@ -153,7 +153,7 @@
 
             <div class="dc-profile__tile">
               <div class="dc-profile__tile-icon dc-profile__tile-icon--primary">
-                <Calendar/>
+                <Calendar :size="16"/>
               </div>
               <div class="min-w-0">
                 <div class="dc-profile__tile-label">{{ $t('user.common.registerTime') }}</div>
@@ -166,7 +166,7 @@
 
             <div class="dc-profile__tile">
               <div class="dc-profile__tile-icon dc-profile__tile-icon--neutral">
-                <Clock/>
+                <Clock :size="16"/>
               </div>
               <div class="min-w-0">
                 <div class="dc-profile__tile-label">{{ $t('user.common.lastLogin') }}</div>

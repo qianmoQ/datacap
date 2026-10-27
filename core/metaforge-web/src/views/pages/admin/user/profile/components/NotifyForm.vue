@@ -38,8 +38,8 @@
             <div class="flex items-center justify-between mt-3">
               <span class="dc-notify__channel-state"
                     :class="channel.enabled ? 'dc-notify__channel-state--on' : 'dc-notify__channel-state--off'">
-                <CircleCheck v-if="channel.enabled"/>
-                <CircleMinus v-else/>
+                <CircleCheck :size="12" v-if="channel.enabled"/>
+                <CircleMinus :size="12" v-else/>
                 {{ channel.enabled ? $t('notify.state.enabled') : $t('notify.state.disabled') }}
               </span>
               <MfButton v-if="!channel.enabled"
@@ -66,7 +66,7 @@
         <MfButton variant="primary"
                   style="margin-left: auto"
                   @click="openBatch">
-          <Settings/>
+          <Settings :size="14"/>
           {{ $t('notify.common.batch') }}
         </MfButton>
       </div>

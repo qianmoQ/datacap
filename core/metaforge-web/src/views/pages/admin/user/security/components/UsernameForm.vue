@@ -22,9 +22,9 @@
                 <MfInput v-model="formState.newUsername"
                          @input="onUsernameInput">
                   <template #suffix>
-                    <CircleCheck v-if="checkState === 'success'" class="dc-rename__check--success"/>
-                    <CircleX v-else-if="checkState === 'error'" class="dc-rename__check--error"/>
-                    <LoaderCircle v-else-if="checkState === 'loading'" class="dc-rename__check--loading"/>
+                    <CircleCheck :size="14" v-if="checkState === 'success'" class="dc-rename__check--success"/>
+                    <CircleX :size="14" v-else-if="checkState === 'error'" class="dc-rename__check--error"/>
+                    <LoaderCircle :size="14" v-else-if="checkState === 'loading'" class="dc-rename__check--loading"/>
                   </template>
                 </MfInput>
                 <div v-if="checkState === 'error'" class="dc-rename__field-error">{{ checkMessage }}</div>

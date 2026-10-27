@@ -70,7 +70,7 @@
                :class="{ 'dc-src__grid-item--selected': formState?.type === src.name }"
                @click="selectSource(src.name)">
             <span v-if="formState?.type === src.name" class="dc-src__grid-check">
-              <CircleCheck/>
+              <CircleCheck :size="14"/>
             </span>
             <img class="dc-src__grid-logo" :src="'/static/images/plugin/' + src.name.toLowerCase() + '.svg'" :alt="src.name">
             <span class="dc-src__grid-name">{{ src.name }}</span>
@@ -96,7 +96,7 @@
             <div v-for="(feature, index) in catalogEntry.features[detailLocale] || catalogEntry.features.zh"
                  :key="index"
                  class="dc-src__detail-feature">
-              <CircleCheck class="dc-src__detail-feature-icon"/>
+              <CircleCheck :size="12" class="dc-src__detail-feature-icon"/>
               <span>{{ feature }}</span>
             </div>
           </template>
@@ -112,7 +112,7 @@
 
           <a class="dc-src__detail-docs" href="https://metaforge.devlive.org/" target="_blank" rel="noopener noreferrer">
             {{ $t('source.common.viewDocs') }}
-            <ArrowRight/>
+            <ArrowRight :size="14"/>
           </a>
         </template>
       </div>
@@ -155,14 +155,14 @@
                               :class="{ 'dc-src__kv-tab--active': !kvTextModes[configure.field] }"
                               title="Form"
                               @click="toggleKvMode(configure, false)">
-                        <List/>
+                        <List :size="14"/>
                       </button>
                       <button type="button"
                               class="dc-src__kv-tab"
                               :class="{ 'dc-src__kv-tab--active': kvTextModes[configure.field] }"
                               title="Text"
                               @click="toggleKvMode(configure, true)">
-                        <FileText/>
+                        <FileText :size="14"/>
                       </button>
                     </div>
 
@@ -171,7 +171,7 @@
                         <MfInput v-model="element.field" :placeholder="$t('common.field')"/>
                         <MfInput v-model="element.value" :placeholder="$t('common.value')"/>
                         <button type="button" class="dc-src__kv-remove" @click="onMinusConfigure(element, configure.value)">
-                          <Minus/>
+                          <Minus :size="14"/>
                         </button>
                       </div>
                       <button type="button" class="dc-src__kv-add" @click="onPlusConfigure(configure)">
@@ -205,7 +205,7 @@
     <template #footer>
       <div class="dc-src__footer">
         <div v-if="currentStep === 0" class="dc-src__footer-left">
-          <Info class="dc-src__footer-info-icon"/>
+          <Info :size="12" class="dc-src__footer-info-icon"/>
           <span>{{ $t('source.wizard.notFound') }}</span>
           <a href="https://github.com/devlive-community/metaforge/issues" target="_blank" rel="noopener noreferrer" class="dc-src__footer-link">
             {{ $t('source.common.requestNew') }}

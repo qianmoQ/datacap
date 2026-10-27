@@ -39,7 +39,7 @@
         <div class="relative">
           <div v-if="!initialize && showMetrics" class="dc-adhoc__group">
             <div class="dc-adhoc__group-title">
-              <ChartColumn class="dc-adhoc__group-icon"/>
+              <ChartColumn :size="14" class="dc-adhoc__group-icon"/>
               <span>{{ $t('dataset.common.columnModeMetric') }}</span>
             </div>
             <Draggable item-key="id"
@@ -60,7 +60,7 @@
 
           <div v-if="!initialize && showDimensions" class="dc-adhoc__group">
             <div class="dc-adhoc__group-title">
-              <LayoutGrid class="dc-adhoc__group-icon"/>
+              <LayoutGrid :size="14" class="dc-adhoc__group-icon"/>
               <span>{{ $t('dataset.common.columnModeDimension') }}</span>
             </div>
             <Draggable item-key="id"
@@ -95,19 +95,19 @@
             </div>
             <div class="dc-adhoc__head-actions">
               <MfButton @click="onClear">
-                <Eraser/>
+                <Eraser :size="14"/>
                 {{ $t('dataset.adhoc.clear') }}
               </MfButton>
               <MfButton :disabled="!showSql.content || loading" @click="visibleShowSql(true)">
-                <Eye/>
+                <Eye :size="14"/>
                 {{ $t('dataset.adhoc.preview') }}
               </MfButton>
               <MfButton variant="primary" :disabled="loading" :loading="loading" @click="onApplyAdhoc">
-                <CirclePlay/>
+                <CirclePlay :size="14"/>
                 {{ $t('dataset.adhoc.query') }}
               </MfButton>
               <MfDropdown placement="bottomRight">
-                <MfButton><Ellipsis/></MfButton>
+                <MfButton><Ellipsis :size="14"/></MfButton>
                 <template #overlay>
                   <MfMenu>
                     <MfMenuItem key_="publish" @click="publishVisible = true">{{ $t('common.publish') }}</MfMenuItem>
@@ -127,7 +127,7 @@
             <div class="dc-adhoc__zone dc-adhoc__zone--metric"
                  :class="{ 'dc-adhoc__zone--highlight': highlight.active && highlight.type === ColumnType.METRIC }">
               <div class="dc-adhoc__zone-head dc-adhoc__zone-head--green">
-                <ChartColumn class="dc-adhoc__zone-icon"/>
+                <ChartColumn :size="14" class="dc-adhoc__zone-icon"/>
                 <span class="dc-adhoc__zone-label">{{ $t('dataset.common.columnModeMetric') }} (Measures)</span>
                 <span class="dc-adhoc__zone-hint">{{ $t('dataset.adhoc.dropMetric') }}</span>
               </div>
@@ -153,7 +153,7 @@
             <div class="dc-adhoc__zone dc-adhoc__zone--dimension"
                  :class="{ 'dc-adhoc__zone--highlight': highlight.active && highlight.type === ColumnType.DIMENSION }">
               <div class="dc-adhoc__zone-head dc-adhoc__zone-head--blue">
-                <LayoutGrid class="dc-adhoc__zone-icon"/>
+                <LayoutGrid :size="14" class="dc-adhoc__zone-icon"/>
                 <span class="dc-adhoc__zone-label">{{ $t('dataset.common.columnModeDimension') }} (Dimensions)</span>
                 <span class="dc-adhoc__zone-hint">{{ $t('dataset.adhoc.dropDimension') }}</span>
               </div>
@@ -179,7 +179,7 @@
             <div class="dc-adhoc__zone dc-adhoc__zone--filter"
                  :class="{ 'dc-adhoc__zone--highlight': highlight.active && highlight.type === ColumnType.FILTER }">
               <div class="dc-adhoc__zone-head dc-adhoc__zone-head--purple">
-                <Filter class="dc-adhoc__zone-icon"/>
+                <Filter :size="14" class="dc-adhoc__zone-icon"/>
                 <span class="dc-adhoc__zone-label">{{ $t('dataset.common.columnModeFilter') }} (Filters)</span>
                 <span class="dc-adhoc__zone-hint">{{ $t('dataset.adhoc.dropFilter') }}</span>
               </div>
@@ -220,7 +220,7 @@
             <div class="dc-adhoc__result-footer">
               <span class="dc-adhoc__result-total">{{ $t('dataset.adhoc.totalRows', { limit: configure.limit }) }}</span>
               <MfButton size="sm" @click="exportResults">
-                <Download/>
+                <Download :size="14"/>
                 {{ $t('dataset.adhoc.export') }}
               </MfButton>
             </div>

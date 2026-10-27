@@ -17,7 +17,7 @@
                   :key="item.href"
                   :key_="item.href">
         <router-link :to="item.href" class="dc-profile-sidebar__link">
-          <component :is="item.icon" class="dc-profile-sidebar__link-icon"/>
+          <component :is="item.icon" class="dc-profile-sidebar__link-icon" :size="15"/>
           <span>{{ item.title }}</span>
         </router-link>
       </MfMenuItem>
