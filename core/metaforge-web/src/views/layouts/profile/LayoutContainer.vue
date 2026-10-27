@@ -1,8 +1,10 @@
 <template>
   <BaseLayout>
     <div class="flex min-h-screen w-full flex-col">
-      <LayoutHeader/>
-      <div class="container min-h-screen" style="margin-top: 20px; margin-bottom: 24px;">
+      <div class="relative z-30 flex w-full flex-col">
+        <LayoutHeader/>
+      </div>
+      <div class="container isolate min-h-screen" style="margin-top: 20px; margin-bottom: 24px;">
         <div class="flex w-full gap-4">
           <div class="shrink-0">
             <LayoutSidebar/>

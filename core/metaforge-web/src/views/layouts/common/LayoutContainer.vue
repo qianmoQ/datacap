@@ -5,11 +5,11 @@
     </div>
 
     <div v-show="!loadingState">
-      <div class="flex w-full flex-col">
+      <div class="relative z-30 flex w-full flex-col">
         <LayoutHeader/>
       </div>
 
-      <div class="container my-2 min-h-screen">
+      <div class="container isolate my-2 min-h-screen">
         <LayoutBreadcrumb class="mb-2"/>
         <RouterView/>
       </div>
