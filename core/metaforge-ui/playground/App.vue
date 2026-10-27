@@ -18,12 +18,15 @@ import {
     MfConfigProvider,
     MfDivider,
     MfInput,
+    MfMenu,
+    MfMenuItem,
     MfModal,
     MfRadio,
     MfRadioGroup,
     MfSelect,
     MfSpace,
     MfSpinner,
+    MfSubMenu,
     MfSwitch,
     MfTag,
     MfTextarea,
@@ -31,6 +34,16 @@ import {
 } from '../src/index'
 
 const mode = ref<MfThemeMode>('light')
+const menuMode = ref<'horizontal' | 'inline'>('horizontal')
+const menuSelectedKeys = ref<(string | number)[]>(['/home'])
+const menuClickCount = ref(0)
+const navigation = [
+    { key: '/home', label: '首页' },
+    { key: '/admin/dashboard', label: '仪表盘' },
+    { key: '/admin/dataset', label: '数据集' },
+    { key: '/store', label: '商店' },
+    { key: '/admin/query', label: '查询' },
+]
 const primary = ref('#2563eb')
 
 const presets = {
@@ -115,6 +128,31 @@ function simulateLoading(): void {
             </header>
 
             <main class="mx-auto grid max-w-4xl gap-6">
+                <MfCard title="Navigation">
+                    <div class="space-y-4">
+                        <MfRadioGroup v-model="menuMode" variant="button">
+                            <MfRadio value="horizontal">顶部导航</MfRadio>
+                            <MfRadio value="inline">侧边导航</MfRadio>
+                        </MfRadioGroup>
+                        <MfMenu :mode="menuMode" :selected-keys="menuSelectedKeys" @click="menuSelectedKeys = [$event.key]; menuClickCount++">
+                            <MfMenuItem v-for="item in navigation" :key="item.key" :key_="item.key">
+                                <a :href="`#${item.key}`" class="flex items-center">{{ item.label }}</a>
+                            </MfMenuItem>
+                            <MfMenuItem key_="/disabled" disabled>
+                                <a href="#disabled" class="flex items-center">禁用链接</a>
+                            </MfMenuItem>
+                            <MfSubMenu key_="/admin" title="管理员">
+                                <MfMenuItem key_="/admin/source">数据源</MfMenuItem>
+                                <MfMenuItem key_="/admin/workflow">工作流</MfMenuItem>
+                            </MfSubMenu>
+                            <MfSubMenu key_="/system" title="系统设置">
+                                <MfMenuItem key_="/system/user">用户</MfMenuItem>
+                                <MfMenuItem key_="/system/configure">运行时配置</MfMenuItem>
+                            </MfSubMenu>
+                        </MfMenu>
+                        <p class="text-xs text-content-tertiary">触发次数：{{ menuClickCount }}</p>
+                    </div>
+                </MfCard>
                 <MfCard title="Buttons">
                     <MfSpace wrap>
                         <MfButton variant="primary">Primary</MfButton>
