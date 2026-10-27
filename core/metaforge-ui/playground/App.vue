@@ -270,6 +270,14 @@ function simulateLoading(): void {
                 </MfCard>
 
                 <MfCard title="Overlay">
+                    <div class="mb-4 overflow-x-auto rounded-mf-md border border-line p-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <span class="text-sm text-content-secondary">表格滚动容器边缘提示</span>
+                            <MfTooltip content="分配菜单 [ 系统管理员路由 ]：长提示在视口内换行，不应撑大表格滚动范围。">
+                                <MfButton variant="ghost">分配菜单</MfButton>
+                            </MfTooltip>
+                        </div>
+                    </div>
                     <MfSpace>
                         <MfButton variant="primary" @click="modalOpen = true">Open modal</MfButton>
                         <MfCheckbox v-model="engines" value="local" label="local" />
