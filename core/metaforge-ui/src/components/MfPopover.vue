@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
-import clsx from 'clsx'
 import { useDismissableLayer } from '../composables/useDismissableLayer'
+import { useOverlayPosition, type OverlayPlacement } from '../composables/useOverlayPosition'
 
 const props = withDefaults(defineProps<{
-    placement?: 'top' | 'bottom' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+    placement?: OverlayPlacement
     trigger?: 'hover' | 'click' | 'focus'
 }>(), {
     placement: 'top',
@@ -22,7 +22,7 @@ function close(): void {
     open.value = false
 }
 
-useDismissableLayer(root, open, close)
+useDismissableLayer(root, open, close, [content])
 onBeforeUnmount(() => { if (timer) clearTimeout(timer) })
 
 function show(): void {
@@ -49,35 +49,38 @@ const events = computed(() => props.trigger === 'click'
         ? { focus: show, blur: hide }
         : { mouseenter: show, mouseleave: hide })
 
-const POS = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    topLeft: 'bottom-full left-0 mb-2',
-    topRight: 'bottom-full right-0 mb-2',
-    bottomLeft: 'top-full left-0 mt-2',
-    bottomRight: 'top-full right-0 mt-2',
-} as const
+// Teleported to <body> and pinned with `position: fixed`, so the panel is no
+// longer clipped by scrolling table/card ancestors. z-50 matches MfModal/MfDrawer.
+const contentStyle = useOverlayPosition({
+    root,
+    open,
+    placement: () => props.placement,
+    gap: 8,
+})
 </script>
 
 <template>
     <span ref="root" class="relative inline-flex" v-on="events">
         <slot />
-        <Transition
-            enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            enter-from-class="opacity-0 scale-95"
-            leave-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            leave-to-class="opacity-0 scale-95"
-        >
-            <span
-                v-if="open"
-                ref="content"
-                role="tooltip"
-                :class="clsx('absolute z-40 block w-max max-w-xs rounded-mf-md bg-surface px-3 py-2 text-xs text-content shadow-mf-md border border-line', POS[placement])"
-                @mouseenter="show"
-                @mouseleave="hide"
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
+                enter-from-class="opacity-0 scale-95"
+                leave-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
+                leave-to-class="opacity-0 scale-95"
             >
-                <slot name="content" />
-            </span>
-        </Transition>
+                <span
+                    v-if="open"
+                    ref="content"
+                    role="tooltip"
+                    class="fixed z-50 block w-max max-w-xs rounded-mf-md bg-surface px-3 py-2 text-xs text-content shadow-mf-md border border-line"
+                    :style="contentStyle"
+                    @mouseenter="show"
+                    @mouseleave="hide"
+                >
+                    <slot name="content" />
+                </span>
+            </Transition>
+        </Teleport>
     </span>
 </template>

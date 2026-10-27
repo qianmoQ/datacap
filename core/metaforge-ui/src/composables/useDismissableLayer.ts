@@ -69,6 +69,8 @@ export function useDismissableLayer(
     root: Ref<HTMLElement | undefined>,
     active: Readonly<Ref<boolean>>,
     dismiss: () => void,
+    /** Extra elements (e.g. a teleported overlay) that belong to this layer. */
+    extra: ReadonlyArray<Ref<HTMLElement | undefined>> = [],
 ): void {
     let unregister: (() => void) | undefined
     let stop: (() => void) | undefined
@@ -80,8 +82,9 @@ export function useDismissableLayer(
                 const document = root.value?.ownerDocument ?? globalThis.document
                 unregister = registerDismissableLayer(document, {
                     contains(event) {
-                        const element = root.value
-                        return !!element && (event.composedPath().includes(element) || element.contains(event.target as Node | null))
+                        const elements = [root.value, ...extra.map(item => item.value)]
+                            .filter((element): element is HTMLElement => !!element)
+                        return elements.some(element => event.composedPath().includes(element) || element.contains(event.target as Node | null))
                     },
                     dismiss,
                 })

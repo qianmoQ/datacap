@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
-import clsx from 'clsx'
 import { useDismissableLayer } from '../composables/useDismissableLayer'
+import { useOverlayPosition, type OverlayPlacement } from '../composables/useOverlayPosition'
 
 const props = withDefaults(defineProps<{
     trigger?: ('click' | 'hover' | 'contextmenu')[] | string
-    placement?: 'bottomLeft' | 'bottom' | 'bottomRight' | 'topLeft' | 'top' | 'topRight'
+    placement?: OverlayPlacement
 }>(), {
     trigger: 'hover',
     placement: 'bottomLeft',
@@ -13,6 +13,7 @@ const props = withDefaults(defineProps<{
 
 const open = ref(false)
 const root = ref<HTMLElement>()
+const overlay = ref<HTMLElement>()
 let timer: ReturnType<typeof setTimeout> | undefined
 
 function close(): void {
@@ -21,7 +22,7 @@ function close(): void {
     open.value = false
 }
 
-useDismissableLayer(root, open, close)
+useDismissableLayer(root, open, close, [overlay])
 onBeforeUnmount(() => { if (timer) clearTimeout(timer) })
 
 const triggers = computed(() => Array.isArray(props.trigger) ? props.trigger : [props.trigger])
@@ -47,19 +48,13 @@ function toggle(event: Event): void {
     open.value = !open.value
 }
 
-const POS = {
-    bottomLeft: 'top-full left-0 mt-1.5',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-1.5',
-    bottomRight: 'top-full right-0 mt-1.5',
-    topLeft: 'bottom-full left-0 mb-1.5',
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-1.5',
-    topRight: 'bottom-full right-0 mb-1.5',
-} as const
-
-const overlayClass = computed(() => clsx(
-    'absolute z-40 min-w-40 rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg',
-    POS[props.placement],
-))
+// Teleported to <body> and pinned with `position: fixed`, so the menu is no
+// longer clipped by scrolling table/card ancestors. z-50 matches MfModal/MfDrawer.
+const overlayStyle = useOverlayPosition({
+    root,
+    open,
+    placement: () => props.placement,
+})
 </script>
 
 <template>
@@ -72,15 +67,24 @@ const overlayClass = computed(() => clsx(
         @contextmenu="triggers.includes('contextmenu') && toggle($event)"
     >
         <slot />
-        <Transition
-            enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            enter-from-class="opacity-0 scale-95"
-            leave-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            leave-to-class="opacity-0 scale-95"
-        >
-            <div v-if="open" :class="overlayClass" @mouseenter="show" @mouseleave="hoverable && hide()">
-                <slot name="overlay" />
-            </div>
-        </Transition>
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
+                enter-from-class="opacity-0 scale-95"
+                leave-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
+                leave-to-class="opacity-0 scale-95"
+            >
+                <div
+                    v-if="open"
+                    ref="overlay"
+                    class="fixed z-50 min-w-40 rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
+                    :style="overlayStyle"
+                    @mouseenter="show"
+                    @mouseleave="hoverable && hide()"
+                >
+                    <slot name="overlay" />
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
