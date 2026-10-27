@@ -132,7 +132,9 @@
             <span class="truncate font-medium text-content">{{ selectedTable.database }}.{{ selectedTable.table }}</span>
           </div>
 
-          <MfSkeleton v-if="loadingStructure" active class="mt-1"/>
+          <div v-if="loadingStructure" class="flex justify-center py-6">
+            <MfSpinner size="md"/>
+          </div>
 
           <div v-else class="flex flex-col gap-1">
             <div v-for="column in structureColumns"
