@@ -8,7 +8,7 @@ package org.devlive.metaforge.plugin.configure;
  * Kept minimal on purpose so any plugin layer can declare configurable fields without
  * pulling in business-side enums.
  */
-public enum PluginFieldType
+public enum RuntimeConfigureFieldType
 {
     STRING,
     NUMBER,

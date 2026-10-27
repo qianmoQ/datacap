@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
-public class IConfigureExecutor
+public class PluginConfigureExecutor
 {
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
     private String executor;
@@ -27,14 +27,14 @@ public class IConfigureExecutor
     private RunProtocol protocol = RunProtocol.NONE;
 
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
-    private IConfigurePipelineType type;
+    private PluginConfigurePipelineType type;
 
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
-    private List<IConfigureExecutorField> fields;
+    private List<PluginConfigureExecutorField> fields;
 
-    public static IConfigureExecutor of(String executor, IConfigurePipelineType type, RunProtocol protocol, List<IConfigureExecutorField> fields)
+    public static PluginConfigureExecutor of(String executor, PluginConfigurePipelineType type, RunProtocol protocol, List<PluginConfigureExecutorField> fields)
     {
-        IConfigureExecutor configureExecutor = new IConfigureExecutor();
+        PluginConfigureExecutor configureExecutor = new PluginConfigureExecutor();
         configureExecutor.setExecutor(executor);
         configureExecutor.setType(type);
         configureExecutor.setProtocol(protocol == null ? RunProtocol.NONE : protocol);

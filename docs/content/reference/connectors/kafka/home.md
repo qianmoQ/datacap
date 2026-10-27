@@ -31,7 +31,7 @@ This chapter describes the SQL syntax used in MetaForge Kafka plugin.
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `KafkaPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `KafkaPlugin#describe`)
 
 !!! note
 

@@ -13,8 +13,8 @@ import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.plugin.Plugin;
 import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.plugin.PluginType;
-import org.devlive.metaforge.plugin.configure.IConfigure;
-import org.devlive.metaforge.plugin.configure.IConfigureField;
+import org.devlive.metaforge.plugin.configure.PluginConfigure;
+import org.devlive.metaforge.plugin.configure.PluginConfigureField;
 import org.devlive.metaforge.service.adapter.PageRequestAdapter;
 import org.devlive.metaforge.service.body.FilterBody;
 import org.devlive.metaforge.service.body.SharedSourceBody;
@@ -33,8 +33,8 @@ import org.devlive.metaforge.service.security.UserDetailsService;
 import org.devlive.metaforge.service.service.SourceService;
 import org.devlive.metaforge.service.wrapper.ResponseWrapper;
 import org.devlive.metaforge.spi.PluginService;
-import org.devlive.metaforge.spi.model.Configure;
 import org.devlive.metaforge.spi.model.Response;
+import org.devlive.metaforge.spi.model.RuntimeConfigure;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,7 +83,7 @@ public class SourceServiceImpl
         page.getContent().forEach(item -> {
             pluginManager.getPlugin(item.getType())
                     .ifPresent(plugin -> {
-                        IConfigure pluginConfigure = plugin.getConfigure();
+                        PluginConfigure pluginConfigure = plugin.describe();
                         if (pluginConfigure != null) {
                             item.setPipelines(pluginConfigure.getPipelines());
                         }
@@ -120,8 +120,8 @@ public class SourceServiceImpl
         return repository.findByCode(code)
                 .map(entity -> {
                     // Load plugin configure declared inside the plugin code and fill saved values back
-                    IConfigure iConfigure = pluginManager.getPlugin(entity.getType())
-                            .map(Plugin::getConfigure)
+                    PluginConfigure iConfigure = pluginManager.getPlugin(entity.getType())
+                            .map(Plugin::describe)
                             .map(configure -> ConfigureUtils.preparedConfigure(configure, entity))
                             .orElse(null);
                     entity.setSchema(iConfigure);
@@ -142,7 +142,7 @@ public class SourceServiceImpl
                     entity.setName(plugin.getName());
                     entity.setDescription(plugin.getName());
                     entity.setType(plugin.getType().getName());
-                    entity.setConfigure((IConfigure) plugin.getConfigure());
+                    entity.setConfigure((PluginConfigure) plugin.getConfigure());
                     plugins.add(entity);
                 });
         return CommonResponse.success(plugins);
@@ -179,15 +179,15 @@ public class SourceServiceImpl
         return pluginManager.getPlugin(configure.getType())
                 .<CommonResponse<ResponseWrapper>>map(plugin -> {
                     // Check configure
-                    IConfigure iConfigure = plugin.getConfigure();
+                    PluginConfigure iConfigure = plugin.describe();
                     if (ObjectUtils.isEmpty(iConfigure) || iConfigure.getConfigures().size() != configure.getConfigure().getConfigures().size()) {
                         return CommonResponse.failure(ServiceState.PLUGIN_CONFIGURE_MISMATCH);
                     }
 
                     // Filter required
-                    List<IConfigureField> requiredMismatchConfigures = configure.getConfigure().getConfigures()
+                    List<PluginConfigureField> requiredMismatchConfigures = configure.getConfigure().getConfigures()
                             .stream()
-                            .filter(IConfigureField::isRequired)
+                            .filter(PluginConfigureField::isRequired)
                             .filter(v -> ObjectUtils.isEmpty(v.getValue()))
                             .collect(Collectors.toList());
                     if (!requiredMismatchConfigures.isEmpty()) {
@@ -196,8 +196,8 @@ public class SourceServiceImpl
 
                     // The filter parameter value is null data
                     PluginService pluginService = plugin.getService(PluginService.class);
-                    List<IConfigureField> applyConfigures = ConfigureUtils.filterNotEmpty(configure.getConfigure().getConfigures());
-                    Configure _configure = ConfigureUtils.preparedConfigure(applyConfigures);
+                    List<PluginConfigureField> applyConfigures = ConfigureUtils.filterNotEmpty(configure.getConfigure().getConfigures());
+                    RuntimeConfigure _configure = ConfigureUtils.preparedConfigure(applyConfigures);
                     _configure.setPluginManager(pluginManager);
                     _configure.setPlugin(plugin);
 
@@ -226,16 +226,16 @@ public class SourceServiceImpl
         return pluginManager.getPlugin(configure.getName())
                 .<CommonResponse<SourceEntity>>map(plugin -> {
                     // Check configure
-                    IConfigure iConfigure = plugin.getConfigure();
+                    PluginConfigure iConfigure = plugin.describe();
                     if (ObjectUtils.isEmpty(iConfigure) || iConfigure.getConfigures().size() != configure.getConfigure().getConfigures().size()) {
                         return CommonResponse.failure(ServiceState.PLUGIN_CONFIGURE_MISMATCH);
                     }
 
                     // Filter required
-                    List<IConfigureField> requiredMismatchConfigures = configure.getConfigure()
+                    List<PluginConfigureField> requiredMismatchConfigures = configure.getConfigure()
                             .getConfigures()
                             .stream()
-                            .filter(IConfigureField::isRequired)
+                            .filter(PluginConfigureField::isRequired)
                             .filter(v -> ObjectUtils.isEmpty(v.getValue()))
                             .collect(Collectors.toList());
                     if (!requiredMismatchConfigures.isEmpty()) {
@@ -243,7 +243,7 @@ public class SourceServiceImpl
                     }
 
                     // The filter parameter value is null data
-                    List<IConfigureField> applyConfigures = ConfigureUtils.filterNotEmpty(configure.getConfigure().getConfigures());
+                    List<PluginConfigureField> applyConfigures = ConfigureUtils.filterNotEmpty(configure.getConfigure().getConfigures());
                     SourceEntity source = ConfigureUtils.preparedSourceEntity(applyConfigures);
                     source.setProtocol(configure.getType());
                     source.setType(configure.getName());

@@ -20,7 +20,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2", "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "CT_CONSTRUCTOR_THROW",
         "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"})
-public class Configure
+public class RuntimeConfigure
         implements Cloneable
 {
     @NonNull
@@ -68,10 +68,10 @@ public class Configure
     private Boolean isAppendChar = Boolean.TRUE;
 
     @Override
-    public Configure clone()
+    public RuntimeConfigure clone()
     {
         try {
-            return (Configure) super.clone();
+            return (RuntimeConfigure) super.clone();
         }
         catch (CloneNotSupportedException e) {
             throw new AssertionError();

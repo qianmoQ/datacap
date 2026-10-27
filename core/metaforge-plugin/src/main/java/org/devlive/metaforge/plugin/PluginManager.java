@@ -647,7 +647,7 @@ public class PluginManager
                             .instance(module)
                             .type(module.getType())
                             .key(module.getKey())
-                            .configure(module.getConfigure())
+                            .configure(module.describe())
                             .loadTimestamp(System.currentTimeMillis())
                             .loadTime(DateUtils.formatYMDHMSWithInterval())
                             .build();

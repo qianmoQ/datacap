@@ -20,7 +20,7 @@ Support Time: `2023-02-20`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `DuckdbPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `DuckdbPlugin#describe`)
 
 !!! note
 

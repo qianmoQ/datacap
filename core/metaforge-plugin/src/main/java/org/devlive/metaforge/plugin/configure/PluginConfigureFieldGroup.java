@@ -1,6 +1,6 @@
 package org.devlive.metaforge.plugin.configure;
 
-public enum IConfigureFieldGroup
+public enum PluginConfigureFieldGroup
 {
     configure,
     authorization,

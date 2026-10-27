@@ -20,7 +20,7 @@ Support Time: `2022-09-22`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `ClickhousePlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `ClickhousePlugin#describe`)
 
 !!! note
 

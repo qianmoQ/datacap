@@ -1,6 +1,6 @@
 package org.devlive.metaforge.plugin.configure;
 
-public enum IConfigurePipelineType
+public enum PluginConfigurePipelineType
 {
     INPUT,
     OUTPUT

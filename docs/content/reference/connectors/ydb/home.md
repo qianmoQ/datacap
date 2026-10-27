@@ -20,7 +20,7 @@ Support Time: `2023-01-30`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `YdbPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `YdbPlugin#describe`)
 
 !!! note
 

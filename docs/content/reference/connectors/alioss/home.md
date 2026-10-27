@@ -80,7 +80,7 @@ This chapter describes the SQL syntax used in Aliyun OSS on MetaForge.
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `AliossPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `AliossPlugin#describe`)
 
 !!! note
 

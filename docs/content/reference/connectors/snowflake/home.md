@@ -20,7 +20,7 @@ Support Time: `2023-01-29`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `SnowflakePlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `SnowflakePlugin#describe`)
 
 !!! note
 

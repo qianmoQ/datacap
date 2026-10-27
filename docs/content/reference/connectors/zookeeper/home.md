@@ -81,7 +81,7 @@ This chapter describes the SQL syntax used in Zookeeper on MetaForge.
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `ZookeeperPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `ZookeeperPlugin#describe`)
 
 !!! note
 

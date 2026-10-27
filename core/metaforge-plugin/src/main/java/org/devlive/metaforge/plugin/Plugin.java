@@ -226,7 +226,7 @@ public abstract class Plugin
      * Declare configurable fields exposed by this plugin. Default empty for full
      * backward compatibility — subclasses (Executor / Scheduler / FS / Notify / ...) override as needed.
      */
-    public java.util.List<org.devlive.metaforge.plugin.configure.PluginConfigureField> configures()
+    public java.util.List<org.devlive.metaforge.plugin.configure.RuntimeConfigureField> runtimeConfigures()
     {
         return java.util.Collections.emptyList();
     }
@@ -241,7 +241,7 @@ public abstract class Plugin
      * (former default.yaml semantics); other plugin types return null. Connector plugins
      * should override this method to provide their own configuration.
      */
-    public org.devlive.metaforge.plugin.configure.IConfigure getConfigure()
+    public org.devlive.metaforge.plugin.configure.PluginConfigure describe()
     {
         return getType() == PluginType.CONNECTOR ? org.devlive.metaforge.plugin.configure.DefaultJdbcConfigure.INSTANCE : null;
     }

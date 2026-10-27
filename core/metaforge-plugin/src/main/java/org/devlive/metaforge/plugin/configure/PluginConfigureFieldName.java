@@ -1,6 +1,6 @@
 package org.devlive.metaforge.plugin.configure;
 
-public enum IConfigureFieldName
+public enum PluginConfigureFieldName
 {
     field,
     value,

@@ -20,7 +20,7 @@ Support Time: `2022-09-19`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `MySQLPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `MySQLPlugin#describe`)
 
 !!! note
 

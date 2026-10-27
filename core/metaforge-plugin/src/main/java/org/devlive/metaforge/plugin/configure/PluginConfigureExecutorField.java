@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
-public class IConfigureExecutorField
+public class PluginConfigureExecutorField
 {
     // The field name
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})

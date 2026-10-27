@@ -1,6 +1,6 @@
 package org.devlive.metaforge.plugin.configure;
 
-public enum IConfigureFieldType
+public enum PluginConfigureFieldType
 {
     Number,
     String,

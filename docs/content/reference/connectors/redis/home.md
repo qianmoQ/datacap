@@ -19,7 +19,7 @@ Support Time: `2022-12-01`
 
 ---
 
-MetaForge declares the configuration fields inside the plugin class by default (see `RedisPlugin#getConfigure`)
+MetaForge declares the configuration fields inside the plugin class by default (see `RedisPlugin#describe`)
 
 !!! note
 
