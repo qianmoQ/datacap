@@ -119,9 +119,10 @@ public class SourceServiceImpl
     {
         return repository.findByCode(code)
                 .map(entity -> {
-                    // Load plugin configure declared inside the plugin code
+                    // Load plugin configure declared inside the plugin code and fill saved values back
                     IConfigure iConfigure = pluginManager.getPlugin(entity.getType())
                             .map(Plugin::getConfigure)
+                            .map(configure -> ConfigureUtils.preparedConfigure(configure, entity))
                             .orElse(null);
                     entity.setSchema(iConfigure);
                     return CommonResponse.success(entity);

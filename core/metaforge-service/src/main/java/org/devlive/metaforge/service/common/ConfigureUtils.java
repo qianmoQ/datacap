@@ -123,10 +123,13 @@ public class ConfigureUtils
                 case configures:
                     List<Map<String, Object>> fields = new ArrayList<>();
                     if (ObjectUtils.isNotEmpty(source.getConfigures())) {
-                        source.getConfigures().entrySet().forEach(entry -> {
+                        source.getConfigures().forEach((key, value) -> {
+                            if (ObjectUtils.isEmpty(key)) {
+                                return;
+                            }
                             Map<String, Object> map = new LinkedHashMap<>();
-                            map.put(IConfigureFieldName.field.name(), entry.getKey());
-                            map.put(IConfigureFieldName.value.name(), entry.getValue());
+                            map.put(IConfigureFieldName.field.name(), key);
+                            map.put(IConfigureFieldName.value.name(), value);
                             fields.add(map);
                         });
                     }
