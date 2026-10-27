@@ -47,7 +47,9 @@ const classes = computed(() => clsx(
 
 <template>
     <button :type="type" :class="classes" :disabled="disabled || loading" :aria-busy="loading || undefined">
-        <MfLoadingIcon v-if="loading" :size="16" class="-ml-0.5"/>
-        <slot />
+        <MfLoadingIcon v-if="loading" :size="16" class="-ml-0.5 shrink-0"/>
+        <!-- While loading the shared icon replaces any slot icon: exactly one glyph shows. -->
+        <span v-if="loading" class="inline-flex items-center [&_svg]:hidden"><slot /></span>
+        <slot v-else />
     </button>
 </template>
