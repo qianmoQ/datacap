@@ -1,6 +1,6 @@
 <template>
   <MfAlert variant="info" closable class="dc-header-banner rounded-none!">
-    <router-link to="/admin/chat" target="_blank" class="hover:text-primary">
+    <router-link to="/chat" target="_blank" class="hover:text-primary">
       Support ChatGPT
     </router-link>
   </MfAlert>
@@ -83,7 +83,7 @@
                         <span>{{ $t(`common.${ item.entityType?.toLowerCase() || '' }`) }}</span>
 
                         <template v-if="item.entityType === 'DATASET'">
-                          <router-link :to="`/admin/dataset/info/${item.entityCode}`" target="_blank" class="hover:text-primary flex items-center">
+                          <router-link :to="`/dataset/info/${item.entityCode}`" target="_blank" class="hover:text-primary flex items-center">
                             [ {{ item.entityName }} ]
                           </router-link>
                         </template>
@@ -143,7 +143,7 @@
                   <li class="my-1 border-t border-line" role="separator" />
 
                   <MfMenuItem>
-                    <router-link to="/admin/user" class="flex items-center space-x-2">
+                    <router-link to="/account/profile" class="flex items-center space-x-2">
                       <SettingOutlined :style="{ fontSize: '16px' }"/>
                       <span>{{ $t('user.common.setting') }}</span>
                     </router-link>
@@ -172,7 +172,6 @@ import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import { TokenUtils } from '@/utils/token'
 import router from '@/router'
-import { createDefaultRouter } from '@/router/default'
 import NotificationService from '@/services/notification'
 import { FilterModel } from '@/model/filter.ts'
 import { Bell, CircleHelp, LogOut, Search } from '@lucide/vue'
@@ -181,7 +180,7 @@ import { MENU_ICONS } from '@/config/menu-icons'
 defineOptions({ name: 'LayoutHeader' })
 
 /**
- * 顶级菜单高亮：按路径前缀匹配（子页面如 /admin/user/profile 也命中所属菜单）
+ * 顶级菜单高亮：按路径前缀匹配（子页面如 /account/profile 也命中所属菜单）
  */
 const selectedKeys = computed(() => {
     const urls: string[] = []
@@ -250,7 +249,7 @@ const onNotifyScroll = (event: any) => {
 
 onMounted(async () => {
   if (TokenUtils.getAuthUser()) {
-    await userStore.fetchUserInfo()
+    await Promise.all([userStore.fetchUserInfo(), userStore.fetchMenus()])
     await fetchMessages()
   }
   window.addEventListener('keydown', onGlobalKeydown)
@@ -274,7 +273,6 @@ const onGlobalKeydown = (event: KeyboardEvent) => {
 
 const logout = () => {
   userStore.logout()
-  createDefaultRouter(router)
   router.push('/auth/signin')
 }
 

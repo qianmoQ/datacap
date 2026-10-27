@@ -5,7 +5,7 @@
         <Settings :size="18" />
       </div>
       <div class="min-w-0">
-        <div class="dc-profile-sidebar__title">{{ $t('common.system') }}</div>
+        <div class="dc-profile-sidebar__title">{{ $t('navigation.accountSettings') }}</div>
         <div class="dc-profile-sidebar__subtitle">{{ $t('user.tip.settings') }}</div>
       </div>
     </div>
@@ -48,14 +48,14 @@ const { t } = useI18n()
 const route = useRoute()
 
 const items = computed(() => [
-  { title: t('user.common.profile'), href: '/admin/user/profile', icon: User },
-  { title: t('user.common.notify'), href: '/admin/user/notify', icon: Bell },
-  { title: t('user.common.info'), href: '/admin/user/info', icon: Trophy },
-  { title: t('user.common.log'), href: '/admin/user/log', icon: SquareUser },
-  { title: t('user.common.editor'), href: '/admin/user/editor', icon: CodeXml },
-  { title: t('user.common.assistant'), href: '/admin/user/assistant', icon: Bot },
-  { title: t('user.common.modifyPassword'), href: '/admin/user/password', icon: Lock },
-  { title: t('user.common.modifyUsername'), href: '/admin/user/username', icon: IdCard }
+  { title: t('user.common.profile'), href: '/account/profile', icon: User },
+  { title: t('user.common.notify'), href: '/account/notify', icon: Bell },
+  { title: t('user.common.info'), href: '/account/info', icon: Trophy },
+  { title: t('user.common.log'), href: '/account/log', icon: SquareUser },
+  { title: t('user.common.editor'), href: '/account/editor', icon: CodeXml },
+  { title: t('user.common.assistant'), href: '/account/assistant', icon: Bot },
+  { title: t('user.common.modifyPassword'), href: '/account/password', icon: Lock },
+  { title: t('user.common.modifyUsername'), href: '/account/username', icon: IdCard }
 ])
 </script>
 

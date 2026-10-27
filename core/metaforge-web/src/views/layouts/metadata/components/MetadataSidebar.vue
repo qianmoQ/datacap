@@ -272,7 +272,7 @@ const onChangeDatabase = () => {
                      }
                    }
                    else {
-                     router.push(`/admin/source/${ originalSource.value }/d/${ selectDatabase.value }`)
+                     router.push(`/source/${ originalSource.value }/d/${ selectDatabase.value }`)
                    }
                  })
 }
@@ -314,7 +314,7 @@ const onSelect = (_keys: any[], info: any) => {
   }
 
   const type = route.meta.type
-  router.push(`/admin/source/${ originalSource.value }/d/${ selectDatabase.value }/t/${ type ? type : 'info' }/${ node.code }`)
+  router.push(`/source/${ originalSource.value }/d/${ selectDatabase.value }/t/${ type ? type : 'info' }/${ node.code }`)
 }
 
 const onLoadData = (treeNode: any): Promise<void> => {

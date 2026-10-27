@@ -41,10 +41,10 @@ const menuSelectedKeys = ref<(string | number)[]>(['/home'])
 const menuClickCount = ref(0)
 const navigation = [
     { key: '/home', label: '首页' },
-    { key: '/admin/dashboard', label: '仪表盘' },
-    { key: '/admin/dataset', label: '数据集' },
+    { key: '/dashboard', label: '仪表盘' },
+    { key: '/dataset', label: '数据集' },
     { key: '/store', label: '商店' },
-    { key: '/admin/query', label: '查询' },
+    { key: '/query', label: '查询' },
 ]
 const primary = ref('#2563eb')
 const toolbarKeyword = ref('')
@@ -163,13 +163,13 @@ function simulateLoading(): void {
                             <MfMenuItem key_="/disabled" disabled>
                                 <a href="#disabled" class="flex items-center">禁用链接</a>
                             </MfMenuItem>
-                            <MfSubMenu key_="/admin" title="管理员">
-                                <MfMenuItem key_="/admin/source">数据源</MfMenuItem>
-                                <MfMenuItem key_="/admin/workflow">工作流</MfMenuItem>
+                            <MfSubMenu key_="/workspace" title="数据开发">
+                                <MfMenuItem key_="/source">数据源</MfMenuItem>
+                                <MfMenuItem key_="/workflow">工作流</MfMenuItem>
                             </MfSubMenu>
-                            <MfSubMenu key_="/system" title="系统设置">
-                                <MfMenuItem key_="/system/user">用户</MfMenuItem>
-                                <MfMenuItem key_="/system/configure">运行时配置</MfMenuItem>
+                            <MfSubMenu key_="/admin" title="系统管理">
+                                <MfMenuItem key_="/admin/user">用户</MfMenuItem>
+                                <MfMenuItem key_="/admin/configure">运行时配置</MfMenuItem>
                             </MfSubMenu>
                         </MfMenu>
                         <p class="text-xs text-content-tertiary">触发次数：{{ menuClickCount }}</p>

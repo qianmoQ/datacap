@@ -2,7 +2,7 @@
   <MfCard :title="$t('dashboard.common.list')">
     <template #extra>
       <MfTooltip :content="$t('dashboard.common.create')">
-        <router-link to="/admin/dashboard/info" target="_blank">
+        <router-link to="/dashboard/info" target="_blank">
           <MfButton variant="primary" size="sm" class="rounded-full!">
             <Plus :size="15" />
           </MfButton>
@@ -19,7 +19,7 @@
           <div v-for="item in data" :key="item.code">
             <MfCard class="mb-4">
               <template #header>
-                <router-link :to="`/admin/dashboard/preview/${item.code}`" target="_blank">{{ item.name }}</router-link>
+                <router-link :to="`/dashboard/preview/${item.code}`" target="_blank">{{ item.name }}</router-link>
               </template>
 
               <template #extra>
@@ -38,7 +38,7 @@
                     <template #overlay>
                       <MfMenu>
                         <MfMenuItem>
-                          <router-link :to="`/admin/dashboard/info/${item.code}`" target="_blank" class="flex items-center space-x-2">
+                          <router-link :to="`/dashboard/info/${item.code}`" target="_blank" class="flex items-center space-x-2">
                             <Pencil :size="15" />
                             <span>{{ $t('dashboard.common.modify') }}</span>
                           </router-link>

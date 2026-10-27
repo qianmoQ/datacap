@@ -82,7 +82,7 @@ const handleData = (source: any[]): any[] => {
   return source.map(item => {
     const node: { value: any; label: any; children: any[] } = {
       value: item.id,
-      label: item.title,
+      label: item.i18nKey && t(item.i18nKey) !== item.i18nKey ? t(item.i18nKey) : item.title,
       children: []
     }
     if (item.children) {

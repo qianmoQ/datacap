@@ -232,7 +232,7 @@ const onSubmit = () => {
                       if (response.status) {
                         MfMessage.success(t('dashboard.tip.publishSuccess').replace('$VALUE', String(formState.value?.name)))
                         if (response.data) {
-                          router.push(`/admin/dashboard/preview/${ response.data?.code }`)
+                          router.push(`/dashboard/preview/${ response.data?.code }`)
                         }
                         else {
                           router.push('/console/dashboard')

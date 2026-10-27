@@ -34,7 +34,7 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace>
             <MfTooltip :content="$t('dataset.common.adhoc')">
-              <router-link v-if="isSuccess(record?.state)" :to="`/admin/dataset/adhoc/${ record?.code }`" target="_blank">
+              <router-link v-if="isSuccess(record?.state)" :to="`/dataset/adhoc/${ record?.code }`" target="_blank">
                 <MfButton variant="ghost" size="sm">
                   <ChartColumn :size="15" />
                 </MfButton>
@@ -52,7 +52,7 @@
               <template #overlay>
                 <MfMenu>
                   <MfMenuItem key_="info">
-                    <router-link :to="`/admin/dataset/info/${ record?.code }`" target="_blank" class="flex items-center">
+                    <router-link :to="`/dataset/info/${ record?.code }`" target="_blank" class="flex items-center">
                       <Info :size="15" />
                       <span class="ml-2">{{ $t('dataset.common.info') }}</span>
                     </router-link>

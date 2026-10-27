@@ -3,7 +3,7 @@
     <template #header>
       <MfSpace>
         <MfButton>
-          <router-link :to="`/admin/dataset/info/source/${configure.code}?tempId=${tempId}`" target="_blank">
+          <router-link :to="`/dataset/info/source/${configure.code}?tempId=${tempId}`" target="_blank">
               <span class="flex items-center">
                 <Plus :size="15" />
                 <span>{{ $t('common.dataset') }}</span>

@@ -1,5 +1,6 @@
 package org.devlive.metaforge.service.repository.jdbc;
 
+import org.devlive.metaforge.service.common.NavigationPaths;
 import org.devlive.metaforge.service.record.TreeRecord;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Explicit menu projections and atomic relationship updates, independent of ORM sessions. */
 @Repository
@@ -59,7 +61,10 @@ public class MenuAccessRepository
                         + "JOIN metaforge_role r ON rm.role_id = CONCAT('', r.id) "
                         + "JOIN metaforge_user_role_relation ur ON ur.role_id = r.id WHERE ur.user_id = :userId",
                 Map.of("userId", users.get(0)), String.class));
-        List<TreeRecord> all = menus(assigned, false);
+        boolean administrator = jdbc.queryForObject("SELECT COUNT(*) FROM metaforge_user_role_relation ur JOIN metaforge_role r ON r.id = ur.role_id WHERE ur.user_id = :userId AND r.code = 'ADMIN'",
+                Map.of("userId", users.get(0)), Long.class) > 0;
+        List<TreeRecord> all = menus(assigned, false).stream()
+                .filter(menu -> administrator || !NavigationPaths.administrative(menu.getUrl())).collect(Collectors.toList());
         Map<Long, TreeRecord> byId = new LinkedHashMap<>();
         all.forEach(menu -> byId.put(menu.getId(), menu));
         Set<Long> included = new HashSet<>(assigned);
@@ -117,12 +122,12 @@ public class MenuAccessRepository
     {
         String sql = "SELECT id, name, url, sorted, code, i18n_key, icon, is_new, description, parent FROM metaforge_menu"
                 + (viewsOnly ? " WHERE type = 'VIEW'" : "") + " ORDER BY sorted, id";
-        return jdbc.query(sql, Map.of(), (row, index) -> TreeRecord.builder()
+        return jdbc.query(sql, Map.of(), (row, index) -> NavigationPaths.normalize(TreeRecord.builder()
                 .id(row.getLong("id")).title(row.getString("name")).url(row.getString("url"))
                 .sorted(row.getInt("sorted")).code(row.getString("code")).i18nKey(row.getString("i18n_key"))
                 .icon(row.getString("icon")).isNew(row.getBoolean("is_new")).description(row.getString("description"))
                 .parent(row.getLong("parent")).checked(assigned.contains(row.getLong("id"))).selected(assigned.contains(row.getLong("id")))
-                .build());
+                .build()));
     }
 
     private Set<Long> ids(List<String> values)

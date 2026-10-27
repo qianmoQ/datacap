@@ -56,7 +56,7 @@
               <template #overlay>
                 <MfMenu>
                   <MfMenuItem v-if="(loginUserCode === record.user.code) && record.available && record.isSupportMeta" key_="manager">
-                    <router-link :to="`/admin/source/${ record?.code }`" target="_blank">
+                    <router-link :to="`/source/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
                         <Settings :size="15" />
                         <span>{{ $t('source.common.manager') }}</span>

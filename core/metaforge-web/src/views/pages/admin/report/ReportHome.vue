@@ -41,7 +41,7 @@
                 <MfMenu>
                   <MfMenuItem :disabled="record.type === 'QUERY'">
                     <router-link v-if="record.type !== 'QUERY'"
-                                 :to="`/admin/dataset/adhoc/${ record.dataset?.code }/${ record.code }`"
+                                 :to="`/dataset/adhoc/${ record.dataset?.code }/${ record.code }`"
                                  target="_blank">
                       <div class="flex items-center space-x-2">
                         <Pencil :size="15" />

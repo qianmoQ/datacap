@@ -32,7 +32,7 @@
               <template #overlay>
                 <MfMenu>
                   <MfMenuItem>
-                    <router-link :to="`/admin/query/snippet/${ record?.code }`" target="_blank">
+                    <router-link :to="`/query/snippet/${ record?.code }`" target="_blank">
                       <div class="flex items-center space-x-2">
                         <FileCode2 :size="15" />
                         <span>{{ $t('query.common.quoteRecord') }}</span>

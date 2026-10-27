@@ -14,7 +14,7 @@
                @size-change="onSizeChange">
       <template #actions>
         <MfTooltip :content="$t('workflow.text.create')">
-          <router-link to="/admin/workflow/info" target="_blank">
+          <router-link to="/workflow/info" target="_blank">
             <MfButton variant="primary" size="sm">
               <Plus :size="15" />
             </MfButton>
@@ -56,7 +56,7 @@
                 <MfMenu>
                   <MfMenuItem key_="modify" :disabled="record.state === 'RUNNING'">
                     <template v-if="record.state !== 'RUNNING'">
-                      <router-link :to="`/admin/workflow/info/${record.code}`" target="_blank" class="flex items-center">
+                      <router-link :to="`/workflow/info/${record.code}`" target="_blank" class="flex items-center">
                         <Info :size="15" />
                         <span class="ml-2">{{ $t('workflow.text.modify') }}</span>
                       </router-link>

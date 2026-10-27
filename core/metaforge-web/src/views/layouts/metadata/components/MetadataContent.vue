@@ -78,7 +78,7 @@ const handleInitialize = () => {
   selectTab.value = String(route.meta.type || '')
 }
 
-const onChange = () => router.push(`/admin/source/${ originalSource.value }/d/${ originalDatabase.value }/t/${ selectTab.value }/${ originalTable.value }`)
+const onChange = () => router.push(`/source/${ originalSource.value }/d/${ originalDatabase.value }/t/${ selectTab.value }/${ originalTable.value }`)
 
 watch(
     () => route.params.table,
