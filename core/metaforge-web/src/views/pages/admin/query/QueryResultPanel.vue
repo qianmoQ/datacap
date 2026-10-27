@@ -83,6 +83,7 @@
                      :rowData="rows"
                      :gridOptions="gridOptions as any"
                      @grid-ready="onGridReady"
+                     @first-data-rendered="onFirstDataRendered"
                      @pagination-changed="onPaginationChanged"/>
 
         <div v-else-if="!running" class="flex h-full flex-col items-center justify-center gap-2 py-10">
@@ -230,7 +231,23 @@ const visualConfigure = computed<GridConfigure>(() => ({
 const onGridReady = (params: any) => {
   gridApi = params.api
   currentPage.value = gridApi.paginationGetCurrentPage() + 1
+  fitColumns()
 }
+
+/** Stretch few result columns across the grid width; wide results keep natural widths. */
+const fitColumns = () => {
+  if (!gridApi) {
+    return
+  }
+  const columns = gridApi.getColumns?.() ?? []
+  const totalWidth = columns.reduce((sum: number, column: any) => sum + column.getActualWidth(), 0)
+  const gridWidth = gridApi.getGridPanelElement?.()?.clientWidth ?? 0
+  if (columns.length > 0 && columns.length <= 10 && totalWidth > 0 && gridWidth > totalWidth) {
+    gridApi.sizeColumnsToFit()
+  }
+}
+
+const onFirstDataRendered = () => fitColumns()
 
 const onPaginationChanged = () => {
   if (gridApi) {
