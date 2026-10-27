@@ -3,7 +3,7 @@
     <div v-if="loading" class="flex items-center justify-center py-8">
       <MfSpinner size="lg"/>
     </div>
-    <MfForm v-else-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+    <MfForm v-else-if="formState" id="menu-info-form" :model="formState" layout="vertical" @finish="onSubmit">
       <div class="grid grid-cols-2 gap-4">
         <div>
           <MfFormItem name="name"
@@ -106,13 +106,13 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <MfFormItem :label="$t('common.parent')">
-            <MfSelect v-model="formState.parent" :placeholder="$t('menu.tip.selectParent')" clearable :options="menuOptions"/>
+            <MfSelect v-model="formState.parent" :placeholder="$t('menu.tip.selectParent')" clearable searchable :options="menuOptions"/>
           </MfFormItem>
         </div>
 
         <div>
           <MfFormItem :label="$t('menu.common.redirect')">
-            <MfSelect v-model="formState.redirect" :placeholder="$t('menu.tip.selectRedirect')" clearable :options="menuOptions"/>
+            <MfSelect v-model="formState.redirect" :placeholder="$t('menu.tip.selectRedirect')" clearable searchable :options="menuOptions"/>
           </MfFormItem>
         </div>
       </div>
@@ -126,7 +126,7 @@
 
         <div>
           <MfFormItem name="i18nKey" :label="$t('menu.common.i18nKey')" :rules="[{ required: true, message: $t('menu.common.i18nKey') }]">
-            <MfInput v-model="formState.i18nKey"/>
+            <MfSelect v-model="formState.i18nKey" :placeholder="$t('menu.common.i18nKey')" searchable :options="i18nKeyOptions"/>
           </MfFormItem>
         </div>
       </div>
@@ -134,13 +134,16 @@
       <MfFormItem name="description" :label="$t('common.description')">
         <MfTextarea v-model="formState.description"/>
       </MfFormItem>
-
-      <div class="flex justify-end">
-        <MfButton variant="primary" type="submit" :loading="loading" :disabled="loading">
-          {{ $t('common.save') }}
-        </MfButton>
-      </div>
     </MfForm>
+
+    <template #footer>
+      <MfButton @click="onCancel">
+        {{ $t('common.cancel') }}
+      </MfButton>
+      <MfButton variant="primary" type="submit" form="menu-info-form" :loading="saving" :disabled="saving || loading">
+        {{ $t('common.save') }}
+      </MfButton>
+    </template>
   </MfDrawer>
 </template>
 
@@ -163,7 +166,7 @@ const props = withDefaults(defineProps<{ isVisible?: boolean; info?: MenuModel |
 })
 const emit = defineEmits<{ (e: 'close', value: boolean): void }>()
 
-const { t } = useI18n()
+const { t, locale, getLocaleMessage } = useI18n()
 
 const visible = computed({
   get: () => props.isVisible,
@@ -178,6 +181,29 @@ const saving = ref(false)
 
 // 迁移至 MfSelect：选项为数组形式
 const menuOptions = computed(() => fullMenus.value.map((menu: MenuModel) => ({ label: menu.name, value: menu.id })))
+
+// 国际化标识候选项：摊平当前语言包的全部 key，label 附带翻译值便于搜索
+const flattenI18nKeys = (messages: Record<string, unknown>, prefix = '', out: string[] = []): string[] => {
+  for (const [key, value] of Object.entries(messages ?? {})) {
+    const path = prefix ? `${prefix}.${key}` : key
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      flattenI18nKeys(value as Record<string, unknown>, path, out)
+    }
+    else {
+      out.push(path)
+    }
+  }
+  return out
+}
+
+const i18nKeyOptions = computed(() => {
+  return flattenI18nKeys(getLocaleMessage(locale.value) as Record<string, unknown>)
+             .sort((a, b) => a.localeCompare(b))
+             .map((key) => {
+               const translated = t(key)
+               return { value: key, label: translated !== key ? `${key} · ${translated}` : key }
+             })
+})
 
 const iconPickerVisible = ref(false)
 const iconPickerRoot = ref<HTMLElement>()

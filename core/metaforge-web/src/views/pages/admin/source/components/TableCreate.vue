@@ -3,9 +3,9 @@
     <MfSkeleton v-if="loading"/>
 
     <MfForm v-else-if="!loading && formState"
+            id="table-create-form"
             :model="formModel"
             layout="vertical"
-            style="padding-bottom: 40px;"
             @finish="onSubmit">
       <div class="grid grid-cols-2 gap-4">
         <MfFormItem name="name"
@@ -96,15 +96,15 @@
           <MfTextarea v-model="formState.columns[index].comment" :placeholder="$t('source.placeholder.columnComment')"/>
         </MfFormItem>
       </div>
-
-      <div class="fixed bottom-0 left-0 right-0 border-t bg-white p-2 flex justify-end gap-4 shadow-lg">
-        <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
-
-        <MfButton variant="primary" type="submit" :loading="saving" :disabled="saving">
-          {{ $t('common.save') }}
-        </MfButton>
-      </div>
     </MfForm>
+
+    <template #footer>
+      <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+
+      <MfButton variant="primary" type="submit" form="table-create-form" :loading="saving" :disabled="saving">
+        {{ $t('common.save') }}
+      </MfButton>
+    </template>
   </MfDrawer>
 </template>
 

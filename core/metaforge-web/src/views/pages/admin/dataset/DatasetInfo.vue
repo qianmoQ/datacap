@@ -41,7 +41,7 @@
             <MfAlert :title="i18n.t('dataset.common.onlyPreviewCreate')"/>
 
             <MfButton>
-              <router-link to="/admin/query">
+              <router-link to="/query">
                 {{ i18n.t('dataset.common.returnQuery') }}
               </router-link>
             </MfButton>
@@ -59,7 +59,7 @@
             placement="bottom"
             :style="{ height: '70%' }"
             :title="$t('common.configure')">
-    <template #extra>
+    <template #footer>
       <div class="flex items-center justify-end space-x-2">
         <MfButton variant="primary" @click="onSubmit">
           {{ code ? $t('dataset.common.modify') : $t('dataset.common.create') }}
@@ -462,7 +462,7 @@ const onSubmit = () => {
                   .then((response) => {
                     if (response.status) {
                       MfMessage.success(i18n.t('dataset.tip.publishSuccess').replace('$VALUE', formState.value.name as string))
-                      router.push('/admin/dataset')
+                      router.push('/dataset')
                     }
                   })
                   .finally(() => (saving.value = false))
