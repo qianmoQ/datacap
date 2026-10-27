@@ -68,10 +68,10 @@
       <template v-else-if="activeTab === 'snippets'">
         <MfButton size="sm" block @click="emit('create-snippet')">
           <Plus :size="14"/>
-          {{ $t('query.side.addSnippet') }}
+          {{ $t('template.common.create') }}
         </MfButton>
 
-        <MfInput v-model="snippetKeyword" size="sm" :placeholder="$t('query.side.searchSnippet')">
+        <MfInput v-model="snippetKeyword" size="sm" :placeholder="$t('query.side.searchTemplate')">
           <template #prefix>
             <Search :size="13"/>
           </template>
@@ -232,7 +232,7 @@ const activeTab = ref<'datasets' | 'snippets' | 'structure' | 'history'>('datase
 
 const tabs = computed(() => [
   { key: 'datasets' as const, label: t('common.dataset') },
-  { key: 'snippets' as const, label: t('common.snippet') },
+  { key: 'snippets' as const, label: t('common.template') },
   { key: 'structure' as const, label: t('source.common.structure') },
   { key: 'history' as const, label: t('common.history') }
 ])
