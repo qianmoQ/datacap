@@ -1,6 +1,6 @@
 package org.devlive.metaforge.server.service;
 
-import org.devlive.metaforge.server.runner.NavigationMigrationRunner;
+import org.devlive.metaforge.server.runner.SchemaMigrationRunner;
 import org.devlive.metaforge.service.common.NavigationPaths;
 import org.devlive.metaforge.service.initializer.InstallationState;
 import org.devlive.metaforge.service.record.TreeRecord;
@@ -64,7 +64,7 @@ public class NavigationMigrationTest
             throws Exception
     {
         List<Map<String, Object>> grants = jdbc.queryForList("SELECT * FROM metaforge_role_menu_relation ORDER BY role_id, menu_id");
-        NavigationMigrationRunner runner = new NavigationMigrationRunner(dataSource, new InstallationState(dataSource));
+        SchemaMigrationRunner runner = new SchemaMigrationRunner(dataSource, new InstallationState(dataSource));
         runner.run();
         runner.run();
         assertEquals("/query", url("QUERY"));
@@ -85,7 +85,7 @@ public class NavigationMigrationTest
             throws Exception
     {
         jdbc.update("INSERT INTO metaforge_role_menu_relation (role_id, menu_id) VALUES ('2', '12')");
-        new NavigationMigrationRunner(dataSource, new InstallationState(dataSource)).run();
+        new SchemaMigrationRunner(dataSource, new InstallationState(dataSource)).run();
         MenuAccessRepository menus = new MenuAccessRepository(dataSource);
         List<TreeRecord> ordinary = flatten(menus.findUserMenus("ORDINARY").orElseThrow());
         assertTrue(ordinary.stream().anyMatch(menu -> "/query".equals(menu.getUrl())));
@@ -98,7 +98,7 @@ public class NavigationMigrationTest
     public void laterAdministratorCustomizationsSurviveSubsequentRestarts()
             throws Exception
     {
-        NavigationMigrationRunner runner = new NavigationMigrationRunner(dataSource, new InstallationState(dataSource));
+        SchemaMigrationRunner runner = new SchemaMigrationRunner(dataSource, new InstallationState(dataSource));
         runner.run();
         jdbc.update("UPDATE metaforge_menu SET parent = 10000, sorted = 99 WHERE code = 'QUERY'");
         jdbc.update("UPDATE metaforge_menu SET name = 'Team analytics' WHERE code = 'DATA_ANALYSIS'");
@@ -112,7 +112,7 @@ public class NavigationMigrationTest
     public void migrationFailureRollsBackEarlierUrlChanges()
     {
         jdbc.execute("ALTER TABLE metaforge_menu ADD CONSTRAINT reject_query CHECK (url <> '/query')");
-        assertThrows(Exception.class, () -> new NavigationMigrationRunner(dataSource, new InstallationState(dataSource)).run());
+        assertThrows(Exception.class, () -> new SchemaMigrationRunner(dataSource, new InstallationState(dataSource)).run());
         assertEquals("/system", url("SYSTEM"));
         assertEquals("/admin/query", url("QUERY"));
     }
@@ -122,7 +122,7 @@ public class NavigationMigrationTest
             throws Exception
     {
         DataSource unavailable = mock(DataSource.class);
-        new NavigationMigrationRunner(unavailable, mock(InstallationState.class)).run();
+        new SchemaMigrationRunner(unavailable, mock(InstallationState.class)).run();
         verifyNoInteractions(unavailable);
     }
 

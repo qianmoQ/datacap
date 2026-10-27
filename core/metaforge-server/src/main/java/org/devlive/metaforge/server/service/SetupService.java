@@ -218,6 +218,7 @@ public class SetupService
             executeScript(connection, h2 ? "schema/setup-schema-h2.sql" : "schema/setup-schema.sql");
             executeScript(connection, "schema/setup-data.sql");
             NavigationMigration.apply(connection);
+            SourceTypeMigration.apply(connection);
             createAdministrator(connection, body);
         }
         reloadRuntimeConfigures();
@@ -231,6 +232,7 @@ public class SetupService
             executeScript(connection, target.embedded ? "schema/setup-schema-h2.sql" : "schema/setup-schema.sql");
             executeScript(connection, "schema/setup-data.sql");
             NavigationMigration.apply(connection);
+            SourceTypeMigration.apply(connection);
             createAdministrator(connection, body);
         }
         persistDatasourceOverride(target);
