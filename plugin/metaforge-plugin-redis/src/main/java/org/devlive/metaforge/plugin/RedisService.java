@@ -6,7 +6,7 @@ import org.devlive.metaforge.spi.PluginService;
 
 @Slf4j
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP"})
-public class RedisJdbcService
+public class RedisService
         implements PluginService
 {
     @Override
@@ -18,6 +18,6 @@ public class RedisJdbcService
     @Override
     public String driver()
     {
-        return "org.devlive.metaforge.driver.redis.RedisDriver";
+        return "org.devlive.metaforge.driver.RedisJdbcDriver";
     }
 }

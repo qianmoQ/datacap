@@ -11,13 +11,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class RedisJdbcPlugin
+public class RedisPlugin
         extends Plugin
 {
     @Override
     public PluginConfigure describe()
     {
-        PluginConfigure configure = PluginConfigure.of("Redis Jdbc",
+        PluginConfigure configure = PluginConfigure.of("Redis",
                 Arrays.asList(
                         PluginConfigureField.builder()
                                 .field(PluginConfigureFieldName.name)

@@ -37,7 +37,6 @@
         <module>plugin/metaforge-plugin-zookeeper</module>
         <module>plugin/metaforge-plugin-kafka</module>
         <module>plugin/metaforge-plugin-redis</module>
-        <module>plugin/metaforge-plugin-redis-jdbc</module>
         <module>plugin/metaforge-plugin-h2</module>
         <module>plugin/metaforge-plugin-h2-tcp</module>
         <module>plugin/metaforge-plugin-hdfs</module>
