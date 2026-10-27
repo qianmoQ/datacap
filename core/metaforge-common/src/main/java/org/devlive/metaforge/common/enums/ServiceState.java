@@ -28,6 +28,11 @@ public enum ServiceState
     USER_NAME_EQUALS(4008, "Cannot be the same as the old user name"),
     USER_NAME_FORMAT_INVALID(4026, "Invalid username: 4-20 characters, letters, numbers and underscores, cannot start with a digit"),
     USER_NAME_ALREADY_EXISTS(4027, "The username already exists"),
+    USER_ROLE_CODE_INVALID(4028, "Invalid role code: use 1-64 letters, digits, underscores or hyphens"),
+    USER_ROLE_CODE_EXISTS(4029, "The role code already exists"),
+    USER_ROLE_CODE_IMMUTABLE(4030, "The role code cannot be changed"),
+    USER_ROLE_ID_MISMATCH(4031, "The role identity does not match the resource being edited"),
+    USER_ROLE_CODE_CONSTRAINT_FAILED(4032, "Cannot enforce unique role codes; check the database for duplicates"),
     REQUEST_EXCEPTION(5000, "The request is abnormal"),
     INVALID_PARAMETER(5001, "Invalid parameter");
 
