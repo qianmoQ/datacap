@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import clsx from 'clsx'
 import MfLoadingIcon from './MfLoadingIcon.vue'
+import MfEmpty from './MfEmpty.vue'
+import MfSpinner from './MfSpinner.vue'
 import { CONTROL_SIZES, TRANSITION, type MfControlSize, type MfSelectOption } from './common'
 import { useDismissableLayer } from '../composables/useDismissableLayer'
 
@@ -17,6 +19,9 @@ const props = withDefaults(defineProps<{
     disabled?: boolean
     invalid?: boolean
     loading?: boolean
+    emptyText?: string
+    noMatchText?: string
+    loadingText?: string
     /** Typing filters options by label (single select behaves like a combobox). */
     searchable?: boolean
     /** Override the default label-includes filter. */
@@ -31,6 +36,9 @@ const props = withDefaults(defineProps<{
     disabled: false,
     invalid: false,
     loading: false,
+    emptyText: 'No data',
+    noMatchText: 'No match',
+    loadingText: 'Loading…',
     searchable: false,
 })
 
@@ -254,9 +262,12 @@ watch(open, value => {
                 >
                     Create "{{ query.trim() }}"
                 </li>
-                <li v-if="loading && options.length === 0" class="px-2.5 py-2 text-sm text-content-tertiary">Loading…</li>
-                <li v-else-if="options.length === 0" class="px-2.5 py-2 text-sm text-content-tertiary">No data</li>
-                <li v-else-if="filteredOptions.length === 0 && !(tags && query.trim())" class="px-2.5 py-2 text-sm text-content-tertiary">No match</li>
+                <li v-if="loading && filteredOptions.length === 0" class="flex justify-center px-2.5 py-4" role="presentation">
+                    <MfSpinner size="sm" :label="loadingText"/>
+                </li>
+                <li v-else-if="!loading && filteredOptions.length === 0 && !(tags && query.trim())" role="presentation">
+                    <MfEmpty size="sm" :variant="query.trim() ? 'search' : 'data'" :title="query.trim() ? noMatchText : emptyText"/>
+                </li>
             </ul>
         </Transition>
     </div>

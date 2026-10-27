@@ -13,6 +13,7 @@ import MfDivider from './components/MfDivider.vue'
 import MfDatePicker from './components/MfDatePicker.vue'
 import MfDrawer from './components/MfDrawer.vue'
 import MfDropdown from './components/MfDropdown.vue'
+import MfEmpty from './components/MfEmpty.vue'
 import MfForm from './components/MfForm.vue'
 import MfFormItem from './components/MfFormItem.vue'
 import MfInput from './components/MfInput.vue'
@@ -59,6 +60,7 @@ export const components = {
     MfDatePicker,
     MfDrawer,
     MfDropdown,
+    MfEmpty,
     MfForm,
     MfFormItem,
     MfInput,
@@ -116,6 +118,7 @@ export {
     MfDatePicker,
     MfDrawer,
     MfDropdown,
+    MfEmpty,
     MfForm,
     MfFormItem,
     MfInput,

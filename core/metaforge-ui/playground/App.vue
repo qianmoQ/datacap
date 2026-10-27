@@ -18,6 +18,7 @@ import {
     MfConfigProvider,
     MfDivider,
     MfDatePicker,
+    MfEmpty,
     MfInput,
     MfLoadingIcon,
     MfMenu,
@@ -285,6 +286,16 @@ function simulateLoading(): void {
                             <MfButton variant="primary" :loading="brandLoading">{{ brandLoading ? '保存中' : '保存' }}</MfButton>
                             <MfButton @click="brandLoading = !brandLoading">{{ brandLoading ? '模拟完成' : '重新加载' }}</MfButton>
                         </MfSpace>
+                    </div>
+                </MfCard>
+
+                <MfCard title="空状态提示">
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <MfEmpty title="暂无数据" description="创建第一条数据后，就能在这里查看。">
+                            <template #extra><MfButton variant="primary" @click="modalOpen = true">创建数据源</MfButton></template>
+                        </MfEmpty>
+                        <MfEmpty variant="search" title="未找到匹配结果" description="试试调整筛选条件或清空关键字。"/>
+                        <MfEmpty variant="initial" title="等待执行查询" description="选择数据源并执行 SQL，查询结果将显示在这里。"/>
                     </div>
                 </MfCard>
 
