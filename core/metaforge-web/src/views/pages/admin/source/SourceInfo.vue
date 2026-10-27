@@ -31,7 +31,7 @@
     <!-- 步骤 1：选择数据源类型 -->
     <div v-if="currentStep === 0" class="dc-src__type-step">
       <!-- 左侧分类 -->
-      <div class="dc-src__catalog">
+      <div class="dc-src__catalog flex flex-col gap-1">
         <div v-for="cat in categoryList"
              :key="cat.key"
              class="dc-src__cat-item"

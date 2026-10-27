@@ -228,7 +228,7 @@ watch(open, value => {
             <ul
                 v-if="open"
                 role="listbox"
-                class="absolute z-40 mt-1.5 max-h-64 w-full min-w-32 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
+                class="absolute left-0 top-full z-40 mt-1.5 flex max-h-64 w-full min-w-32 origin-top flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
             >
                 <template v-for="[group, groupOptions] in grouped" :key="group || 'default'">
                     <li v-if="group" class="px-2.5 pt-1.5 pb-1 text-xs font-semibold text-content-tertiary">
