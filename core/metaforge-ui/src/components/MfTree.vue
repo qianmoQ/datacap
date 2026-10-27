@@ -81,7 +81,11 @@ provide('mfTree', {
 
 <template>
     <ul role="tree" class="flex flex-col gap-0.5">
-        <MfTreeNodeItem v-for="node in data" :key="node.key" :node="node" />
+        <MfTreeNodeItem v-for="node in data" :key="node.key" :node="node">
+            <template #title="{ node: item }">
+                <slot name="title" :node="item" />
+            </template>
+        </MfTreeNodeItem>
         <li v-if="data.length === 0" class="px-2 py-4 text-center text-sm text-content-tertiary">No data</li>
     </ul>
 </template>

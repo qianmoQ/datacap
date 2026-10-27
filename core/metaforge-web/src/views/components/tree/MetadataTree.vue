@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-0 flex-1 overflow-auto px-1.5 pb-2">
-    <MfSkeleton v-if="loading" active class="mt-2"/>
+    <div v-if="loading" class="flex justify-center py-6">
+      <MfSpinner size="md"/>
+    </div>
 
     <MfAlert v-else-if="data.length === 0 && errorMessage" class="mt-2" variant="danger" :title="errorMessage"/>
 
@@ -13,7 +15,7 @@
             @update:expanded-keys="expandedKeys = $event">
       <template #title="{ node }">
         <div class="flex min-w-0 items-center gap-1.5">
-          <component :is="iconOf(node)" :size="13" class="shrink-0 text-content-tertiary"/>
+          <component :is="iconOf(node)" :size="13" class="shrink-0" :class="node.level === StructureEnum.DATABASE ? 'text-primary' : 'text-content-tertiary'"/>
           <span class="truncate text-sm text-content-secondary">{{ node.title }}</span>
         </div>
       </template>

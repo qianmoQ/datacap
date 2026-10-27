@@ -56,7 +56,7 @@ const rowClass = computed(() => clsx(
         </div>
         <div
             v-if="node.children?.length && expanded"
-            class="ml-3.5 flex flex-col gap-0.5 border-l border-line pl-1.5"
+            class="ml-3.5 flex flex-col gap-0.5 pl-1.5"
         >
             <MfTreeNodeItem v-for="child in node.children" :key="child.key" :node="child">
                 <template #title="{ node: childNode }: { node: MfTreeNode }">
