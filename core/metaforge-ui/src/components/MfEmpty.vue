@@ -26,7 +26,7 @@ const heading = computed(() => props.title ?? defaults[props.variant])
 <template>
     <div
         class="flex w-full min-w-0 flex-col items-center justify-center text-center"
-        :class="size === 'sm' ? 'gap-2 px-3 py-5' : 'gap-3 px-5 py-10'"
+        :class="size === 'sm' ? 'gap-2 px-3 py-3' : 'gap-3 px-5 py-10'"
         role="status"
     >
         <slot name="icon">

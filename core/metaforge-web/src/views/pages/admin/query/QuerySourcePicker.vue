@@ -38,7 +38,7 @@
               </div>
             </template>
             <template v-else-if="filteredOptions.length === 0">
-              <div class="py-4 text-center text-sm text-content-tertiary">{{ $t('query.tip.noSource') }}</div>
+              <MfEmpty size="sm" :variant="keyword.trim() ? 'search' : 'data'" :title="$t('query.tip.noSource')"/>
             </template>
             <button v-for="item in filteredOptions"
                     :key="item.value"

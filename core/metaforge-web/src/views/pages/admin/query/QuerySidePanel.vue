@@ -62,9 +62,7 @@
             <div class="mt-1 truncate font-mono text-xs text-content-tertiary">{{ item.query }}</div>
           </div>
 
-          <div v-if="!loadingDatasets && filteredDatasets.length === 0" class="py-6 text-center text-sm text-content-tertiary">
-            {{ $t('query.side.empty') }}
-          </div>
+          <MfEmpty v-if="!loadingDatasets && filteredDatasets.length === 0" size="sm" :title="$t('query.side.empty')"/>
         </div>
       </template>
 
@@ -115,16 +113,12 @@
             <div class="mt-1 truncate font-mono text-xs text-content-tertiary">{{ item.context }}</div>
           </div>
 
-          <div v-if="!loadingSnippets && filteredSnippets.length === 0" class="py-6 text-center text-sm text-content-tertiary">
-            {{ $t('query.side.empty') }}
-          </div>
+          <MfEmpty v-if="!loadingSnippets && filteredSnippets.length === 0" size="sm" :title="$t('query.side.empty')"/>
         </div>
       </template>
 
       <template v-else-if="activeTab === 'structure'">
-        <div v-if="!selectedTable" class="py-10 text-center text-sm text-content-tertiary">
-          {{ $t('query.side.structureTip') }}
-        </div>
+        <MfEmpty v-if="!selectedTable" size="sm" variant="initial" :title="$t('query.side.structureTip')"/>
 
         <template v-else>
           <div class="flex items-center gap-1.5 text-sm text-content-secondary">
@@ -146,9 +140,7 @@
               <MfTag size="sm">{{ column.type_name }}</MfTag>
             </div>
 
-            <div v-if="structureColumns.length === 0" class="py-6 text-center text-sm text-content-tertiary">
-              {{ $t('query.side.empty') }}
-            </div>
+            <MfEmpty v-if="structureColumns.length === 0" size="sm" :title="$t('query.side.empty')"/>
           </div>
         </template>
       </template>
@@ -175,9 +167,7 @@
             </div>
           </div>
 
-          <div v-if="!loadingHistories && filteredHistories.length === 0" class="py-6 text-center text-sm text-content-tertiary">
-            {{ $t('query.side.empty') }}
-          </div>
+          <MfEmpty v-if="!loadingHistories && filteredHistories.length === 0" size="sm" :title="$t('query.side.empty')"/>
         </div>
       </template>
     </div>

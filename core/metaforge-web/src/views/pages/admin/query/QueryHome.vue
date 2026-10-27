@@ -24,9 +24,7 @@
                     :keyword="treeKeyword"
                     @select-table="onSelectTable"/>
 
-      <div v-else class="flex flex-1 items-center justify-center px-4 pb-6 text-center text-xs text-content-tertiary">
-        {{ $t('source.tip.selected') }}
-      </div>
+      <MfEmpty v-else class="flex-1" size="sm" variant="initial" :title="$t('source.tip.selected')"/>
     </aside>
 
     <div v-show="!focusMode"
@@ -206,9 +204,7 @@
         </div>
 
         <div class="min-h-0 flex-1">
-          <div v-if="!selectSource.code" class="flex h-full items-center justify-center">
-            <MfAlert :title="$t('source.tip.selected')"/>
-          </div>
+          <MfEmpty v-if="!selectSource.code" class="h-full" size="sm" variant="initial" :title="$t('source.tip.selected')"/>
 
           <AceEditor v-else
                      :key="`ace-configure-${ editorConfigureKey }`"
