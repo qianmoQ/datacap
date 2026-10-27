@@ -5,7 +5,7 @@
         <MfCard class="w-full" padding="none">
           <template #header>
             <div class="flex items-center justify-center gap-3">
-              <MfAvatar src="/static/images/logo.png" alt="MetaForge"/>
+              <img src="/static/images/logo.png" alt="MetaForge" width="48" height="48" class="dc-brand-logo"/>
               <div>
                 <div class="text-base font-semibold">{{ $t('setup.title') }}</div>
                 <div class="text-xs text-content-tertiary">{{ $t('setup.subtitle') }}</div>
