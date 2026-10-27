@@ -346,14 +346,19 @@ const categoryList = computed(() => {
     { key: 'other', labelKey: 'source.category.other' }
   ]
   for (const def of categoryDefs) {
-    defs.push({ ...def, count: plugins.value.filter(p => catalogCategory(p.name) === def.key).length })
+    defs.push({ ...def, count: plugins.value.filter(p => pluginCategory(p) === def.key).length })
   }
   defs[0].count = plugins.value.length
   return defs
 })
 
-const catalogCategory = (name: string): SourceCategoryKey => {
-  return findCatalogEntry(name).category
+/** 分类：优先插件 describe() 声明的 category，前端目录仅兜底 */
+const pluginCategory = (p: { name?: string, configure?: { category?: string } }): SourceCategoryKey => {
+  const declared = p.configure?.category
+  if (declared) {
+    return String(declared).toLowerCase() as SourceCategoryKey
+  }
+  return findCatalogEntry(p.name || '').category
 }
 
 const catalogEntryFor = (name: string) => findCatalogEntry(name)
@@ -361,8 +366,28 @@ const catalogEntryFor = (name: string) => findCatalogEntry(name)
 const selectedCatalogKey = ref('')
 
 const selectedSource = computed(() => plugins.value.find(p => p.name === selectedCatalogKey.value) || null)
-const catalogEntry = computed(() => catalogEntryFor(selectedCatalogKey.value))
 const detailLocale = computed(() => (locale.value.startsWith('zh') ? 'zh' : 'en') as 'zh' | 'en')
+
+const hasContent = (value: unknown) => !!value && Object.keys(value as object).length > 0
+
+/**
+ * 右侧详情面板数据：优先用插件 describe() 声明的双语文案
+ * （descriptions/features/scenes/popular），前端目录仅作未声明插件的兜底。
+ */
+const catalogEntry = computed(() => {
+  const base = catalogEntryFor(selectedCatalogKey.value)
+  const declared = selectedSource.value?.configure
+  if (!declared) {
+    return base
+  }
+  return {
+    ...base,
+    popular: declared.popular ?? base.popular,
+    desc: hasContent(declared.descriptions) ? declared.descriptions : base.desc,
+    features: hasContent(declared.features) ? declared.features : base.features,
+    scenes: hasContent(declared.scenes) ? declared.scenes : base.scenes
+  }
+})
 
 const filteredSources = computed(() => {
   let list = plugins.value
@@ -371,13 +396,13 @@ const filteredSources = computed(() => {
     list = list.filter(p => p.name?.toLowerCase().includes(keyword))
   }
   if (activeCategory.value !== 'all') {
-    list = list.filter(p => catalogCategory(p.name) === activeCategory.value)
+    list = list.filter(p => pluginCategory(p) === activeCategory.value)
   }
   if (activeChip.value === 'popular') {
-    list = list.filter(p => catalogEntryFor(p.name).popular)
+    list = list.filter(p => p.configure?.popular ?? catalogEntryFor(p.name).popular)
   }
   else if (activeChip.value !== 'all') {
-    list = list.filter(p => catalogCategory(p.name) === activeChip.value)
+    list = list.filter(p => pluginCategory(p) === activeChip.value)
   }
   return list
 })
