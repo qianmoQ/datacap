@@ -80,7 +80,7 @@ provide('mfTree', {
 </script>
 
 <template>
-    <ul role="tree" class="flex flex-col gap-0.5">
+    <ul role="tree" class="flex flex-col gap-1">
         <MfTreeNodeItem v-for="node in data" :key="node.key" :node="node">
             <template #title="{ node: item }">
                 <slot name="title" :node="item" />
