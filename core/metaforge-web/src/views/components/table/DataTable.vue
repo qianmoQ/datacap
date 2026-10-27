@@ -2,8 +2,8 @@
   <div class="dc-table">
     <div v-if="title || description" class="dc-table__head">
       <div class="dc-table__head-main">
-        <div v-if="title" class="dc-table__title">{{ title }}</div>
-        <div v-if="description" class="dc-table__desc">{{ description }}</div>
+        <h1 v-if="title" class="m-0 text-xl leading-7 font-semibold text-content">{{ title }}</h1>
+        <p v-if="description" class="mt-1 mb-0 text-sm leading-5 text-content-secondary">{{ description }}</p>
       </div>
     </div>
 
@@ -333,19 +333,7 @@ const onDownload = () => {
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 14px;
-}
-
-.dc-table__title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--dc-text-title);
-}
-
-.dc-table__desc {
-    font-size: 12px;
-    color: var(--dc-text-secondary);
-    margin-top: 4px;
+    margin-bottom: 16px;
 }
 
 .dc-table__footer {
