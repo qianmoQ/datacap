@@ -10,16 +10,16 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.common.enums.ServiceState;
 import org.devlive.metaforge.common.response.CommonResponse;
+import org.devlive.metaforge.plugin.Plugin;
 import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.plugin.PluginType;
+import org.devlive.metaforge.plugin.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigureField;
 import org.devlive.metaforge.service.adapter.PageRequestAdapter;
 import org.devlive.metaforge.service.body.FilterBody;
 import org.devlive.metaforge.service.body.SharedSourceBody;
 import org.devlive.metaforge.service.body.SourceBody;
 import org.devlive.metaforge.service.common.ConfigureUtils;
-import org.devlive.metaforge.service.common.PluginUtils;
-import org.devlive.metaforge.service.configure.IConfigure;
-import org.devlive.metaforge.service.configure.IConfigureField;
 import org.devlive.metaforge.service.entity.PageEntity;
 import org.devlive.metaforge.service.entity.PluginEntity;
 import org.devlive.metaforge.service.entity.ScheduledHistoryEntity;
@@ -81,13 +81,12 @@ public class SourceServiceImpl
         Page<SourceEntity> page = this.sourceRepository.findAllByUserOrPublishIsTrue(user, PageRequestAdapter.of(filter));
         // Populate pipeline configuration information
         page.getContent().forEach(item -> {
-            IConfigure fromConfigure = PluginUtils.loadYamlConfigure(item.getType(), item.getType(), item.getType(), environment);
-            if (fromConfigure != null) {
-                item.setPipelines(fromConfigure.getPipelines());
-            }
-
             pluginManager.getPlugin(item.getType())
                     .ifPresent(plugin -> {
+                        IConfigure pluginConfigure = plugin.getConfigure();
+                        if (pluginConfigure != null) {
+                            item.setPipelines(pluginConfigure.getPipelines());
+                        }
                         PluginService service = plugin.getService(PluginService.class);
                         item.setIsSupportMeta(service.isSupportMeta());
                     });
@@ -120,13 +119,10 @@ public class SourceServiceImpl
     {
         return repository.findByCode(code)
                 .map(entity -> {
-                    SourceBody configure = new SourceBody();
-                    configure.setId(entity.getId());
-                    configure.setName(entity.getType());
-                    configure.setType(entity.getProtocol());
-                    // Load default configure
-                    IConfigure iConfigure = PluginUtils.loadYamlConfigure(configure.getType(), configure.getName(), configure.getName(), environment);
-                    configure.setConfigure(ConfigureUtils.preparedConfigure(iConfigure, entity));
+                    // Load plugin configure declared inside the plugin code
+                    IConfigure iConfigure = pluginManager.getPlugin(entity.getType())
+                            .map(Plugin::getConfigure)
+                            .orElse(null);
                     entity.setSchema(iConfigure);
                     return CommonResponse.success(entity);
                 })
@@ -145,7 +141,7 @@ public class SourceServiceImpl
                     entity.setName(plugin.getName());
                     entity.setDescription(plugin.getName());
                     entity.setType(plugin.getType().getName());
-                    entity.setConfigure(PluginUtils.loadYamlConfigure("JDBC", plugin.getName(), plugin.getName(), environment));
+                    entity.setConfigure((IConfigure) plugin.getConfigure());
                     plugins.add(entity);
                 });
         return CommonResponse.success(plugins);
@@ -182,7 +178,7 @@ public class SourceServiceImpl
         return pluginManager.getPlugin(configure.getType())
                 .<CommonResponse<ResponseWrapper>>map(plugin -> {
                     // Check configure
-                    IConfigure iConfigure = PluginUtils.loadYamlConfigure(configure.getType(), configure.getType(), configure.getType(), environment);
+                    IConfigure iConfigure = plugin.getConfigure();
                     if (ObjectUtils.isEmpty(iConfigure) || iConfigure.getConfigures().size() != configure.getConfigure().getConfigures().size()) {
                         return CommonResponse.failure(ServiceState.PLUGIN_CONFIGURE_MISMATCH);
                     }
@@ -229,7 +225,7 @@ public class SourceServiceImpl
         return pluginManager.getPlugin(configure.getName())
                 .<CommonResponse<SourceEntity>>map(plugin -> {
                     // Check configure
-                    IConfigure iConfigure = PluginUtils.loadYamlConfigure(configure.getType(), configure.getType(), configure.getType(), environment);
+                    IConfigure iConfigure = plugin.getConfigure();
                     if (ObjectUtils.isEmpty(iConfigure) || iConfigure.getConfigures().size() != configure.getConfigure().getConfigures().size()) {
                         return CommonResponse.failure(ServiceState.PLUGIN_CONFIGURE_MISMATCH);
                     }

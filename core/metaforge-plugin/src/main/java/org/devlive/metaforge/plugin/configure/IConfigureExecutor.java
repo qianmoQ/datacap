@@ -1,13 +1,13 @@
-package org.devlive.metaforge.service.configure;
+package org.devlive.metaforge.plugin.configure;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.devlive.metaforge.common.view.EntityView;
-import org.devlive.metaforge.executor.common.RunProtocol;
 
 import java.util.List;
 
@@ -15,6 +15,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class IConfigureExecutor
 {
@@ -22,6 +23,7 @@ public class IConfigureExecutor
     private String executor;
 
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private RunProtocol protocol = RunProtocol.NONE;
 
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
@@ -29,4 +31,14 @@ public class IConfigureExecutor
 
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
     private List<IConfigureExecutorField> fields;
+
+    public static IConfigureExecutor of(String executor, IConfigurePipelineType type, RunProtocol protocol, List<IConfigureExecutorField> fields)
+    {
+        IConfigureExecutor configureExecutor = new IConfigureExecutor();
+        configureExecutor.setExecutor(executor);
+        configureExecutor.setType(type);
+        configureExecutor.setProtocol(protocol == null ? RunProtocol.NONE : protocol);
+        configureExecutor.setFields(fields);
+        return configureExecutor;
+    }
 }

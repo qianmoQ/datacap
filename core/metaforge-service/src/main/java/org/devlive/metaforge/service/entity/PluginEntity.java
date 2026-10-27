@@ -3,7 +3,7 @@ package org.devlive.metaforge.service.entity;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Data;
 import lombok.ToString;
-import org.devlive.metaforge.service.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigure;
 
 @Data
 @ToString

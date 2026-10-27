@@ -25,6 +25,7 @@ import org.devlive.metaforge.executor.configure.OriginColumn;
 import org.devlive.metaforge.plugin.Plugin;
 import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.plugin.PluginMetadata;
+import org.devlive.metaforge.plugin.configure.IConfigurePipelineType;
 import org.devlive.metaforge.scheduler.SchedulerRequest;
 import org.devlive.metaforge.scheduler.SchedulerService;
 import org.devlive.metaforge.service.adapter.PageRequestAdapter;
@@ -34,7 +35,6 @@ import org.devlive.metaforge.service.body.PipelineFieldBody;
 import org.devlive.metaforge.service.body.adhoc.Adhoc;
 import org.devlive.metaforge.service.common.ConfigureUtils;
 import org.devlive.metaforge.service.common.FolderUtils;
-import org.devlive.metaforge.service.configure.IConfigurePipelineType;
 import org.devlive.metaforge.service.entity.DataSetColumnEntity;
 import org.devlive.metaforge.service.entity.DataSetEntity;
 import org.devlive.metaforge.service.entity.DatasetHistoryEntity;
@@ -1097,12 +1097,12 @@ public class DataSetServiceImpl
                                                             source,
                                                             entity.getExecutor(),
                                                             IConfigurePipelineType.INPUT,
-                                                            environment,
+                                                            pluginManager,
                                                             originInputProperties
                                                     );
 
                                                     Properties inputProperties = ConfigureUtils.convertProperties(
-                                                            source, environment,
+                                                            source, pluginManager,
                                                             IConfigurePipelineType.INPUT,
                                                             entity.getExecutor(),
                                                             entity.getQuery(),
@@ -1111,7 +1111,7 @@ public class DataSetServiceImpl
 
                                                     Set<String> inputOptions = ConfigureUtils.convertOptions(
                                                             source,
-                                                            environment,
+                                                            pluginManager,
                                                             entity.getExecutor(),
                                                             IConfigurePipelineType.INPUT
                                                     );
@@ -1155,13 +1155,13 @@ public class DataSetServiceImpl
                                                                         outputSource,
                                                                         entity.getExecutor(),
                                                                         IConfigurePipelineType.OUTPUT,
-                                                                        environment,
+                                                                        pluginManager,
                                                                         originOutputProperties
                                                                 );
 
                                                                 Properties outputProperties = ConfigureUtils.convertProperties(
                                                                         outputSource,
-                                                                        environment,
+                                                                        pluginManager,
                                                                         IConfigurePipelineType.OUTPUT,
                                                                         entity.getExecutor(),
                                                                         entity.getQuery(),
@@ -1170,7 +1170,7 @@ public class DataSetServiceImpl
 
                                                                 Set<String> outputOptions = ConfigureUtils.convertOptions(
                                                                         outputSource,
-                                                                        environment,
+                                                                        pluginManager,
                                                                         entity.getExecutor(),
                                                                         IConfigurePipelineType.OUTPUT
                                                                 );

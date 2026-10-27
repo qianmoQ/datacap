@@ -1,8 +1,9 @@
-package org.devlive.metaforge.service.configure;
+package org.devlive.metaforge.plugin.configure;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -14,6 +15,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class IConfigureExecutorField
 {
@@ -32,18 +34,22 @@ public class IConfigureExecutorField
     // If the flag is true
     // it means that the field is extracted through user configuration, and the default data will be discarded
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private boolean override = false;
 
     // Is it an input parameter
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private boolean input = false;
 
     // Related component width
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private int width = 300;
 
     // Component type
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private FieldType type = FieldType.INPUT;
 
     // User-defined prompts
@@ -56,6 +62,7 @@ public class IConfigureExecutorField
 
     // If this configuration item is true, it will not be displayed on the front end and will be displayed after it is enabled.
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private boolean hidden = false;
 
     // The description
@@ -68,5 +75,6 @@ public class IConfigureExecutorField
 
     // If it is auto-generated, the format is：protocol://host:port
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
+    @Builder.Default
     private boolean generated = false;
 }

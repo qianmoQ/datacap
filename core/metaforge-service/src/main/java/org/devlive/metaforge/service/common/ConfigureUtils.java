@@ -10,18 +10,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.common.enums.ServiceState;
 import org.devlive.metaforge.common.utils.BeanToPropertiesUtils;
 import org.devlive.metaforge.common.utils.JsonUtils;
+import org.devlive.metaforge.plugin.Plugin;
+import org.devlive.metaforge.plugin.PluginManager;
+import org.devlive.metaforge.plugin.configure.FieldType;
+import org.devlive.metaforge.plugin.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigureExecutor;
+import org.devlive.metaforge.plugin.configure.IConfigureExecutorField;
+import org.devlive.metaforge.plugin.configure.IConfigureField;
+import org.devlive.metaforge.plugin.configure.IConfigureFieldName;
+import org.devlive.metaforge.plugin.configure.IConfigureFieldType;
+import org.devlive.metaforge.plugin.configure.IConfigurePipelineType;
 import org.devlive.metaforge.service.body.PipelineFieldBody;
-import org.devlive.metaforge.service.configure.FieldType;
-import org.devlive.metaforge.service.configure.IConfigure;
-import org.devlive.metaforge.service.configure.IConfigureExecutor;
-import org.devlive.metaforge.service.configure.IConfigureExecutorField;
-import org.devlive.metaforge.service.configure.IConfigureField;
-import org.devlive.metaforge.service.configure.IConfigureFieldName;
-import org.devlive.metaforge.service.configure.IConfigureFieldType;
-import org.devlive.metaforge.service.configure.IConfigurePipelineType;
 import org.devlive.metaforge.service.entity.SourceEntity;
 import org.devlive.metaforge.spi.model.Configure;
-import org.springframework.core.env.Environment;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -239,6 +240,20 @@ public class ConfigureUtils
     }
 
     /**
+     * Resolves the configure declared inside the plugin code for the given plugin name.
+     *
+     * @param pluginManager the plugin manager
+     * @param type the plugin name (source type)
+     * @return the plugin configure, or null when the plugin is absent or declares none
+     */
+    private static IConfigure resolvePluginConfigure(PluginManager pluginManager, String type)
+    {
+        return pluginManager.getPlugin(type)
+                .map(Plugin::getConfigure)
+                .orElse(null);
+    }
+
+    /**
      * Converts the given properties based on the source entity, fields, configure, environment, pipeline type, executor, query, and field body.
      *
      * @param entity the source entity
@@ -249,11 +264,11 @@ public class ConfigureUtils
      * @param fieldBody the field body
      * @return the merged properties
      */
-    public static Properties convertProperties(SourceEntity entity, Environment environment,
+    public static Properties convertProperties(SourceEntity entity, PluginManager pluginManager,
             IConfigurePipelineType pipelineType, String executor, String query, PipelineFieldBody fieldBody)
     {
-        IConfigure yamlConfigure = PluginUtils.loadYamlConfigure(entity.getProtocol(), entity.getType(), entity.getType(), environment);
-        if (ObjectUtils.isEmpty(yamlConfigure.getPipelines())) {
+        IConfigure yamlConfigure = resolvePluginConfigure(pluginManager, entity.getType());
+        if (ObjectUtils.isEmpty(yamlConfigure) || ObjectUtils.isEmpty(yamlConfigure.getPipelines())) {
             String message = String.format("From source [ %s ] is not supported pipeline, type [ %s ]", entity.getId(), entity.getType());
             Preconditions.checkArgument(!message.isEmpty(), message);
         }
@@ -282,14 +297,14 @@ public class ConfigureUtils
         return mergeProperties(entity, fields, originProperties);
     }
 
-    public static PipelineFieldBody convertFieldBody(SourceEntity entity, String executor, IConfigurePipelineType pipelineType, Environment environment, Properties originProperties)
+    public static PipelineFieldBody convertFieldBody(SourceEntity entity, String executor, IConfigurePipelineType pipelineType, PluginManager pluginManager, Properties originProperties)
     {
         try {
             PipelineFieldBody body = new PipelineFieldBody();
             body.setProtocol(entity.getProtocol());
-            IConfigure yamlConfigure = PluginUtils.loadYamlConfigure(entity.getProtocol(), entity.getType(), entity.getType(), environment);
+            IConfigure yamlConfigure = resolvePluginConfigure(pluginManager, entity.getType());
             if (yamlConfigure == null) {
-                throw new IllegalArgumentException("Failed to load YAML configuration");
+                throw new IllegalArgumentException("Failed to load plugin configuration");
             }
 
             // Pipeline 条目可能缺少 executor/type 字段（如 Doris 的 YAML 配置），
@@ -337,10 +352,10 @@ public class ConfigureUtils
      * @param pipelineType the type of pipeline to convert options for
      * @return a set of strings representing the converted options
      */
-    public static Set<String> convertOptions(SourceEntity entity, Environment environment, String executor, IConfigurePipelineType pipelineType)
+    public static Set<String> convertOptions(SourceEntity entity, PluginManager pluginManager, String executor, IConfigurePipelineType pipelineType)
     {
         Set<String> fromOptions = Sets.newHashSet();
-        IConfigure yamlConfigure = PluginUtils.loadYamlConfigure(entity.getProtocol(), entity.getType(), entity.getType(), environment);
+        IConfigure yamlConfigure = resolvePluginConfigure(pluginManager, entity.getType());
         yamlConfigure.getPipelines()
                 .stream()
                 .filter(v -> v.getExecutor().equals(executor) && v.getType().equals(pipelineType))

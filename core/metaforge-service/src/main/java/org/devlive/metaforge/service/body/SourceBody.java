@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.devlive.metaforge.service.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigure;
 
 @Data
 @ToString

@@ -1,8 +1,8 @@
 package org.devlive.metaforge.service.common;
 
-import org.devlive.metaforge.service.configure.IConfigure;
-import org.devlive.metaforge.service.configure.IConfigureExecutor;
-import org.devlive.metaforge.service.configure.IConfigurePipelineType;
+import org.devlive.metaforge.plugin.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigureExecutor;
+import org.devlive.metaforge.plugin.configure.IConfigurePipelineType;
 import org.junit.Assert;
 import org.junit.Test;
 

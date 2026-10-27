@@ -14,8 +14,8 @@ import org.devlive.metaforge.common.utils.JsonUtils;
 import org.devlive.metaforge.common.view.EntityView;
 import org.devlive.metaforge.plugin.Plugin;
 import org.devlive.metaforge.plugin.PluginManager;
-import org.devlive.metaforge.service.configure.IConfigure;
-import org.devlive.metaforge.service.configure.IConfigureExecutor;
+import org.devlive.metaforge.plugin.configure.IConfigure;
+import org.devlive.metaforge.plugin.configure.IConfigureExecutor;
 import org.devlive.metaforge.spi.model.Configure;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 

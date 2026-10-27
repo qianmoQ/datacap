@@ -1,4 +1,4 @@
-package org.devlive.metaforge.service.configure;
+package org.devlive.metaforge.plugin.configure;
 
 public enum FieldType
 {

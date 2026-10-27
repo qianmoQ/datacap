@@ -1,6 +1,6 @@
 <template>
   <MfModal v-model:open="visible"
-           width="1180px"
+           :width="currentStep === 0 ? '1180px' : '720px'"
            :close-on-overlay="false"
            class="dc-src-modal">
     <!-- 头部 -->
@@ -18,8 +18,8 @@
             {{ index + 1 }}
           </span>
           <span class="text-xs leading-tight">
-            <span class="block font-medium" :class="index <= currentStep ? 'text-primary' : 'text-content-secondary'">{{ $t(step.titleKey) }}</span>
-            <span class="block text-content-tertiary">{{ $t(step.descKey) }}</span>
+            <span class="block whitespace-nowrap font-medium" :class="index <= currentStep ? 'text-primary' : 'text-content-secondary'">{{ $t(step.titleKey) }}</span>
+            <span class="block whitespace-nowrap text-content-tertiary">{{ $t(step.descKey) }}</span>
           </span>
         </div>
         <span v-if="index < stepDefs.length - 1" class="h-px w-8 shrink-0 bg-line"></span>
@@ -122,58 +122,52 @@
     <div v-else class="dc-src__config-step">
       <div class="relative">
         <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
-          <template v-for="configure in stepFields" :key="configure.field">
-            <MfFormItem :name="configure.field"
-                        :label="$t('source.common.' + configure.field)">
-              <MfInput v-if="configure.type === 'String'" v-model="configure.value" :disabled="configure.disabled"/>
+          <div class="dc-src__field-grid">
+            <template v-for="configure in stepFields" :key="configure.field">
+              <div class="dc-src__field" :class="{ 'dc-src__field--full': ['Boolean', 'Array', 'File'].includes(configure.type) }">
+                <MfFormItem :name="configure.field"
+                            :label="$t('source.common.' + configure.field)">
+                  <MfInput v-if="configure.type === 'String'" v-model="configure.value" :disabled="configure.disabled"/>
 
-              <MfInputNumber v-else-if="configure.type === 'Number'"
-                             v-model="configure.value"
-                             :disabled="configure.disabled"
-                             :max="configure.max"
-                             :min="configure.min"
-                             :style="{ width: '100%' }"/>
+                  <MfInputNumber v-else-if="configure.type === 'Number'"
+                                 v-model="configure.value"
+                                 :disabled="configure.disabled"
+                                 :controls="false"
+                                 :max="configure.max"
+                                 :min="configure.min"
+                                 :style="{ width: '100%' }"/>
 
-              <MfSwitch v-else-if="configure.type === 'Boolean'" v-model="configure.value" :disabled="configure.disabled"/>
+                  <MfSwitch v-else-if="configure.type === 'Boolean'" v-model="configure.value" :disabled="configure.disabled"/>
 
-              <MfUpload v-else-if="configure.type === 'File'"
-                        action="http://localhost:9096/api/v1/source/uploadFile"
-                        multiple
-                        accept=".xml"
-                        :headers="{ 'Authorization': auth?.type + ' ' + auth?.token, 'PluginType': (formState.type as string).split(' ')[0] }"
-                        @change="onUploadChange">
-                {{ $t('common.upload') }}
-              </MfUpload>
+                  <MfUpload v-else-if="configure.type === 'File'"
+                            action="http://localhost:9096/api/v1/source/uploadFile"
+                            multiple
+                            accept=".xml"
+                            :headers="{ 'Authorization': auth?.type + ' ' + auth?.token, 'PluginType': (formState.type as string).split(' ')[0] }"
+                            @change="onUploadChange">
+                    {{ $t('common.upload') }}
+                  </MfUpload>
 
-              <div v-else>
-                <MfSpace direction="vertical" fill>
-                  <MfButton variant="ghost" size="sm" @click="onPlusConfigure(configure.value)">
-                    <PlusOutlined :style="{ fontSize: '16px' }"/>
-                  </MfButton>
-
-                  <div v-for="(element, index) in configure.value" :key="index" class="grid grid-cols-[5fr_6fr_1fr] gap-2.5">
-                    <MfFormItem :label="$t('common.field')">
-                      <MfInput v-model="element.field"/>
-                    </MfFormItem>
-
-                    <MfFormItem :label="$t('common.value')">
-                      <MfInput v-model="element.value"/>
-                    </MfFormItem>
-
-                    <MfFormItem :label="' '">
-                      <MfButton variant="ghost" size="sm" class="text-danger" @click="onMinusConfigure(element, configure.value)">
-                        <MinusOutlined :style="{ fontSize: '16px' }"/>
-                      </MfButton>
-                    </MfFormItem>
+                  <div v-else class="dc-src__kv">
+                    <div v-for="(element, index) in configure.value || []" :key="index" class="dc-src__kv-row">
+                      <MfInput v-model="element.field" :placeholder="$t('common.field')"/>
+                      <MfInput v-model="element.value" :placeholder="$t('common.value')"/>
+                      <button type="button" class="dc-src__kv-remove" @click="onMinusConfigure(element, configure.value)">
+                        <MinusOutlined/>
+                      </button>
+                    </div>
+                    <button type="button" class="dc-src__kv-add" @click="onPlusConfigure(configure)">
+                      <PlusOutlined :style="{ fontSize: '14px' }"/>
+                    </button>
                   </div>
-                </MfSpace>
-              </div>
-            </MfFormItem>
+                </MfFormItem>
 
-            <div v-if="configure.description" class="-mt-3 text-xs text-content-tertiary">
-              {{ configure.description }}
-            </div>
-          </template>
+                <div v-if="configure.description" class="-mt-1 text-xs text-content-tertiary">
+                  {{ configure.description }}
+                </div>
+              </div>
+            </template>
+          </div>
         </MfForm>
 
         <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center">
@@ -283,8 +277,8 @@ const wizardTitle = computed(() => props.info
   ? `${ t('source.common.modify').replace('$NAME', String(props.info.name || '...')) }`
   : t('source.common.create'))
 
-/** 步骤对应的字段分组 */
-const stepGroup = computed(() => ['source', 'authorization', 'advanced'][currentStep.value - 1] || '')
+/** 步骤对应的字段分组（与后端 IConfigureFieldGroup 枚举一致：configure/authorization/advanced/custom） */
+const stepGroup = computed(() => ['configure', 'authorization', 'advanced'][currentStep.value - 1] || '')
 
 const stepFields = computed(() => {
   if (currentStep.value === 0 || !pluginConfigure.value) {
@@ -293,8 +287,8 @@ const stepFields = computed(() => {
   if (currentStep.value < 3) {
     return pluginConfigure.value.filter((field: { group: string }) => field.group === stepGroup.value)
   }
-  // 高级：除 source / authorization 之外的所有分组
-  return pluginConfigure.value.filter((field: { group: string }) => field.group !== 'source' && field.group !== 'authorization')
+  // 高级：除 configure / authorization 之外的所有分组
+  return pluginConfigure.value.filter((field: { group: string }) => field.group !== 'configure' && field.group !== 'authorization')
 })
 
 // ---- 步骤 1：数据源类型选择 ----
@@ -510,11 +504,11 @@ const handlerUploadSuccess = (response: ResponseModel) => {
   }
 }
 
-const onPlusConfigure = (array: Array<any>) => {
-  if (!array) {
-    array = new Array<any>()
+const onPlusConfigure = (configure: any) => {
+  if (!configure.value) {
+    configure.value = []
   }
-  array.push({ field: '', value: '' })
+  configure.value.push({ field: '', value: '' })
 }
 
 const onMinusConfigure = (configure: any, array: Array<any>) => {
@@ -798,8 +792,71 @@ handleInitialize()
     color: var(--dc-primary);
 }
 
-.dc-src__config-step {
-    min-height: 420px;
+.dc-src__field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+    align-content: start;
+}
+
+.dc-src__field {
+    min-width: 0;
+}
+
+.dc-src__field--full {
+    grid-column: 1 / -1;
+}
+
+.dc-src__kv {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dc-src__kv-row {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) 32px;
+    gap: 8px;
+    align-items: center;
+}
+
+.dc-src__kv-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--dc-radius-sm);
+    background: transparent;
+    color: var(--dc-text-secondary);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.dc-src__kv-remove:hover {
+    color: var(--dc-danger);
+    background: var(--dc-danger-bg);
+}
+
+.dc-src__kv-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 32px;
+    border: 1px dashed var(--dc-border);
+    border-radius: var(--dc-radius-sm);
+    background: transparent;
+    color: var(--dc-text-secondary);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.dc-src__kv-add:hover {
+    border-color: var(--dc-primary);
+    color: var(--dc-primary);
 }
 
 .dc-src__footer {
