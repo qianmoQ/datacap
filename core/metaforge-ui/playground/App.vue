@@ -17,6 +17,7 @@ import {
     MfCheckbox,
     MfConfigProvider,
     MfDivider,
+    MfDatePicker,
     MfInput,
     MfMenu,
     MfMenuItem,
@@ -29,6 +30,7 @@ import {
     MfSubMenu,
     MfSwitch,
     MfTag,
+    MfTableToolbar,
     MfTextarea,
     MfTooltip,
 } from '../src/index'
@@ -45,6 +47,10 @@ const navigation = [
     { key: '/admin/query', label: '查询' },
 ]
 const primary = ref('#2563eb')
+const toolbarKeyword = ref('')
+const toolbarCode = ref('')
+const toolbarDate = ref('')
+const toolbarSearches = ref(0)
 
 const presets = {
     light: mfLightPreset,
@@ -128,6 +134,22 @@ function simulateLoading(): void {
             </header>
 
             <main class="mx-auto grid max-w-4xl gap-6">
+                <div>
+                    <h2 class="mb-3 font-semibold text-content">数据列表功能区</h2>
+                    <MfTableToolbar search-text="查询" reset-text="重置" more-text="更多筛选" less-text="收起筛选"
+                                    @search="toolbarSearches++" @reset="toolbarKeyword = ''; toolbarCode = ''; toolbarDate = ''">
+                        <template #filter>
+                            <label class="flex flex-col gap-1.5 text-sm text-content-secondary">关键词<MfInput v-model="toolbarKeyword" placeholder="按名称搜索"/></label>
+                        </template>
+                        <template #advanced-filter>
+                            <label class="flex flex-col gap-1.5 text-sm text-content-secondary">编码<MfInput v-model="toolbarCode"/></label>
+                            <label class="flex flex-col gap-1.5 text-sm text-content-secondary">创建日期<MfDatePicker v-model="toolbarDate" locale="zh-cn" placeholder="请选择日期" today-text="今天" clear-text="清空"/></label>
+                        </template>
+                        <template #actions><MfButton variant="primary">创建数据源</MfButton></template>
+                        <template #tools><MfButton>刷新</MfButton><MfButton>列设置</MfButton></template>
+                    </MfTableToolbar>
+                    <p class="text-xs text-content-tertiary">查询次数：{{ toolbarSearches }}</p>
+                </div>
                 <MfCard title="Navigation">
                     <div class="space-y-4">
                         <MfRadioGroup v-model="menuMode" variant="button">

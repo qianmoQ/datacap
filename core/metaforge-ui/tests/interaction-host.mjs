@@ -2,6 +2,11 @@ import { createRenderer, nextTick } from 'vue'
 
 export class TestDocument extends EventTarget {
     listeners = new Map()
+    constructor() {
+        super()
+        this.defaultView = Object.assign(new EventTarget(), { innerHeight: 900, innerWidth: 1280 })
+        this.body = new HostNode('body', this)
+    }
     addEventListener(type, listener, options) {
         if (!this.listeners.has(type)) this.listeners.set(type, new Set())
         this.listeners.get(type).add(listener)
@@ -44,7 +49,8 @@ class HostNode extends EventTarget {
         for (let current = node; current; current = current.parent) if (current === this) return true
         return false
     }
-    get textContent() { return this.text + this.children.map(child => child.textContent).join('') }
+    get textContent() { return this.tag === '#comment' ? '' : this.text + this.children.map(child => child.textContent).join('') }
+    getBoundingClientRect() { return { top: 0, left: 0, bottom: 36, right: 200, width: 200, height: 36 } }
     focus() { this.ownerDocument.activeElement = this }
 }
 
@@ -54,7 +60,12 @@ function remove(node) {
 }
 
 export function mountHost(vnode, document = new TestDocument()) {
+    const previousDocument = globalThis.document
+    const previousWindow = globalThis.window
+    globalThis.document = document
+    globalThis.window = document.defaultView
     const renderer = createRenderer({
+        querySelector: selector => selector === 'body' ? document.body : null,
         createElement: tag => new HostNode(tag, document),
         createText: text => new HostNode('#text', document, text),
         createComment: text => new HostNode('#comment', document, text),
@@ -82,6 +93,7 @@ export function mountHost(vnode, document = new TestDocument()) {
         const result = []
         const visit = node => { result.push(node); node.children.forEach(visit) }
         visit(container)
+        visit(document.body)
         return result
     }
     return {
@@ -89,7 +101,13 @@ export function mountHost(vnode, document = new TestDocument()) {
         container,
         find: predicate => nodes().find(predicate),
         all: predicate => nodes().filter(predicate),
-        unmount: () => app.unmount(),
+        unmount() {
+            try { app.unmount() }
+            finally {
+                globalThis.document = previousDocument
+                globalThis.window = previousWindow
+            }
+        },
     }
 }
 
