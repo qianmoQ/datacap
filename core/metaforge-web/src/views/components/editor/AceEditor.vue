@@ -57,7 +57,7 @@ export default defineComponent({
       default: undefined
     }
   },
-  emits: ['update:value'],
+  emits: ['update:value', 'created'],
   setup(props, { emit })
   {
     const key = Date.now().toString()
@@ -97,6 +97,7 @@ export default defineComponent({
   methods: {
     handlerEditorDidMount(editor: Editor, _language: string)
     {
+      this.$emit('created', editor)
       try {
         langTools.addCompleter({
           // @ts-ignore

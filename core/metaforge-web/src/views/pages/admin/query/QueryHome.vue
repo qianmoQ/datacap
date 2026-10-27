@@ -87,6 +87,12 @@
                           @click="onCancel()">
                     {{ $t('common.cancel') }}
                   </button>
+
+                  <button type="button"
+                          class="rounded-mf-md px-2.5 py-1.5 text-left text-sm text-content-secondary hover:bg-surface-hover hover:text-content"
+                          @click="onRunSelection()">
+                    {{ $t('query.common.executeSelection') }}
+                  </button>
                 </div>
               </template>
             </MfDropdown>
@@ -202,6 +208,7 @@
                      :key="`ace-configure-${ editorConfigureKey }`"
                      :value="activeEditorInstance?.content ?? ''"
                      height="100%"
+                     @created="onEditorCreated"
                      @update:value="onEditorInput"
                      :auto-complete="{
                          endpoint: () => `${ baseUrl ? baseUrl : '' }/api/v1/metadata/${ selectSource.code }/suggests`,
@@ -317,6 +324,11 @@ const focusMode = ref(false)
 const selectedTable = ref<{ database: string; table: string } | null>(null)
 const sidePanelRefresh = ref(0)
 let editorSequence = 0
+
+let aceEditorInstance: any = null
+const onEditorCreated = (editor: any) => {
+  aceEditorInstance = editor
+}
 
 const centerRef = ref<HTMLElement | null>(null)
 const leftWidth = ref(280)
@@ -521,28 +533,42 @@ const onClearEditor = () => {
 }
 
 const onRun = () => {
+  const editor = editors.value[activeEditor.value as string]
+  runContent(editor.content, true)
+}
+
+const onRunSelection = () => {
+  const editor = editors.value[activeEditor.value as string]
+  const selected = (aceEditorInstance?.getSelectedText?.() ?? '').trim()
+  // Selection runs keep the editor untouched; fall back to the whole SQL.
+  runContent(selected.length > 0 ? selected : editor.content, false)
+}
+
+const runContent = (sql: string, syncEditorFromResponse: boolean) => {
   responseConfigure.response = null
   responseConfigure.message = null
   responseConfigure.query = ''
   queryConfigure.queryType = [HelpType.ANALYSIS, HelpType.OPTIMIZE]
   queryConfigure.cancelToken = axios.CancelToken.source()
   queryConfigure.configure!.name = selectSource.code as string
-  const editor = editors.value[activeEditor.value as string]
-  queryConfigure.configure!.content = editor.content
+  queryConfigure.configure!.content = sql
 
   loading.running = true
   ExecuteService.execute(queryConfigure.configure!, queryConfigure.cancelToken.token)
                 .then((response) => {
                   if (response.status) {
                     responseConfigure.response = response
-                    responseConfigure.query = editor.content
-                    editor.content = response.data.content
+                    responseConfigure.query = sql
+                    if (syncEditorFromResponse) {
+                      const editor = editors.value[activeEditor.value as string]
+                      editor.content = response.data.content
+                    }
                   }
                   else {
                     MfMessage.error(response.message)
                     responseConfigure.message = response.message
                     responseConfigure.response = response
-                    responseConfigure.query = editor.content
+                    responseConfigure.query = sql
                     queryConfigure.queryType.push(HelpType.FIXEDBUGS)
                   }
                 })
