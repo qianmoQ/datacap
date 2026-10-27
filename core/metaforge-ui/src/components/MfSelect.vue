@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import clsx from 'clsx'
 import { CONTROL_SIZES, TRANSITION, type MfControlSize, type MfSelectOption } from './common'
+import { useDismissableLayer } from '../composables/useDismissableLayer'
 
 const props = withDefaults(defineProps<{
     modelValue?: string | number | (string | number)[]
@@ -57,14 +58,7 @@ function close(): void {
     query.value = ''
 }
 
-function onDocClick(event: MouseEvent): void {
-    if (root.value && !root.value.contains(event.target as Node)) {
-        close()
-    }
-}
-
-onMounted(() => document.addEventListener('mousedown', onDocClick))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
+useDismissableLayer(root, open, close)
 
 const isMultiple = computed(() => props.multiple || props.tags)
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import clsx from 'clsx'
+import { useDismissableLayer } from '../composables/useDismissableLayer'
 
 const props = withDefaults(defineProps<{
     trigger?: ('click' | 'hover' | 'contextmenu')[] | string
@@ -11,21 +12,35 @@ const props = withDefaults(defineProps<{
 })
 
 const open = ref(false)
+const root = ref<HTMLElement>()
 let timer: ReturnType<typeof setTimeout> | undefined
+
+function close(): void {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+    open.value = false
+}
+
+useDismissableLayer(root, open, close)
+onBeforeUnmount(() => { if (timer) clearTimeout(timer) })
 
 const triggers = computed(() => Array.isArray(props.trigger) ? props.trigger : [props.trigger])
 const hoverable = computed(() => triggers.value.includes('hover'))
 
 function show(): void {
     if (timer) clearTimeout(timer)
+    timer = undefined
     open.value = true
 }
 
 function hide(): void {
-    timer = setTimeout(() => { open.value = false }, 120)
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(close, 120)
 }
 
 function toggle(event: Event): void {
+    if (timer) clearTimeout(timer)
+    timer = undefined
     if (triggers.value.includes('contextmenu')) {
         event.preventDefault()
     }
@@ -49,6 +64,7 @@ const overlayClass = computed(() => clsx(
 
 <template>
     <div
+        ref="root"
         class="relative inline-flex"
         @mouseenter="hoverable && show()"
         @mouseleave="hoverable && hide()"

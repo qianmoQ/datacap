@@ -33,6 +33,7 @@
       </MfTree>
 
       <div v-if="contextmenu.visible && dataInfo"
+           ref="contextMenuRoot"
            class="dc-ctxmenu"
            :style="{ left: contextmenu.position.x + 'px', top: contextmenu.position.y + 'px' }"
            @click.stop>
@@ -123,10 +124,10 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { MfMessage } from 'metaforge-ui'
+import { MfMessage, useDismissableLayer } from 'metaforge-ui'
 import MetadataService from '@/services/metadata.ts'
 import { StructureEnum, StructureModel } from '@/model/structure.ts'
 import ColumnCreate from '@/views/pages/admin/source/components/ColumnCreate.vue'
@@ -190,6 +191,7 @@ const tableDropVisible = ref(false)
 const columnCreateVisible = ref(false)
 const columnChangeVisible = ref(false)
 const columnDropVisible = ref(false)
+const contextMenuRoot = ref<HTMLElement>()
 const contextmenu = reactive({
   visible: false,
   position: { x: 0, y: 0 }
@@ -351,6 +353,8 @@ const closeContextMenu = () => {
   contextmenu.visible = false
 }
 
+useDismissableLayer(contextMenuRoot, computed(() => contextmenu.visible && !!dataInfo.value), closeContextMenu)
+
 const visibleCreateTable = (opened: boolean) => {
   tableCreateVisible.value = opened
   closeContextMenu()
@@ -398,11 +402,6 @@ const visibleDropColumn = (opened: boolean) => {
 onMounted(() => {
   originalSource.value = route.params?.source as string
   handleInitialize()
-  window.addEventListener('click', closeContextMenu)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('click', closeContextMenu)
 })
 </script>
 

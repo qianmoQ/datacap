@@ -139,5 +139,6 @@ export {
 
 export * from './theme/theme'
 export * from './theme/message'
+export { useDismissableLayer } from './composables/useDismissableLayer'
 
 export default { install, version }
