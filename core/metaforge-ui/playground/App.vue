@@ -19,6 +19,7 @@ import {
     MfDivider,
     MfDatePicker,
     MfInput,
+    MfLoadingIcon,
     MfMenu,
     MfMenuItem,
     MfModal,
@@ -47,6 +48,7 @@ const navigation = [
     { key: '/query', label: '查询' },
 ]
 const primary = ref('#2563eb')
+const brandLoading = ref(true)
 const toolbarKeyword = ref('')
 const toolbarCode = ref('')
 const toolbarDate = ref('')
@@ -265,6 +267,23 @@ function simulateLoading(): void {
                             <MfTooltip content="Token driven tooltip">
                                 <MfButton variant="ghost">Hover me</MfButton>
                             </MfTooltip>
+                        </MfSpace>
+                    </div>
+                </MfCard>
+
+                <MfCard title="品牌加载动画">
+                    <div class="flex flex-col items-center gap-5 py-6 text-primary">
+                        <MfLoadingIcon :size="96" :loading="brandLoading"/>
+                        <span class="text-sm text-content-secondary" role="status">{{ brandLoading ? '正在加载' : '加载完成' }}</span>
+                        <MfSpace wrap>
+                            <MfSpinner size="xs" :loading="brandLoading"/>
+                            <MfSpinner size="sm" :loading="brandLoading"/>
+                            <MfSpinner :label="brandLoading ? '加载中' : '已完成'" :loading="brandLoading"/>
+                            <MfSpinner size="lg" :loading="brandLoading"/>
+                        </MfSpace>
+                        <MfSpace wrap>
+                            <MfButton variant="primary" :loading="brandLoading">{{ brandLoading ? '保存中' : '保存' }}</MfButton>
+                            <MfButton @click="brandLoading = !brandLoading">{{ brandLoading ? '模拟完成' : '重新加载' }}</MfButton>
                         </MfSpace>
                     </div>
                 </MfCard>

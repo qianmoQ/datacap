@@ -24,7 +24,9 @@ core/metaforge-ui
 
 布局：MfCard、MfSpace、MfDivider、MfTabs/MfTabPane（自定义标签/禁用）、MfBreadcrumb(Item)
 
-反馈：MfAlert、MfMessage（命令式 toast）、MfModal、MfDrawer、MfTooltip、MfPopover、MfSpinner、MfSkeleton、MfTag（语义色/自定义色）、MfBadge、MfAvatar、MfResult
+反馈：MfAlert、MfMessage（命令式 toast）、MfModal、MfDrawer、MfTooltip、MfPopover、MfSpinner、MfLoadingIcon、MfSkeleton、MfTag（语义色/自定义色）、MfBadge、MfAvatar、MfResult
+
+`MfSpinner` 使用 MetaForge 结构拼合动画，保留 `xs/sm/md/lg` 尺寸和 `label`，也支持像素数字尺寸。`MfLoadingIcon` 是继承文字颜色的装饰图标，供按钮、选择框等控件复用；两者设 `loading=false` 时显示完整标记，减少动态效果模式下停止动画。可用 `--mf-loading-cycle` 调整循环时长（默认 `2.6s`）。
 
 数据：MfForm/MfFormItem（rules 校验：required/min/max/pattern/validator/type）、MfTable（bodyCell/列插槽）、MfPagination、MfTree（异步加载）、MfDropdown、MfMenu/MfMenuItem/MfSubMenu、MfUpload
 

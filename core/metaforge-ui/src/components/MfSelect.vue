@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import clsx from 'clsx'
+import MfLoadingIcon from './MfLoadingIcon.vue'
 import { CONTROL_SIZES, TRANSITION, type MfControlSize, type MfSelectOption } from './common'
 import { useDismissableLayer } from '../composables/useDismissableLayer'
 
@@ -199,10 +200,7 @@ watch(open, value => {
             >
                 <svg class="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </span>
-            <svg v-if="loading" class="size-3.5 shrink-0 animate-spin text-primary" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
-            </svg>
+            <MfLoadingIcon v-if="loading" :size="14" class="text-primary"/>
             <svg
                 v-else
                 class="size-3.5 shrink-0 text-content-tertiary transition-transform duration-(--mf-duration-base) ease-(--mf-easing)"
