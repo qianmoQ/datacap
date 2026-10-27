@@ -78,7 +78,7 @@ public class SourceServiceImpl
     public CommonResponse<PageEntity<SourceEntity>> getAll(BaseRepository<SourceEntity, Long> repository, FilterBody filter)
     {
         UserEntity user = UserDetailsService.getUser();
-        Page<SourceEntity> page = this.sourceRepository.findAllByUserOrPublishIsTrue(user, PageRequestAdapter.of(filter));
+        Page<SourceEntity> page = this.sourceRepository.findFiltered(filter, user);
         // Populate pipeline configuration information
         page.getContent().forEach(item -> {
             pluginManager.getPlugin(item.getType())

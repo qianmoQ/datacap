@@ -16,7 +16,6 @@ import org.devlive.metaforge.fs.FsRequest;
 import org.devlive.metaforge.fs.FsResponse;
 import org.devlive.metaforge.fs.FsService;
 import org.devlive.metaforge.plugin.PluginManager;
-import org.devlive.metaforge.service.adapter.PageRequestAdapter;
 import org.devlive.metaforge.service.audit.AuditUserLog;
 import org.devlive.metaforge.service.body.FilterBody;
 import org.devlive.metaforge.service.body.UploadBody;
@@ -41,7 +40,6 @@ import org.devlive.metaforge.service.security.UserDetailsService;
 import org.devlive.metaforge.service.service.JwtService;
 import org.devlive.metaforge.service.service.UserService;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -339,8 +337,7 @@ public class UserServiceImpl
     @Override
     public CommonResponse<PageEntity<UserEntity>> getAll(FilterBody filter)
     {
-        Pageable pageable = PageRequestAdapter.of(filter);
-        return CommonResponse.success(PageEntity.build(this.userRepository.findAll(pageable)));
+        return CommonResponse.success(PageEntity.build(this.userRepository.findFiltered(filter, UserDetailsService.getUser())));
     }
 
     @Override
