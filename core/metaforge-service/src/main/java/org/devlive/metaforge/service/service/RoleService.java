@@ -5,6 +5,7 @@ import org.devlive.metaforge.service.entity.RoleEntity;
 import org.devlive.metaforge.service.record.TreeRecord;
 
 import java.util.List;
+import java.util.Set;
 
 public interface RoleService
         extends BaseService<RoleEntity>
@@ -16,4 +17,6 @@ public interface RoleService
     CommonResponse<RoleEntity> updateRole(String originalCode, RoleEntity configure);
 
     CommonResponse<List<TreeRecord>> getMenusByRoleId(Long roleId);
+
+    CommonResponse<Boolean> saveMenusByRoleId(Long roleId, Set<Long> menus);
 }

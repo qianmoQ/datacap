@@ -12,12 +12,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -74,5 +77,33 @@ public class RoleControllerTest
         when(service.updateRole(eq("ORIGINAL"), any())).thenReturn(CommonResponse.failure(ServiceState.USER_ROLE_CODE_IMMUTABLE));
         mvc.perform(put("/api/v1/role").contentType(MediaType.APPLICATION_JSON).content("{\"id\":1,\"code\":\"OTHER\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.code").value(4030));
+    }
+
+    @Test
+    public void emptyMenuPutClearsAssignmentsInsteadOfCallingTheReadEndpoint()
+            throws Exception
+    {
+        when(service.saveMenusByRoleId(1L, Set.of())).thenReturn(CommonResponse.success(true));
+        mvc.perform(put("/api/v1/role/1/menus").contentType(MediaType.APPLICATION_JSON).content("[]"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data").value(true));
+        verify(service).saveMenusByRoleId(1L, Set.of());
+        verify(service, never()).getMenusByRoleId(any());
+    }
+
+    @Test
+    public void menuGetUsesTheProjectionReadEndpoint()
+            throws Exception
+    {
+        when(service.getMenusByRoleId(1L)).thenReturn(CommonResponse.success(List.of()));
+        mvc.perform(get("/api/v1/role/1/menus")).andExpect(status().isOk()).andExpect(jsonPath("$.data").isArray());
+        verify(service).getMenusByRoleId(1L);
+    }
+
+    @Test
+    public void missingMenuPutBodyIsRejectedWithoutUpdatingAssignments()
+            throws Exception
+    {
+        mvc.perform(put("/api/v1/role/1/menus").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        verify(service, never()).saveMenusByRoleId(any(), any());
     }
 }

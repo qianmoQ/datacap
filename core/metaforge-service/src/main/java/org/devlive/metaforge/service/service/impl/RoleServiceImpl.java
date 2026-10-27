@@ -1,33 +1,25 @@
 package org.devlive.metaforge.service.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.devlive.metaforge.common.enums.MenuEnum;
 import org.devlive.metaforge.common.enums.ServiceState;
 import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.common.utils.CodeUtils;
-import org.devlive.metaforge.service.entity.MenuEntity;
 import org.devlive.metaforge.service.entity.RoleEntity;
 import org.devlive.metaforge.service.initializer.RoleCodeConstraint;
 import org.devlive.metaforge.service.record.TreeRecord;
 import org.devlive.metaforge.service.repository.RoleRepository;
-import org.devlive.metaforge.service.repository.admin.MenuRepository;
+import org.devlive.metaforge.service.repository.jdbc.MenuAccessRepository;
 import org.devlive.metaforge.service.service.RoleService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -37,10 +29,10 @@ public class RoleServiceImpl
     private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$");
 
     private final RoleRepository repository;
-    private final MenuRepository menuRepository;
+    private final MenuAccessRepository menuRepository;
     private final RoleCodeConstraint codeConstraint;
 
-    public RoleServiceImpl(RoleRepository repository, MenuRepository menuRepository, RoleCodeConstraint codeConstraint)
+    public RoleServiceImpl(RoleRepository repository, MenuAccessRepository menuRepository, RoleCodeConstraint codeConstraint)
     {
         this.repository = repository;
         this.menuRepository = menuRepository;
@@ -122,59 +114,32 @@ public class RoleServiceImpl
     @Override
     public CommonResponse<List<TreeRecord>> getMenusByRoleId(Long roleId)
     {
-        Optional<RoleEntity> optionalRole = repository.findById(roleId);
-        if (!optionalRole.isPresent()) {
-            return CommonResponse.failure(ServiceState.USER_ROLE_NOT_FOUND);
+        try {
+            return menuRepository.findRoleMenus(roleId).map(CommonResponse::success)
+                    .orElseGet(() -> CommonResponse.failure(ServiceState.USER_ROLE_NOT_FOUND));
         }
-        Map<Long, TreeRecord> treeMap = new ConcurrentHashMap<>();
-        // All currently available menus
-        List<MenuEntity> activedMenus = menuRepository.findAllByType(MenuEnum.VIEW);
-        // The current permission has a menu
-        RoleEntity role = optionalRole.get();
-        Map<Long, MenuEntity> roleMenus = new ConcurrentHashMap<>();
-        // Populate own menu
-        role.getMenus().forEach(menu -> roleMenus.put(menu.getId(), menu));
-        // Into the list
-        List<MenuEntity> menuList = StreamSupport.stream(activedMenus.spliterator(), false)
-                .sorted(Comparator.comparing(MenuEntity::getParent))
-                .collect(Collectors.toList());
-        // Sets the parent menu sort
-        menuList.forEach(menu -> {
-            TreeRecord parent = new TreeRecord();
-            if (menu.getParent() == 0) {
-                parent.setId(menu.getId());
-                parent.setTitle(menu.getName());
-                parent.setUrl(menu.getUrl());
-                if (!ObjectUtils.isEmpty(roleMenus.get(menu.getId()))) {
-                    parent.setChecked(Boolean.TRUE);
-                    parent.setSelected(Boolean.TRUE);
-                }
-                treeMap.put(menu.getId(), parent);
+        catch (DataAccessException exception) {
+            log.error("Could not load role menus", exception);
+            return CommonResponse.failure(ServiceState.USER_ROLE_MENU_READ_FAILED);
+        }
+    }
+
+    @Override
+    public CommonResponse<Boolean> saveMenusByRoleId(Long roleId, Set<Long> menus)
+    {
+        try {
+            MenuAccessRepository.SaveResult result = menuRepository.replaceRoleMenus(roleId, menus);
+            if (result == MenuAccessRepository.SaveResult.ROLE_NOT_FOUND) {
+                return CommonResponse.failure(ServiceState.USER_ROLE_NOT_FOUND);
             }
-            else {
-                // Sub menu
-                TreeRecord temp = treeMap.get(menu.getParent());
-                List<TreeRecord> childrens = temp.getChildren();
-                // Automatically sets a collection of submenus if the current submenu does not belong to the main menu
-                if (ObjectUtils.isEmpty(childrens)) {
-                    childrens = new ArrayList<>();
-                }
-                TreeRecord children = new TreeRecord();
-                children.setId(menu.getId());
-                children.setTitle(menu.getName());
-                children.setUrl(menu.getUrl());
-                if (!ObjectUtils.isEmpty(roleMenus.get(menu.getId()))) {
-                    children.setChecked(Boolean.TRUE);
-                    children.setSelected(Boolean.TRUE);
-                }
-                childrens.add(children);
-                temp.setChildren(childrens);
-                treeMap.put(temp.getId(), temp);
+            if (result == MenuAccessRepository.SaveResult.INVALID_MENUS) {
+                return CommonResponse.failure(ServiceState.USER_ROLE_MENU_INVALID);
             }
-        });
-        // Convert Map data to List
-        List<TreeRecord> tree = new ArrayList<>();
-        treeMap.keySet().forEach(v -> tree.add(treeMap.get(v)));
-        return CommonResponse.success(tree);
+            return CommonResponse.success(true);
+        }
+        catch (DataAccessException exception) {
+            log.error("Could not save role menus", exception);
+            return CommonResponse.failure(ServiceState.USER_ROLE_MENU_SAVE_FAILED);
+        }
     }
 }

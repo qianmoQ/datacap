@@ -13,5 +13,5 @@ export function roleSaveTarget(role: { id?: number; code?: string }, originalCod
 }
 
 export function roleErrorKey(code: number): string | undefined {
-    return ({ 4028: 'role.validate.codeFormat', 4029: 'role.validate.codeExists', 4030: 'role.tip.codeReadonly', 4031: 'role.validate.identityMismatch', 4032: 'role.validate.codeConstraint' } as Record<number, string>)[code]
+    return ({ 4028: 'role.validate.codeFormat', 4029: 'role.validate.codeExists', 4030: 'role.tip.codeReadonly', 4031: 'role.validate.identityMismatch', 4032: 'role.validate.codeConstraint', 4033: 'role.validate.invalidMenus', 4034: 'role.validate.menuSaveFailed', 4035: 'role.validate.menuLoadFailed' } as Record<number, string>)[code]
 }

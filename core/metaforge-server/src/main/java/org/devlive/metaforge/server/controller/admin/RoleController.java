@@ -1,14 +1,13 @@
 package org.devlive.metaforge.server.controller.admin;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.common.enums.ServiceState;
 import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.common.view.EntityView;
 import org.devlive.metaforge.server.controller.BaseController;
-import org.devlive.metaforge.service.entity.MenuEntity;
 import org.devlive.metaforge.service.entity.RoleEntity;
+import org.devlive.metaforge.service.record.TreeRecord;
 import org.devlive.metaforge.service.repository.RoleRepository;
 import org.devlive.metaforge.service.service.RoleService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/v1/role")
@@ -76,23 +74,15 @@ public class RoleController
         return service.updateRole(configure.getCode(), configure);
     }
 
-    @RequestMapping(value = "{id}/menus", method = {RequestMethod.GET, RequestMethod.PUT})
-    public CommonResponse<? extends Object> getMenusByRoleId(@PathVariable(value = "id") Long id,
-            @RequestBody(required = false) Set<Long> nodes)
+    @GetMapping("{id}/menus")
+    public CommonResponse<List<TreeRecord>> getMenusByRoleId(@PathVariable("id") Long id)
     {
-        if (ObjectUtils.isEmpty(nodes)) {
-            return service.getMenusByRoleId(id);
-        }
-        else {
-            return this.repository.findById(id)
-                    .map(item -> {
-                        Set<MenuEntity> menus = (Set<MenuEntity>) nodes.stream()
-                                .map(v -> MenuEntity.builder().id(v).build())
-                                .collect(Collectors.toSet());
-                        item.setMenus(menus);
-                        return service.saveOrUpdate(repository, item);
-                    })
-                    .orElse(CommonResponse.failure(String.format("Role [ %s ] not found", id)));
-        }
+        return service.getMenusByRoleId(id);
+    }
+
+    @PutMapping("{id}/menus")
+    public CommonResponse<Boolean> saveMenusByRoleId(@PathVariable("id") Long id, @RequestBody Set<Long> nodes)
+    {
+        return service.saveMenusByRoleId(id, nodes);
     }
 }

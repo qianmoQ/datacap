@@ -33,6 +33,9 @@ public enum ServiceState
     USER_ROLE_CODE_IMMUTABLE(4030, "The role code cannot be changed"),
     USER_ROLE_ID_MISMATCH(4031, "The role identity does not match the resource being edited"),
     USER_ROLE_CODE_CONSTRAINT_FAILED(4032, "Cannot enforce unique role codes; check the database for duplicates"),
+    USER_ROLE_MENU_INVALID(4033, "Some selected menus do not exist or cannot be assigned"),
+    USER_ROLE_MENU_SAVE_FAILED(4034, "Could not save the menu assignment"),
+    USER_ROLE_MENU_READ_FAILED(4035, "Could not load menus"),
     REQUEST_EXCEPTION(5000, "The request is abnormal"),
     INVALID_PARAMETER(5001, "Invalid parameter");
 
