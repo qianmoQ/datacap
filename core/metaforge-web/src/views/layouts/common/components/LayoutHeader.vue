@@ -175,7 +175,8 @@ import router from '@/router'
 import { createDefaultRouter } from '@/router/default'
 import NotificationService from '@/services/notification'
 import { FilterModel } from '@/model/filter.ts'
-import { BellOutlined, BgColorsOutlined, SearchOutlined, CodeOutlined, DashboardOutlined, HistoryOutlined, HomeOutlined, LogoutOutlined, ProjectOutlined, QuestionCircleOutlined, RightOutlined, SettingOutlined, ToolOutlined, UnorderedListOutlined } from '@ant-design/icons-vue'
+import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import { MENU_ICONS } from '@/config/menu-icons'
 
 defineOptions({ name: 'LayoutHeader' })
 
@@ -200,18 +201,8 @@ const selectedKeys = computed(() => {
     return matched ? [matched] : []
 })
 
-// 后端菜单返回的是图标名字符串，这里映射到图标组件
-const menuIcons: Record<string, any> = {
-    Contrast: BgColorsOutlined,
-    Gauge: DashboardOutlined,
-    Hammer: ToolOutlined,
-    History: HistoryOutlined,
-    Home: HomeOutlined,
-    List: UnorderedListOutlined,
-    SquareChevronRight: RightOutlined,
-    SquareDashedBottomCode: CodeOutlined,
-    SquareKanban: ProjectOutlined
-}
+// 后端菜单返回的是图标名字符串，映射表统一维护在 src/config/menu-icons.ts
+const menuIcons = MENU_ICONS
 
 const route = useRoute()
 const userStore = useUserStore()

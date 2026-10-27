@@ -15,7 +15,58 @@
 
         <div>
           <MfFormItem name="icon" :label="$t('menu.common.icon')">
-            <MfInput v-model="formState.icon"/>
+            <div ref="iconPickerRoot" class="relative inline-flex w-full">
+              <div class="mf-invalidable inline-flex h-9 w-full cursor-pointer items-center gap-2 rounded-mf-md border bg-surface pl-3 pr-2.5 text-sm transition"
+                   :class="iconPickerVisible ? 'border-primary' : 'border-line'"
+                   @click="iconPickerVisible = !iconPickerVisible">
+                <span class="flex min-w-0 flex-1 items-center gap-2 text-left">
+                  <component v-if="formState.icon && MENU_ICONS[formState.icon]"
+                             :is="MENU_ICONS[formState.icon]" class="shrink-0 text-primary" :style="{ fontSize: '15px' }"/>
+                  <span class="truncate" :class="formState.icon ? 'text-content' : 'text-content-placeholder'">
+                    {{ formState.icon || $t('menu.tip.selectIcon') }}
+                  </span>
+                </span>
+                <span v-if="formState.icon"
+                      class="inline-flex size-4 shrink-0 items-center justify-center rounded-mf-full text-content-tertiary hover:bg-surface-hover hover:text-content"
+                      @click.stop="clearIcon">
+                  <svg class="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </span>
+                <svg class="size-3.5 shrink-0 text-content-tertiary transition-transform duration-(--mf-duration-base) ease-(--mf-easing)"
+                     :class="iconPickerVisible && 'rotate-180'"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </div>
+
+              <div v-if="iconPickerVisible"
+                   class="absolute left-0 top-full z-40 mt-1.5 w-full rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg">
+                <div class="p-1 pb-2">
+                  <MfInput v-model="iconSearch" :placeholder="$t('menu.tip.searchIcon')">
+                    <template #prefix>
+                      <SearchOutlined :style="{ fontSize: '13px', color: 'var(--dc-text-secondary)' }"/>
+                    </template>
+                  </MfInput>
+                </div>
+                <div class="max-h-64 overflow-y-auto">
+                  <div class="grid grid-cols-6 gap-1">
+                    <button v-for="(component, name) in filteredIcons"
+                            :key="name"
+                            type="button"
+                            :title="name"
+                            class="flex size-10 cursor-pointer items-center justify-center rounded-mf-md transition"
+                            :class="formState.icon === name
+                              ? 'bg-surface-active font-medium text-primary'
+                              : 'text-content-secondary hover:bg-surface-hover hover:text-content'"
+                            @click="selectIcon(name)">
+                      <component :is="component" :style="{ fontSize: '16px' }"/>
+                    </button>
+                  </div>
+                  <div v-if="Object.keys(filteredIcons).length === 0" class="py-6 text-center text-sm text-content-tertiary">
+                    {{ $t('common.noData') }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </MfFormItem>
         </div>
       </div>
@@ -96,11 +147,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { MfMessage } from 'metaforge-ui'
+import { MfMessage, useDismissableLayer } from 'metaforge-ui'
 import { cloneDeep } from 'lodash'
+import { SearchOutlined } from '@ant-design/icons-vue'
 import { MenuModel, MenuRequest } from '@/model/menu'
 import MenuService from '@/services/menu'
 import { FilterModel } from '@/model/filter'
+import { MENU_ICONS } from '@/config/menu-icons'
 
 defineOptions({ name: 'MenuInfo' })
 
@@ -125,6 +178,31 @@ const saving = ref(false)
 
 // 迁移至 MfSelect：选项为数组形式
 const menuOptions = computed(() => fullMenus.value.map((menu: MenuModel) => ({ label: menu.name, value: menu.id })))
+
+const iconPickerVisible = ref(false)
+const iconPickerRoot = ref<HTMLElement>()
+useDismissableLayer(iconPickerRoot, iconPickerVisible, () => {
+  iconPickerVisible.value = false
+})
+
+const iconSearch = ref('')
+const filteredIcons = computed(() => {
+  const query = iconSearch.value.trim().toLowerCase()
+  if (!query) {
+    return MENU_ICONS
+  }
+  return Object.fromEntries(Object.entries(MENU_ICONS).filter(([name]) => name.toLowerCase().includes(query)))
+})
+
+const selectIcon = (name?: string) => {
+  formState.value.icon = name
+  iconPickerVisible.value = false
+}
+
+const clearIcon = () => {
+  formState.value.icon = undefined
+  iconSearch.value = ''
+}
 
 const handlerInitialize = () => {
   title.value = `${ t('menu.common.create') }`
