@@ -1,0 +1,78 @@
+name: database matrix
+
+on:
+  push:
+    branches: [ main, master, 2026.0.0 ]
+  pull_request:
+    branches: [ main, master, 2026.0.0 ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [ mysql, postgresql ]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        if: matrix.database == 'mysql'
+        env:
+          MYSQL_ROOT_PASSWORD: metaforge
+          MYSQL_DATABASE: metaforge
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      postgres:
+        image: postgres:16
+        if: matrix.database == 'postgresql'
+        env:
+          POSTGRES_PASSWORD: metaforge
+          POSTGRES_DB: metaforge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Prepare database schema (mysql)
+        if: matrix.database == 'mysql'
+        run: >
+          mysql -h 127.0.0.1 -uroot -pmetaforge metaforge
+          < configure/schema/metaforge.sql
+
+      - name: Prepare database schema (postgresql)
+        if: matrix.database == 'postgresql'
+        run: |
+          echo "PostgreSQL baseline pending: see jpa-removal roadmap"
+
+      - name: Run service tests
+        env:
+          SPRING_DATASOURCE_URL: ${{ matrix.database == 'mysql' && 'jdbc:mysql://127.0.0.1:3306/metaforge?useSSL=false&allowPublicKeyRetrieval=true' || 'jdbc:postgresql://127.0.0.1:5432/metaforge' }}
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ matrix.database == 'mysql' && 'metaforge' || 'metaforge' }}
+          METAFORGE_DATABASE_TYPE: ${{ matrix.database }}
+        run: JAVA_HOME=$JAVA_HOME ./mvnw -q test -pl core/metaforge-server -am -DskipTests=false
