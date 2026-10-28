@@ -52,9 +52,17 @@ const open = ref(false)
 const root = ref<HTMLElement>()
 const query = ref('')
 const searchInput = ref<HTMLInputElement>()
+/** Flips the popup above the trigger when the viewport has no room below. */
+const dropUp = ref(false)
 
 function toggle(): void {
     if (!props.disabled) {
+        if (!open.value) {
+            const rect = root.value?.getBoundingClientRect()
+            const estimate = Math.min(props.options.length * 36 + 12, 268)
+            const below = window.innerHeight - (rect?.bottom ?? 0)
+            dropUp.value = !!rect && below < estimate && rect.top > below
+        }
         open.value = !open.value
         if (open.value && props.searchable) {
             requestAnimationFrame(() => searchInput.value?.focus())
@@ -228,7 +236,8 @@ watch(open, value => {
             <ul
                 v-if="open"
                 role="listbox"
-                class="absolute left-0 top-full z-40 mt-1.5 flex max-h-64 w-full min-w-32 origin-top flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
+                class="absolute left-0 z-40 flex max-h-64 w-full min-w-32 flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
+                :class="dropUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'"
             >
                 <template v-for="[group, groupOptions] in grouped" :key="group || 'default'">
                     <li v-if="group" class="px-2.5 pt-1.5 pb-1 text-xs font-semibold text-content-tertiary">
