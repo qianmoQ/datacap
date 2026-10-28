@@ -109,7 +109,7 @@ public class DataSetEntity
     @JoinTable(name = "metaforge_dataset_user_relation",
             joinColumns = @JoinColumn(name = "dataset_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    @JsonIgnoreProperties(value = {"roles", "thirdConfigure", "avatarConfigure"})
+    @JsonIgnoreProperties(value = {"roles", "thirdConfigure", "avatarConfigure", "sources"})
     @JsonView(value = {EntityView.UserView.class, EntityView.AdminView.class})
     private UserEntity user;
 

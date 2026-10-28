@@ -1,6 +1,7 @@
 package org.devlive.metaforge.service.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.Lists;
@@ -50,6 +51,9 @@ import java.util.Set;
 @Table(name = "metaforge_user")
 @EntityListeners(AuditingEntityListener.class)
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EQ_OVERRIDING_EQUALS_NOT_SYMMETRIC"})
+// The sources collection is a lazy relation; serializing it outside a session
+// blows up responses, and no client consumes it through this entity.
+@JsonIgnoreProperties(value = {"sources"})
 public class UserEntity
         extends BaseEntity
 {
