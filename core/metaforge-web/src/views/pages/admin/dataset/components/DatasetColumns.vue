@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Pencil, Plus, Search, Settings, Sparkles, Trash2 } 
 import type { DatasetColumn } from '@/model/dataset-editor'
 import DatasetService from '@/services/dataset'
 
-const props = defineProps<{ modelValue: DatasetColumn[], refreshing?: boolean }>()
+const props = withDefaults(defineProps<{ modelValue: DatasetColumn[], refreshing?: boolean, externalIssue?: string }>(), { refreshing: false, externalIssue: '' })
 const emit = defineEmits<{ 'update:modelValue': [columns: DatasetColumn[]], 'refresh-columns': [] }>()
 const { t } = useI18n()
 const keyword = ref('')
@@ -175,7 +175,7 @@ function move(index: number, offset: number) {
       <div class="flex flex-wrap gap-2"><MfButton v-if="refreshing !== undefined" size="sm" :loading="refreshing" @click="emit('refresh-columns')"><Sparkles :size="14"/>{{ t('dataset.prototype.identifyAgain') }}</MfButton><MfButton size="sm" :disabled="!selected.size" @click="issue='';bulkOpen=true"><Settings :size="14"/>{{ t('dataset.prototype.bulkSettings') }}</MfButton><MfButton size="sm" variant="primary" @click="add"><Plus :size="14"/>{{ t('dataset.editor.addColumn') }}</MfButton></div>
     </div>
     <div class="flex flex-wrap items-center gap-3"><MfInput v-model="keyword" class="w-64" :placeholder="t('dataset.editor.searchColumns')" clearable><template #prefix><Search :size="14"/></template></MfInput><MfTag variant="primary">{{ t('dataset.prototype.fieldsCount',[modelValue.length]) }}</MfTag><MfTag v-if="selected.size">{{ t('dataset.prototype.selectedCount',[selected.size]) }}</MfTag><p class="ml-auto text-xs text-content-tertiary">{{ t('dataset.editor.keyHint') }}</p></div>
-    <MfAlert v-if="issue && !opened" variant="danger" :title="issue"/>
+    <MfAlert v-if="!opened && (externalIssue || issue)" variant="danger" :title="externalIssue || issue"/>
     <MfTable :columns="headers" :data-source="filtered" row-key="index" :empty-text="t('common.noData')">
       <template #header-selected><MfCheckbox :model-value="allSelected" :indeterminate="selected.size>0 && !allSelected" :aria-label="t('dataset.prototype.selectAllFields')" @update:model-value="selectAll(!!$event)"/></template>
       <template #cell-selected="{record}"><MfCheckbox :model-value="selected.has(record.name)" :aria-label="record.original || record.name" @update:model-value="toggleSelected(record.name,!!$event)"/></template>

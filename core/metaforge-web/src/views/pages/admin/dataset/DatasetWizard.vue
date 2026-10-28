@@ -88,6 +88,7 @@ const discardOpen = ref(false)
 let pendingLeave: (() => void) | null = null
 let saved = false
 const snapshot = () => JSON.stringify(form)
+const columnsExternalIssue = ref('')
 const dirty = computed(() => !!baseline.value && snapshot() !== baseline.value)
 
 function message(cause: unknown): string { return cause instanceof Error ? cause.message : t('dataset.editor.requestFailed') }
@@ -216,12 +217,15 @@ async function runPreview(): Promise<boolean> {
   catch (cause) { if (active && request === previewRequest) error.value = message(cause); return false }
   finally { if (active && request === previewRequest) running.value = false }
 }
-function validateBasic() {
-  if (!form.name.trim()) return 'dataset.validator.specifiedName'
-  if (!form.executor || !executors.value.some(item => item.name === form.executor)) return 'dataset.editor.executorRequired'
-  if (form.syncMode === 'TIMING' && (!form.expression.trim() || !form.scheduler || !schedulers.value.some(item => item.name === form.scheduler))) return 'dataset.editor.scheduleRequired'
-  return null
-}
+const basicFormRef = ref()
+const pendingSave = ref(false)
+
+// Step 0 validates through MfForm rules, so errors render inline under
+// each input instead of a page-level banner.
+const executorRules = [{ validator: (value: unknown) => executors.value.some(item => item.name === value) || t('dataset.editor.executorRequired') }]
+const schedulerRules = [{ validator: (value: unknown) => schedulers.value.some(item => item.name === value) || t('dataset.editor.scheduleRequired') }]
+const expressionRules = [{ validator: (value: unknown) => String(value ?? '').trim().length > 0 || t('dataset.editor.scheduleRequired') }]
+
 function validateColumns() {
   const issue = datasetColumnIssue(form.columns)
   if (issue) return issue
@@ -231,25 +235,39 @@ function validateColumns() {
 async function next() {
   if (busy.value) return
   error.value = ''
-  const issue = step.value === 0 ? validateBasic() : step.value === 2 ? validateColumns() : null
-  if (issue) { error.value = t(issue); return }
-  if (step.value === 1 && !previewCurrent.value && !(await runPreview())) return
-  if (step.value === 2 && form.columns.some(column => column.virtualColumn)) {
-    validatingColumns.value = true
-    try { assertResponse(await DatasetService.validateColumns(form.columns)) }
-    catch (cause) { error.value = message(cause); return }
-    finally { validatingColumns.value = false }
+  if (step.value === 0) {
+    try { await basicFormRef.value?.validate() }
+    catch { return }
+    columnsExternalIssue.value = ''
+    step.value = 1
+    return
   }
+  if (step.value === 1 && !previewCurrent.value && !(await runPreview())) return
+  if (step.value === 2) {
+    const issue = validateColumns()
+    if (issue) { columnsExternalIssue.value = t(issue); return }
+    if (form.columns.some(column => column.virtualColumn)) {
+      validatingColumns.value = true
+      try { assertResponse(await DatasetService.validateColumns(form.columns)) }
+      catch (cause) { columnsExternalIssue.value = message(cause); return }
+      finally { validatingColumns.value = false }
+    }
+  }
+  columnsExternalIssue.value = ''
   step.value = Math.min(3, step.value + 1)
 }
 async function save() {
   if (busy.value) return
   error.value = ''
-  const basicIssue = validateBasic()
+  if (step.value === 0) {
+    pendingSave.value = true
+    try { await basicFormRef.value?.validate() }
+    catch { pendingSave.value = false }
+    return
+  }
   const columnIssue = validateColumns()
-  if (basicIssue) { step.value = 0; error.value = t(basicIssue); return }
+  if (columnIssue) { step.value = 2; columnsExternalIssue.value = t(columnIssue); return }
   if (!previewCurrent.value) { step.value = 1; error.value = t('dataset.editor.previewRequired'); return }
-  if (columnIssue) { step.value = 2; error.value = t(columnIssue); return }
   saving.value = true
   try {
     const payload = {
@@ -268,6 +286,16 @@ async function save() {
   }
   catch (cause) { error.value = message(cause) }
   finally { saving.value = false }
+}
+
+async function onBasicFinished() {
+  error.value = ''
+  columnsExternalIssue.value = ''
+  step.value = 1
+  if (pendingSave.value) {
+    pendingSave.value = false
+    await save()
+  }
 }
 async function loadPluginOptions(failOnError = false) {
   pluginsLoading.value = true
@@ -373,16 +401,16 @@ onBeforeUnmount(() => { active = false; selectionRequest++; sourceRequest++; tab
     <template v-else>
       <MfAlert v-if="error" role="alert" variant="danger" :title="error" class="mb-5"/>
       <div v-if="step === 0" class="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.85fr)_minmax(260px,1fr)]">
-        <MfForm :model="form" @finish="next">
+        <MfForm id="dataset-basic-form" ref="basicFormRef" :model="form" @finish="onBasicFinished">
           <h2 class="text-base font-semibold">{{ t('dataset.prototype.fillBasic') }}</h2>
           <MfFormItem name="name" :label="t('common.name')" :rules="[{required: true, message: t('dataset.validator.specifiedName')}]"><MfInput v-model="form.name" :placeholder="t('dataset.editor.namePlaceholder')"/></MfFormItem><p class="-mt-2 text-xs text-content-tertiary">{{ t('dataset.prototype.nameHelp') }}</p>
           <MfFormItem name="description" :label="t('common.description')"><MfTextarea v-model="form.description" :rows="3"/></MfFormItem>
           <div class="grid gap-4 sm:grid-cols-2">
-            <MfFormItem name="executor" :label="t('common.executor')"><MfSelect v-model="form.executor" :options="executorOptions" :placeholder="t('dataset.editor.chooseExecutor')" :empty-text="t('dataset.editor.noExecutors')" :loading="pluginsLoading"/><div v-if="!executors.length" class="mt-2 space-y-2"><p class="text-xs text-warning">{{ t('dataset.editor.noExecutorsHint') }}</p><MfButton size="sm" :loading="pluginsLoading" @click="loadPluginOptions()">{{ t('common.refresh') }}</MfButton></div></MfFormItem>
+            <MfFormItem name="executor" :label="t('common.executor')" :rules="executorRules"><MfSelect v-model="form.executor" :options="executorOptions" :placeholder="t('dataset.editor.chooseExecutor')" :empty-text="t('dataset.editor.noExecutors')" :loading="pluginsLoading"/><div v-if="!executors.length" class="mt-2 space-y-2"><p class="text-xs text-warning">{{ t('dataset.editor.noExecutorsHint') }}</p><MfButton size="sm" :loading="pluginsLoading" @click="loadPluginOptions()">{{ t('common.refresh') }}</MfButton></div></MfFormItem>
             <MfFormItem name="syncMode" :label="t('dataset.common.syncMode')"><MfSelect v-model="form.syncMode" :options="syncOptions"/></MfFormItem>
             <template v-if="form.syncMode === 'TIMING'">
-              <MfFormItem name="scheduler" :label="t('common.scheduler')"><MfSelect v-model="form.scheduler" :options="schedulerOptions" :placeholder="t('dataset.editor.chooseScheduler')" :empty-text="t('dataset.editor.noSchedulers')"/></MfFormItem>
-              <MfFormItem name="expression" :label="t('dataset.common.columnExpression')"><MfInput v-model="form.expression" placeholder="0 0 * * * ?"/></MfFormItem>
+              <MfFormItem name="scheduler" :label="t('common.scheduler')" :rules="schedulerRules"><MfSelect v-model="form.scheduler" :options="schedulerOptions" :placeholder="t('dataset.editor.chooseScheduler')" :empty-text="t('dataset.editor.noSchedulers')"/></MfFormItem>
+              <MfFormItem name="expression" :label="t('dataset.common.columnExpression')" :rules="expressionRules"><MfInput v-model="form.expression" placeholder="0 0 * * * ?"/></MfFormItem>
             </template>
           </div>
           <div class="flex items-start gap-2 rounded-mf-md border border-primary/15 bg-primary/5 px-4 py-3 text-xs leading-6 text-primary"><Info :size="16" class="mt-1 shrink-0"/><span>{{ t('dataset.prototype.sourceSafe') }}</span></div>
@@ -421,7 +449,7 @@ onBeforeUnmount(() => { active = false; selectionRequest++; sourceRequest++; tab
         </div>
       </div>
       <div v-else-if="step === 2" class="space-y-5">
-        <DatasetColumns v-model="form.columns" :refreshing="running" @refresh-columns="runPreview"/>
+        <DatasetColumns v-model="form.columns" :refreshing="running" :external-issue="columnsExternalIssue" @refresh-columns="runPreview"/>
         <details class="rounded-mf-lg border border-line px-4 py-3"><summary class="cursor-pointer text-sm font-medium">{{ t('dataset.common.dataLifeCycle') }}</summary><div class="mt-4 grid gap-4 sm:grid-cols-3"><MfFormItem name="lifeCycleColumn" :label="t('dataset.common.lifeCycleColumn')"><MfSelect v-model="form.lifeCycleColumn" clearable :options="dateColumns.map(column => ({label:column.name,value:column.name}))" :disabled="!dateColumns.length"/></MfFormItem><MfFormItem name="lifeCycleType" :label="t('dataset.common.lifeCycleType')"><MfSelect v-model="form.lifeCycleType" :disabled="!form.lifeCycleColumn" :options="['MONTH','WEEK','DAY','HOUR'].map(value => ({value,label:t(`dataset.common.lifeCycle${value[0] + value.slice(1).toLowerCase()}`)}))"/></MfFormItem><MfFormItem name="lifeCycle" :label="t('dataset.common.lifeCycleNumber')"><MfInputNumber v-model="form.lifeCycle" :min="1" :disabled="!form.lifeCycleColumn"/></MfFormItem></div></details>
       </div>
       <div v-else class="grid items-start gap-6 lg:grid-cols-[minmax(240px,0.7fr)_minmax(0,1.6fr)]">
