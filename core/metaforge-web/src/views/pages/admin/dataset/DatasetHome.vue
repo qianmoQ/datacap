@@ -22,7 +22,18 @@
     </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-          <div class="flex items-start gap-3"><Database :size="20" class="mt-1 shrink-0 text-primary"/><div><router-link :to="`/dataset/detail/${record.code}`" class="font-semibold text-content hover:text-primary">{{ record.name }}</router-link><p class="mt-1 text-xs text-content-tertiary">{{ record.source?.type }} · {{ record.source?.name }}</p><MfTag v-if="record.state?.length" class="mt-1" size="sm" :variant="isSuccess(record.state) ? 'primary' : 'default'">{{ getState(record.state) }}</MfTag></div></div>
+          <div class="flex items-center gap-2">
+            <Database :size="16" class="shrink-0 text-primary"/>
+            <router-link :to="`/dataset/detail/${record.code}`" class="truncate font-medium text-content hover:text-primary">{{ record.name }}</router-link>
+          </div>
+        </template>
+        <template v-else-if="column.key === 'source'">
+          <MfTooltip :content="record.source?.name">
+            <span class="flex max-w-[240px] items-center gap-1.5">
+              <MfAvatar size="xs" :src="`/static/images/plugin/${ String(record.source?.type ?? '').toLowerCase() }.svg`" :alt="record.source?.type"/>
+              <span class="truncate text-content-secondary">{{ record.source?.name }}</span>
+            </span>
+          </MfTooltip>
         </template>
         <template v-else-if="column.key === 'columnCount'"><MfLoadingIcon v-if="fieldCounts[record.code] === undefined" :size="14"/><span v-else>{{ fieldCounts[record.code] ?? '—' }}</span></template>
         <template v-else-if="column.key === 'syncMode'">

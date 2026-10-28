@@ -10,17 +10,12 @@ export function useDatasetHeaders()
 
     // MfTable 列格式（bodyCell 契约）；source/syncMode/state/action 走 #bodyCell
     const headers = computed(() => [
-        { title: t('common.id'), dataIndex: 'id', key: 'id' },
-        { title: t('common.name'), dataIndex: 'name', key: 'name' },
-        { title: t('common.description'), dataIndex: 'description', key: 'description' },
+        { title: t('common.name'), dataIndex: 'name', key: 'name', width: '220px' },
         { title: t('common.source'), key: 'source' },
-        { title: t('dataset.common.syncMode'), key: 'syncMode' },
-        { title: t('common.scheduler'), dataIndex: 'scheduler', key: 'scheduler' },
-        { title: t('common.executor'), dataIndex: 'executor', key: 'executor' },
         { title: t('common.state'), key: 'state' },
+        { title: t('dataset.common.syncMode'), key: 'syncMode' },
+        { title: t('dataset.prototype.fieldCount'), dataIndex: 'columnCount', key: 'columnCount' },
         { title: t('dataset.common.totalRows'), dataIndex: 'totalRows', key: 'totalRows' },
-        { title: t('dataset.common.totalSize'), dataIndex: 'totalSize', key: 'totalSize' },
-        { title: t('common.createTime'), dataIndex: 'createTime', key: 'createTime' },
         { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime' },
         { title: t('common.action'), key: 'action' }
     ])
