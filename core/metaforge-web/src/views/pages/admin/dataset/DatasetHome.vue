@@ -1,8 +1,7 @@
 <template>
 
   <DataTable filterable :filter-fields="tableFilters"
-             :title="$t('common.dataset')"
-             :description="$t('dataset.editor.listHint')"
+             :title="$t('dataset.common.list')"
              :columns="headers"
              :data-source="data"
              :loading="loading"
