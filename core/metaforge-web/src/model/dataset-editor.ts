@@ -26,9 +26,12 @@ export function reconcileDatasetColumns(headers: string[], existing: DatasetColu
     const columns = headers.map((header, index) => {
         const previous = existing.find(column => !column.customColumn && column.original === header)
         if (previous) return { ...previous, position: index }
-        let sequence = index + 1
-        while (used.has(`column_${sequence}`)) sequence++
-        const name = `column_${sequence}`
+        // Default the storage column name to the source field name, sanitized
+        // into a safe identifier and deduplicated against the used names.
+        let candidate = header.replace(/\W+/g, '_').replace(/^_+|_+$/g, '')
+        if (!candidate) candidate = `column_${index + 1}`
+        while (used.has(candidate)) candidate = `${candidate}_2`
+        const name = candidate
         used.add(name)
         return {
             id: null, name, aliasName: header.replace(/[()]/g, '_'), original: header,
