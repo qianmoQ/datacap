@@ -9,15 +9,16 @@ export function useDatasetHeaders()
     const { t } = useI18n()
 
     // MfTable 列格式（bodyCell 契约）；source/syncMode/state/action 走 #bodyCell
+    // 除名称外全部定宽，剩余空间由名称列吸收，避免自动布局把空白摊得到处都是
     const headers = computed(() => [
-        { title: t('common.name'), dataIndex: 'name', key: 'name', width: '220px' },
-        { title: t('common.source'), key: 'source' },
-        { title: t('common.state'), key: 'state' },
-        { title: t('dataset.common.syncMode'), key: 'syncMode' },
-        { title: t('dataset.prototype.fieldCount'), dataIndex: 'columnCount', key: 'columnCount' },
-        { title: t('dataset.common.totalRows'), dataIndex: 'totalRows', key: 'totalRows' },
-        { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime' },
-        { title: t('common.action'), key: 'action' }
+        { title: t('common.name'), dataIndex: 'name', key: 'name' },
+        { title: t('common.source'), key: 'source', width: '320px' },
+        { title: t('common.state'), key: 'state', width: '110px' },
+        { title: t('dataset.common.syncMode'), key: 'syncMode', width: '96px' },
+        { title: t('dataset.prototype.fieldCount'), dataIndex: 'columnCount', key: 'columnCount', width: '80px' },
+        { title: t('dataset.common.totalRows'), dataIndex: 'totalRows', key: 'totalRows', width: '90px' },
+        { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime', width: '180px' },
+        { title: t('common.action'), key: 'action', width: '170px' }
     ])
 
     // MfTable 列格式（bodyCell 契约）；progress/state/action 走 #bodyCell

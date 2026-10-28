@@ -22,20 +22,21 @@
     </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-          <div class="flex items-center gap-2">
+          <div class="flex min-w-0 items-center gap-2">
             <Database :size="16" class="shrink-0 text-primary"/>
-            <router-link :to="`/dataset/detail/${record.code}`" class="truncate font-medium text-content hover:text-primary">{{ record.name }}</router-link>
+            <router-link :to="`/dataset/detail/${record.code}`" class="min-w-0 truncate font-medium text-content hover:text-primary">{{ record.name }}</router-link>
           </div>
         </template>
         <template v-else-if="column.key === 'source'">
           <MfTooltip :content="record.source?.name">
-            <span class="flex max-w-[240px] items-center gap-1.5">
+            <span class="flex min-w-0 items-center gap-1.5">
               <MfAvatar size="xs" :src="`/static/images/plugin/${ String(record.source?.type ?? '').toLowerCase() }.svg`" :alt="record.source?.type"/>
-              <span class="truncate text-content-secondary">{{ record.source?.name }}</span>
+              <span class="min-w-0 truncate text-content-secondary">{{ record.source?.name }}</span>
             </span>
           </MfTooltip>
         </template>
         <template v-else-if="column.key === 'columnCount'"><MfLoadingIcon v-if="fieldCounts[record.code] === undefined" :size="14"/><span v-else>{{ fieldCounts[record.code] ?? '—' }}</span></template>
+        <template v-else-if="column.key === 'totalRows'"><span>{{ record.totalRows ?? '—' }}</span></template>
         <template v-else-if="column.key === 'syncMode'">
           <MfTag v-if="record?.syncMode === 'MANUAL'">{{ $t('dataset.common.syncModeManual') }}</MfTag>
           <MfTag v-else-if="record?.syncMode === 'TIMING'">{{ $t('dataset.common.syncModeTiming') }}</MfTag>
