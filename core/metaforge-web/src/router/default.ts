@@ -71,6 +71,11 @@ const createDefaultRouter = (router: Router) => {
                 component: () => import('@/views/pages/admin/dataset/DatasetHome.vue')
             },
             {
+                path: 'dataset/detail/:code',
+                meta: { title: 'common.dataset', isRoot: false },
+                component: () => import('@/views/pages/admin/dataset/DatasetDetail.vue')
+            },
+            {
                 path: 'dataset/info/:code?',
                 meta: {
                     title: 'common.dataset',

@@ -35,6 +35,7 @@ import org.devlive.metaforge.service.body.PipelineFieldBody;
 import org.devlive.metaforge.service.body.adhoc.Adhoc;
 import org.devlive.metaforge.service.common.ConfigureUtils;
 import org.devlive.metaforge.service.common.FolderUtils;
+import org.devlive.metaforge.service.dataset.DatasetVirtualColumns;
 import org.devlive.metaforge.service.entity.DataSetColumnEntity;
 import org.devlive.metaforge.service.entity.DataSetEntity;
 import org.devlive.metaforge.service.entity.DatasetHistoryEntity;
@@ -143,6 +144,23 @@ public class DataSetServiceImpl
     @SendNotification(type = NotificationType.DYNAMIC)
     public CommonResponse<DataSetEntity> saveOrUpdate(BaseRepository<DataSetEntity, Long> repository, DataSetEntity configure)
     {
+        try {
+            DatasetVirtualColumns.validate(configure.getColumns());
+        }
+        catch (IllegalArgumentException exception) {
+            return CommonResponse.failure(exception.getMessage());
+        }
+        if (configure.getId() != null) {
+            DataSetEntity original = repository.findById(configure.getId()).orElseThrow(() -> new IllegalArgumentException("Dataset not found"));
+            isSelf(original);
+            Set<Long> ownedColumns = columnRepository.findAllByDataset(original).stream().map(DataSetColumnEntity::getId).collect(Collectors.toSet());
+            if (configure.getColumns().stream().anyMatch(column -> column.getId() != null && !ownedColumns.contains(column.getId()))) {
+                return CommonResponse.failure("A column does not belong to this dataset");
+            }
+        }
+        else if (configure.getColumns().stream().anyMatch(column -> column.getId() != null)) {
+            return CommonResponse.failure("New datasets cannot reuse persisted column identities");
+        }
         UserEntity user = UserDetailsService.getUser();
         java.util.concurrent.ExecutorService service = Executors.newSingleThreadExecutor();
         service.submit(() -> {
@@ -151,6 +169,26 @@ public class DataSetServiceImpl
             startBuild(configure, true);
         });
         return CommonResponse.success(configure);
+    }
+
+    @Override
+    public CommonResponse<Response> preview(String code)
+    {
+        return repository.findByCode(code).map(dataset -> {
+            isSelf(dataset);
+            if (dataset.getTableName() == null || dataset.getTableName().isBlank()) {
+                return CommonResponse.<Response>failure("Dataset storage is not ready");
+            }
+            String database = initializerConfigure.getDataSetConfigure().getDatabase();
+            String sql = DatasetVirtualColumns.previewSql(database, dataset.getTableName(), columnRepository.findAllByDatasetOrderByPositionAsc(dataset));
+            String type = initializerConfigure.getDataSetConfigure().getType();
+            return pluginManager.getPlugin(type).map(plugin -> {
+                PluginService pluginService = plugin.getService(PluginService.class);
+                Response response = pluginService.execute(getConfigure(database, plugin), sql);
+                response.setContent(sql);
+                return CommonResponse.success(response);
+            }).orElseGet(() -> CommonResponse.failure("Dataset storage plugin not loaded: " + type));
+        }).orElseGet(() -> CommonResponse.failure("Dataset not found: " + code));
     }
 
     @Override
@@ -282,10 +320,13 @@ public class DataSetServiceImpl
                                         }
                                     }));
 
+                    String virtualTable = DatasetVirtualColumns.table(database, item.getTableName(),
+                            columnRepository.findAllByDatasetOrderByPositionAsc(item),
+                            configure.getColumns().stream().map(column -> column.getId()).collect(Collectors.toSet()));
                     SqlBody body = SqlBody.builder()
                             .type(SqlType.SELECT)
-                            .database(database)
-                            .table(item.getTableName())
+                            .database(virtualTable == null ? database : null)
+                            .table(virtualTable == null ? item.getTableName() : virtualTable)
                             .columns(columns)
                             .groups(groupBy)
                             .orders(orderBy)

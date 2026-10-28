@@ -47,6 +47,9 @@ public class DataSetColumnEntity
     @Column(name = "default_value")
     private String defaultValue;
 
+    @Column(name = "expression", columnDefinition = "TEXT")
+    private String formula;
+
     @Column(name = "position")
     private int position;
 

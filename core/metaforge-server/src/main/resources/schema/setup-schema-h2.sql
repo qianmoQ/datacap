@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS `metaforge_dataset_column` (
 `comment` varchar(255) DEFAULT NULL,
 `original` varchar(255) DEFAULT NULL,
 `default_value` varchar(255) DEFAULT NULL,
+`expression` text DEFAULT NULL,
 `position` int DEFAULT NULL,
 `is_nullable` tinyint(1) DEFAULT '0',
 `length` int DEFAULT NULL,

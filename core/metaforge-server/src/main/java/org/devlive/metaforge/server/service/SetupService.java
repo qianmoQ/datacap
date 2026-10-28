@@ -219,6 +219,7 @@ public class SetupService
             executeScript(connection, "schema/setup-data.sql");
             NavigationMigration.apply(connection);
             SourceTypeMigration.apply(connection);
+            DatasetColumnExpressionMigration.apply(connection);
             createAdministrator(connection, body);
         }
         reloadRuntimeConfigures();
@@ -233,6 +234,7 @@ public class SetupService
             executeScript(connection, "schema/setup-data.sql");
             NavigationMigration.apply(connection);
             SourceTypeMigration.apply(connection);
+            DatasetColumnExpressionMigration.apply(connection);
             createAdministrator(connection, body);
         }
         persistDatasourceOverride(target);

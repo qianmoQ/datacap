@@ -1,6 +1,7 @@
 package org.devlive.metaforge.server.runner;
 
 import lombok.extern.slf4j.Slf4j;
+import org.devlive.metaforge.server.service.DatasetColumnExpressionMigration;
 import org.devlive.metaforge.server.service.NavigationMigration;
 import org.devlive.metaforge.server.service.SourceTypeMigration;
 import org.devlive.metaforge.service.initializer.InstallationState;
@@ -38,6 +39,7 @@ public class SchemaMigrationRunner
         try (Connection connection = dataSource.getConnection()) {
             NavigationMigration.apply(connection);
             SourceTypeMigration.apply(connection);
+            DatasetColumnExpressionMigration.apply(connection);
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.devlive.metaforge.server.service;
 
 import org.devlive.metaforge.service.entity.ConfigureEntity;
+import org.devlive.metaforge.service.entity.DataSetColumnEntity;
 import org.devlive.metaforge.service.entity.DatasetHistoryEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -45,6 +46,14 @@ public class SetupSchemaTest
                 // previously failed after installing an outdated schema.
                 assertTrue(manager.createQuery("SELECT h FROM DatasetHistoryEntity h", DatasetHistoryEntity.class).getResultList().isEmpty());
                 assertTrue(manager.createQuery("SELECT c FROM ConfigureEntity c", ConfigureEntity.class).getResultList().isEmpty());
+                DataSetColumnEntity column = DataSetColumnEntity.builder().name("rounded_amount").aliasName("Rounded amount")
+                        .virtualColumn(true).customColumn(true).formula("round(amount, 2)").build();
+                manager.getTransaction().begin();
+                manager.persist(column);
+                manager.getTransaction().commit();
+                Long columnId = column.getId();
+                manager.clear();
+                assertEquals("round(amount, 2)", manager.find(DataSetColumnEntity.class, columnId).getFormula());
             }
             finally {
                 manager.close();
