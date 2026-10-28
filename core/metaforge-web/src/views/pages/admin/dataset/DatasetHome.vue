@@ -51,7 +51,7 @@
           </MfPopover>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace>
+          <MfSpace size="xs">
             <MfTooltip :content="$t('dataset.common.info')"><router-link :to="`/dataset/detail/${record.code}`"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.info')"><Eye :size="15"/></MfButton></router-link></MfTooltip>
             <MfTooltip :content="$t('dataset.common.modify')"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.modify')" @click="openWizard(record.code)"><Pencil :size="15"/></MfButton></MfTooltip>
             <MfTooltip :content="$t('dataset.common.adhoc')">
