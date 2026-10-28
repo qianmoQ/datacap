@@ -49,19 +49,21 @@ test('Select suppresses empty while pending and distinguishes missing options fr
     }))
     try {
         await click(host.document, host.find(node => node.props.class?.includes('mf-invalidable')))
-        assert.ok(host.container.textContent.includes('正在获取选项'))
-        assert.ok(!host.container.textContent.includes('暂无选项'))
+        // The teleported popup mounts to body, outside the app container.
+        const popupText = () => host.document.body.textContent
+        assert.ok(popupText().includes('正在获取选项'))
+        assert.ok(!popupText().includes('暂无选项'))
         loading.value = false
         await nextTick()
-        assert.ok(host.container.textContent.includes('暂无选项'))
+        assert.ok(popupText().includes('暂无选项'))
         options.value = [{ label: 'MySQL', value: 'mysql' }]
         await nextTick()
         const input = host.find(node => node.tag === 'input')
         input.value = 'Oracle'
         input.dispatchEvent(new InteractionEvent('input', [input]))
         await nextTick()
-        assert.ok(host.container.textContent.includes('没有匹配选项'))
-        assert.ok(!host.container.textContent.includes('暂无选项'))
+        assert.ok(popupText().includes('没有匹配选项'))
+        assert.ok(!popupText().includes('暂无选项'))
     }
     finally { host.unmount(); globalThis.requestAnimationFrame = originalFrame }
 })

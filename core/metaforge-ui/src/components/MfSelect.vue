@@ -6,6 +6,7 @@ import MfEmpty from './MfEmpty.vue'
 import MfSpinner from './MfSpinner.vue'
 import { CONTROL_SIZES, TRANSITION, type MfControlSize, type MfSelectOption } from './common'
 import { useDismissableLayer } from '../composables/useDismissableLayer'
+import { useOverlayPosition } from '../composables/useOverlayPosition'
 
 const props = withDefaults(defineProps<{
     modelValue?: string | number | (string | number)[]
@@ -50,19 +51,22 @@ const emit = defineEmits<{
 
 const open = ref(false)
 const root = ref<HTMLElement>()
+const overlay = ref<HTMLElement>()
 const query = ref('')
 const searchInput = ref<HTMLInputElement>()
-/** Flips the popup above the trigger when the viewport has no room below. */
-const dropUp = ref(false)
+
+/** The popup teleports to body with fixed positioning, so scroll and
+ *  overflow containers cannot clip it; the composable flips it above
+ *  the trigger when the viewport has no room below. */
+const popupStyle = useOverlayPosition({ root, open, placement: () => 'bottomLeft', overlay, gap: 6 })
+const triggerWidth = ref(0)
+
+watch(open, value => {
+    if (value) triggerWidth.value = root.value?.offsetWidth ?? 0
+})
 
 function toggle(): void {
     if (!props.disabled) {
-        if (!open.value) {
-            const rect = root.value?.getBoundingClientRect()
-            const estimate = Math.min(props.options.length * 36 + 12, 268)
-            const below = window.innerHeight - (rect?.bottom ?? 0)
-            dropUp.value = !!rect && below < estimate && rect.top > below
-        }
         open.value = !open.value
         if (open.value && props.searchable) {
             requestAnimationFrame(() => searchInput.value?.focus())
@@ -75,7 +79,7 @@ function close(): void {
     query.value = ''
 }
 
-useDismissableLayer(root, open, close)
+useDismissableLayer(root, open, close, [overlay])
 
 const isMultiple = computed(() => props.multiple || props.tags)
 
@@ -227,6 +231,7 @@ watch(open, value => {
             </svg>
         </div>
 
+        <Teleport to="body">
         <Transition
             enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
             enter-from-class="opacity-0 scale-95"
@@ -235,9 +240,10 @@ watch(open, value => {
         >
             <ul
                 v-if="open"
+                ref="overlay"
                 role="listbox"
-                class="absolute left-0 z-40 flex max-h-64 w-full min-w-32 flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
-                :class="dropUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'"
+                class="fixed z-50 flex max-h-64 flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
+                :style="[popupStyle, { width: triggerWidth + 'px' }]"
             >
                 <template v-for="[group, groupOptions] in grouped" :key="group || 'default'">
                     <li v-if="group" class="px-2.5 pt-1.5 pb-1 text-xs font-semibold text-content-tertiary">
@@ -279,5 +285,6 @@ watch(open, value => {
                 </li>
             </ul>
         </Transition>
+        </Teleport>
     </div>
 </template>
