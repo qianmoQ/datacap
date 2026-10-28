@@ -126,8 +126,6 @@
         </template>
       </template>
     </DataTable>
-
-    <div class="flex flex-wrap items-center justify-between gap-4 rounded-mf-lg border border-dashed border-primary/25 bg-primary/5 p-5"><div><p class="text-sm font-semibold">{{ $t('dataset.prototype.anotherDataset') }}</p><p class="mt-1 text-xs text-content-tertiary">{{ $t('dataset.prototype.manualModeHint') }}</p></div><MfButton @click="openWizard()"><Plus :size="15"/>{{ $t('dataset.prototype.startBlank') }}</MfButton></div>
   <DatasetWizard v-if="wizardVisible" embedded :dataset-code="editingCode" @close="wizardVisible = false" @submitted="onSubmitted"/>
 
   <DatasetRebuild v-if="rebuildVisible"
