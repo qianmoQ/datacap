@@ -232,11 +232,13 @@ watch(open, value => {
         </div>
 
         <Teleport to="body">
+        <!-- Fade only: a scale transition changes the measured box during the
+             enter animation and the fixed position would overlap the trigger. -->
         <Transition
-            enter-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            enter-from-class="opacity-0 scale-95"
-            leave-active-class="transition duration-(--mf-duration-fast) ease-(--mf-easing)"
-            leave-to-class="opacity-0 scale-95"
+            enter-active-class="transition-opacity duration-(--mf-duration-fast) ease-(--mf-easing)"
+            enter-from-class="opacity-0"
+            leave-active-class="transition-opacity duration-(--mf-duration-fast) ease-(--mf-easing)"
+            leave-to-class="opacity-0"
         >
             <ul
                 v-if="open"
