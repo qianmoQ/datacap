@@ -31,7 +31,7 @@ let source = compile(compileScript(descriptor, { id: 'dataset-wizard-test', inli
 const imports = { 'vue-router': routerUrl, 'metaforge-ui': stubUrl, '@/model/dataset-editor': utilityUrl,
   '@/views/components/editor/AceEditor.vue': dataModule(`export {Ace as default} from ${JSON.stringify(stubUrl)}`),
   '@/views/pages/admin/query/QuerySourcePicker.vue': dataModule(`export {Picker as default} from ${JSON.stringify(stubUrl)}`),
-  './components/DatasetWizardShell.vue': shellUrl, './components/DatasetSourcePreview.vue':previewUrl,
+  './components/DatasetWizardShell.vue': shellUrl, './components/DatasetSourcePreview.vue':previewUrl, './components/DatasetPreviewTable.vue':previewTableUrl,
   './components/DatasetColumns.vue': dataModule(`export {Columns as default} from ${JSON.stringify(stubUrl)}`),
   ...Object.fromEntries(['dataset','source','metadata','plugin','execute'].map(name=>['@/services/'+name,serviceUrl(name)])) }
 source = source.replace(/from (['"])([^'"]+)\1/g, (_match,_quote,name)=>`from ${JSON.stringify(imports[name] || import.meta.resolve(name))}`)

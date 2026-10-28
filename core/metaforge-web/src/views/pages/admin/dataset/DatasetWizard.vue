@@ -16,6 +16,7 @@ import QuerySourcePicker from '@/views/pages/admin/query/QuerySourcePicker.vue'
 import DatasetColumns from './components/DatasetColumns.vue'
 import DatasetWizardShell from './components/DatasetWizardShell.vue'
 import DatasetSourcePreview from './components/DatasetSourcePreview.vue'
+import DatasetPreviewTable from './components/DatasetPreviewTable.vue'
 
 const props = withDefaults(defineProps<{ embedded?: boolean, datasetCode?: string, entry?: DatasetCreationEntry }>(), { embedded: false })
 const emit = defineEmits<{ close: [], submitted: [result: { code: string, name: string }] }>()
@@ -59,7 +60,7 @@ const originLabel = computed(() => t(code.value ? 'dataset.common.modify' : inhe
 const syncOptions = computed(() => [{value:'MANUAL',label:t('dataset.common.syncModeManual')},{value:'TIMING',label:t('dataset.common.syncModeTiming')},{value:'OUT_SYNC',label:t('dataset.common.syncModeOutSync')}])
 const sourceModes = computed(() => [{value:'table' as const,label:t('dataset.editor.selectTable'),hint:t('dataset.prototype.visualSelection')},{value:'sql' as const,label:t('dataset.editor.customSql'),hint:t('dataset.prototype.writeSql')}])
 const summary = computed(() => [
-  {label:t('common.source'),value:sourceInfo.value?.name || '—'},
+  {label:t('common.source'),value:sourceInfo.value?.name || '—',truncate:true},
   {label:t('common.database'),value:database.value || sourceInfo.value?.database || '—'},
   {label:t('dataset.prototype.sourceMethod'),value:t(sourceMode.value === 'table' ? 'dataset.editor.selectTable' : 'dataset.editor.customSql')},
   {label:t('dataset.editor.columns'),value:String(form.columns.length)},
@@ -69,7 +70,6 @@ const summary = computed(() => [
 const signature = computed(() => JSON.stringify([form.source.code, form.query.trim()]))
 const previewCurrent = computed(() => verifiedSignature.value === signature.value && !!verifiedSignature.value)
 const dateColumns = computed(() => form.columns.filter(column => column.type === 'DATETIME' && !column.virtualColumn))
-const previewColumns = computed(() => previewHeaders.value.map((header, index) => ({ key: `field_${index}`, dataIndex: `field_${index}`, title: header })))
 const pluginOptions = (plugins: { name: string }[], selected: string) => {
   const options: { label: string, value: string, disabled?: boolean }[] = plugins.map(item => ({ label: item.name, value: item.name }))
   if (selected && !plugins.some(item => item.name === selected)) options.push({ label: `${selected} (${t('dataset.editor.pluginUnavailable')})`, value: selected, disabled: true })
@@ -427,13 +427,13 @@ onBeforeUnmount(() => { active = false; selectionRequest++; sourceRequest++; tab
       <div v-else class="grid items-start gap-6 lg:grid-cols-[minmax(240px,0.7fr)_minmax(0,1.6fr)]">
         <div class="space-y-5">
           <h2 class="text-base font-semibold">{{ t('dataset.prototype.confirmInfo') }}</h2>
-          <section class="rounded-mf-lg border border-line bg-surface-hover/40 p-5"><div class="mb-5 flex items-center gap-3"><span class="flex size-10 shrink-0 items-center justify-center rounded-mf-md bg-primary/10 text-primary"><Database :size="21"/></span><div class="min-w-0"><h3 class="break-all text-sm font-semibold">{{ form.name }}</h3><p class="mt-1 text-xs text-content-tertiary">{{ originLabel }}</p></div></div><dl class="divide-y divide-line text-xs"><div v-for="item in summary" :key="item.label" class="flex justify-between gap-3 py-3"><dt class="shrink-0 text-content-tertiary">{{ item.label }}</dt><dd class="break-all text-right font-medium">{{ item.value }}</dd></div></dl></section>
+          <section class="rounded-mf-lg border border-line bg-surface-hover/40 p-5"><div class="mb-5 flex items-center gap-3"><span class="flex size-10 shrink-0 items-center justify-center rounded-mf-md bg-primary/10 text-primary"><Database :size="21"/></span><div class="min-w-0"><h3 class="break-all text-sm font-semibold">{{ form.name }}</h3><p class="mt-1 text-xs text-content-tertiary">{{ originLabel }}</p></div></div><dl class="divide-y divide-line text-xs"><div v-for="item in summary" :key="item.label" class="flex justify-between gap-3 py-3"><dt class="shrink-0 text-content-tertiary">{{ item.label }}</dt><dd class="min-w-0 text-right font-medium"><MfTooltip v-if="item.truncate && item.value && item.value !== '—'" :content="item.value"><span class="block max-w-40 truncate">{{ item.value }}</span></MfTooltip><span v-else class="break-all">{{ item.value }}</span></dd></div></dl></section>
           <div class="rounded-mf-md border border-primary/15 bg-primary/5 p-4 text-xs leading-6 text-primary">{{ t('dataset.editor.asyncHint') }}</div>
         </div>
         <div class="min-w-0 space-y-4">
           <div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="text-base font-semibold">{{ t('dataset.prototype.previewValidation') }}</h2><p class="mt-1 text-xs leading-5 text-content-tertiary">{{ t('dataset.editor.previewHint') }}</p></div><MfButton size="sm" :loading="running" @click="runPreview"><RefreshCw :size="14"/>{{ t('dataset.prototype.refreshPreview') }}</MfButton></div>
           <div v-if="previewCurrent" class="flex items-center gap-2 rounded-mf-md border border-primary/15 bg-primary/5 px-4 py-3 text-xs text-primary"><Check :size="15"/>{{ t('dataset.editor.verified', [previewHeaders.length]) }} · {{ t('dataset.editor.previewCount', [Math.min(previewCount, 100), previewCount]) }}</div>
-          <MfTable :columns="previewColumns" :data-source="previewRows" :loading="running" :empty-text="t('dataset.editor.emptyPreview')"/>
+          <DatasetPreviewTable :headers="previewHeaders" :rows="previewRows" :loading="running" :empty-text="t('dataset.editor.emptyPreview')"/>
           <section class="rounded-mf-lg border border-line bg-surface-hover/40 p-4"><h3 class="text-sm font-semibold">{{ t('dataset.prototype.sqlDefinition') }}</h3><pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-xs leading-6 text-content-secondary">{{ form.query }}</pre></section>
         </div>
       </div>
