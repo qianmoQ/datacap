@@ -277,6 +277,7 @@
   <SnippetInfo v-if="dataInfoVisible"
                :is-visible="dataInfoVisible"
                :info="dataInfo"
+               kind="template"
                @close="onSnippetClosed">
   </SnippetInfo>
 </template>
