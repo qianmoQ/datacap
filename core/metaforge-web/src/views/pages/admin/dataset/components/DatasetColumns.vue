@@ -184,8 +184,8 @@ function move(index: number, offset: number) {
       <template #cell-orderByKey="{record}"><MfSwitch size="sm" :model-value="record.orderByKey" :disabled="record.virtualColumn" :aria-label="t('dataset.common.columnIsOrderByKey')" @update:model-value="updateColumn(record.index,{orderByKey:!!$event})"/></template>
       <template #cell-primaryKey="{record}"><MfSwitch size="sm" :model-value="record.primaryKey" :disabled="record.virtualColumn" :aria-label="t('dataset.common.columnIsPrimaryKey')" @update:model-value="updateColumn(record.index,{primaryKey:!!$event})"/></template>
       <template #cell-original="{ record }"><span class="block max-w-xs truncate text-content-secondary" :title="record.virtualColumn ? record.formula : record.original">{{ record.virtualColumn ? (record.formula || t('dataset.editor.customColumn')) : record.original }}</span></template>
-      <template #cell-type="{ record }"><MfTag>{{ typeOptions.find(option => option.value === record.type)?.label || record.type }}</MfTag></template>
-      <template #cell-mode="{ record }"><MfTag :variant="record.mode === 'METRIC' ? 'primary' : 'default'">{{ modeOptions.find(option => option.value === record.mode)?.label || record.mode }}</MfTag></template>
+      <template #cell-type="{ record }"><MfSelect size="sm" class="min-w-24" :model-value="record.type" :options="typeOptions" :aria-label="t('dataset.common.columnType')" @update:model-value="updateColumn(record.index,{type:String($event)})"/></template>
+      <template #cell-mode="{ record }"><MfSelect size="sm" class="min-w-24" :model-value="record.mode" :options="modeOptions" :aria-label="t('dataset.common.columnMode')" @update:model-value="updateColumn(record.index,{mode:String($event)})"/></template>
       <template #cell-keys="{ record }">
         <div class="flex flex-wrap gap-1"><MfTag v-for="field in keyFields.filter(field => record[field])" :key="field">{{ t(`dataset.common.${keyLabels[field]}`) }}</MfTag></div>
       </template>

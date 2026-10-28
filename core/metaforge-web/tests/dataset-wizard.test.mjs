@@ -22,7 +22,8 @@ async function localSfc(relative, mapping={}) {
  return dataModule(source)
 }
 const shellUrl=await localSfc('../src/views/pages/admin/dataset/components/DatasetWizardShell.vue')
-const previewUrl=await localSfc('../src/views/pages/admin/dataset/components/DatasetSourcePreview.vue')
+const previewTableUrl=await localSfc('../src/views/pages/admin/dataset/components/DatasetPreviewTable.vue')
+const previewUrl=await localSfc('../src/views/pages/admin/dataset/components/DatasetSourcePreview.vue',{'./DatasetPreviewTable.vue':previewTableUrl})
 if(!globalThis.requestAnimationFrame)globalThis.requestAnimationFrame=callback=>{queueMicrotask(()=>callback(0));return 0}
 const filename = new URL('../src/views/pages/admin/dataset/DatasetWizard.vue', import.meta.url)
 const { descriptor } = parse(await readFile(filename, 'utf8'), { filename: filename.pathname })
@@ -293,14 +294,14 @@ test('function and field insertion compose a formula at the current cursor posit
  const host=mountColumns()
  try {
   await press(host,'dataset.editor.addColumn')
-  const triggers=()=>host.all(node=>node.tag==='div' && String(node.props.class).includes('mf-invalidable') && node.props.onClick)
-  await click(host.document,triggers()[3])
+  const triggers=text=>host.all(node=>node.tag==='div' && String(node.props.class).includes('mf-invalidable') && node.props.onClick && String(node.textContent||'').includes(text))
+  await click(host.document,triggers('dataset.editor.insertFunction')[0])
   await click(host.document,host.find(node=>node.props.role==='option' && node.textContent.trim()==='round'))
   const formula=host.find(node=>node.tag==='textarea' && node.props.placeholder==='dataset.editor.expressionPlaceholder')
   assert.equal(formula.value,'round()')
   formula.selectionStart=6
   formula.selectionEnd=6
-  await click(host.document,triggers()[2])
+  await click(host.document,triggers('dataset.editor.insertField')[0])
   await click(host.document,host.find(node=>node.props.role==='option' && node.textContent.trim()==='ID (record_id)'))
   assert.equal(formula.value,'round(`record_id`)')
   await submitColumn(host)
