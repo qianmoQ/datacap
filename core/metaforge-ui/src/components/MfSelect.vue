@@ -245,7 +245,7 @@ watch(open, value => {
                 ref="overlay"
                 role="listbox"
                 class="fixed z-50 flex max-h-64 flex-col gap-1 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg"
-                :style="[popupStyle, { width: triggerWidth + 'px' }]"
+                :style="[{ ...popupStyle, maxHeight: '16rem' }, { width: triggerWidth + 'px' }]"
             >
                 <template v-for="[group, groupOptions] in grouped" :key="group || 'default'">
                     <li v-if="group" class="px-2.5 pt-1.5 pb-1 text-xs font-semibold text-content-tertiary">
