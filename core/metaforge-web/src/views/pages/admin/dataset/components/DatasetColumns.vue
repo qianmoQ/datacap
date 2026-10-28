@@ -62,13 +62,12 @@ function insertToken(token: string, cursorOffset = token.length) {
 }
 function appendField(value: string) {
   insertToken('`' + value.replace(/`/g, '``') + '`')
-  selectedField.value = ''
 }
+
 function appendFunction(value: string) {
   const input = expressionInput.value?.$el
   const selected = (draft.value?.formula || '').slice(input?.selectionStart ?? 0, input?.selectionEnd ?? 0)
   insertToken(`${value}(${selected})`, selected ? value.length + selected.length + 2 : value.length + 1)
-  selectedFunction.value = ''
 }
 const filtered = computed(() => props.modelValue.map((column, index) => ({ ...column, index }))
   .filter(column => [column.name, column.aliasName, column.original].some(value => value?.toLowerCase().includes(keyword.value.toLowerCase()))))
