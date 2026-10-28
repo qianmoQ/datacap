@@ -151,6 +151,8 @@ async function save() {
   if (editingIndex.value < 0) next.push(column)
   else next[editingIndex.value] = column
   emit('update:modelValue', next.map((value, position) => ({ ...value, position })))
+  // A stale validation banner must not survive a successful save.
+  issue.value = ''
   opened.value = false
 }
 function remove(index: number) {
