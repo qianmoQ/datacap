@@ -66,12 +66,12 @@
           </div>
         </div>
 
-        <div class="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
+        <div class="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-3 py-2 [&_button]:shrink-0 [&_button]:whitespace-nowrap">
           <div class="inline-flex items-stretch">
             <MfButton variant="primary"
                       class="rounded-r-none!"
                       :loading="loading.running"
-                      :disabled="!selectSource.id || loading.running"
+                      :disabled="!selectSource.id || loading.running || loading.planning"
                       @click="onRun()">
               <Play :size="15"/>
               {{ $t('query.common.execute') }}
@@ -240,9 +240,11 @@
         <QueryResultPanel :response="responseConfigure.response"
                           :running="loading.running || loading.planning"
                           :source-id="selectSource.id as unknown as number"
-                          :source-code="(selectSource.code as string)"
+                          :source-code="responseConfigure.sourceCode"
+                          :dataset-available="responseConfigure.kind === 'query'"
                           :query="responseConfigure.query"
-                          @add-dataset="onAddDataset"
+                          @add-dataset="onCreateFromResult"
+                          @existing-dataset="onExistingDataset"
                           @refresh="onRun"/>
       </div>
     </section>
@@ -280,6 +282,10 @@
                kind="template"
                @close="onSnippetClosed">
   </SnippetInfo>
+  <DatasetCreateMode :open="creationModeVisible" :result="resultEntry" :sql="sqlEntry" @close="creationModeVisible = false" @create="openCreation"/>
+  <DatasetWizard v-if="datasetWizardVisible" embedded :entry="datasetEntry" @close="datasetWizardVisible = false" @submitted="onDatasetSubmitted"/>
+  <DatasetExistingMapping v-if="existingMappingVisible" :entry="datasetEntry" @close="existingMappingVisible = false" @submitted="onDatasetSubmitted"/>
+
 </template>
 
 <script setup lang="ts">
@@ -295,6 +301,10 @@ import ExecuteService from '@/services/execute'
 import { ResponseModel } from '@/model/response'
 import FormatService from '@/services/format'
 import { HelpType } from '@/views/pages/admin/query/HelpType'
+import DatasetCreateMode from '@/views/pages/admin/dataset/components/DatasetCreateMode.vue'
+import DatasetWizard from '@/views/pages/admin/dataset/DatasetWizard.vue'
+import DatasetExistingMapping from '@/views/pages/admin/dataset/components/DatasetExistingMapping.vue'
+import type { DatasetCreationEntry } from '@/model/dataset-editor'
 import QueryHelp from '@/views/pages/admin/query/QueryHelp.vue'
 import QuerySourcePicker from '@/views/pages/admin/query/QuerySourcePicker.vue'
 import QueryResultPanel from '@/views/pages/admin/query/QueryResultPanel.vue'
@@ -427,7 +437,9 @@ const queryConfigure = reactive({
 const responseConfigure = reactive({
   response: null as ResponseModel | null,
   message: null as string | null,
-  query: ''
+  query: '',
+  sourceCode: '',
+  kind: 'query' as 'query' | 'plan'
 })
 const dataInfo = ref<SnippetModel>(null as unknown as SnippetModel)
 const dataInfoVisible = ref(false)
@@ -556,7 +568,14 @@ const onRunSelection = () => {
   runContent(selected.length > 0 ? selected : editor.content, false)
 }
 
+let queryRequest = 0
 const runContent = (sql: string, syncEditorFromResponse: boolean) => {
+  if (loading.running || loading.planning || !selectSource.code) return
+  const request = ++queryRequest
+  const executedSource = selectSource.code as string
+  const executedEditor = editors.value[activeEditor.value as string]
+  responseConfigure.kind = 'query'
+  responseConfigure.sourceCode = executedSource
   responseConfigure.response = null
   responseConfigure.message = null
   responseConfigure.query = ''
@@ -568,12 +587,12 @@ const runContent = (sql: string, syncEditorFromResponse: boolean) => {
   loading.running = true
   ExecuteService.execute(queryConfigure.configure!, queryConfigure.cancelToken.token)
                 .then((response) => {
+                  if (request !== queryRequest) return
                   if (response.status) {
                     responseConfigure.response = response
                     responseConfigure.query = sql
                     if (syncEditorFromResponse) {
-                      const editor = editors.value[activeEditor.value as string]
-                      editor.content = response.data.content
+                      executedEditor.content = response.data.content
                     }
                   }
                   else {
@@ -585,17 +604,23 @@ const runContent = (sql: string, syncEditorFromResponse: boolean) => {
                   }
                 })
                 .finally(() => {
+                  if (request !== queryRequest) return
                   loading.running = false
                   sidePanelRefresh.value += 1
                 })
 }
 
 const onCancel = () => {
+  queryRequest++
   queryConfigure.cancelToken.cancel('Cancel query')
   loading.running = false
 }
 
 const onRunPlan = () => {
+  if (loading.running || loading.planning || !selectSource.code) return
+  const request = ++queryRequest
+  responseConfigure.kind = 'plan'
+  responseConfigure.sourceCode = selectSource.code as string
   responseConfigure.response = null
   responseConfigure.message = null
   responseConfigure.query = ''
@@ -604,11 +629,13 @@ const onRunPlan = () => {
   const editor = editors.value[activeEditor.value as string]
   queryConfigure.configure!.content = editor.content
 
+  const plannedSql = editor.content
   // The editor keeps the user SQL; the plan rows render in the result grid.
   loading.planning = true
   ExecuteService.plan(queryConfigure.configure!)
                 .then((response) => {
-                  responseConfigure.query = editor.content
+                  if (request !== queryRequest) return
+                  responseConfigure.query = plannedSql
                   if (response.status) {
                     responseConfigure.response = response
                   }
@@ -620,6 +647,7 @@ const onRunPlan = () => {
                   }
                 })
                 .finally(() => {
+                  if (request !== queryRequest) return
                   loading.planning = false
                   sidePanelRefresh.value += 1
                 })
@@ -658,14 +686,38 @@ const onSideRunSql = (sql: string) => {
   onRun()
 }
 
-const onAddDataset = () => {
-  const active = editors.value[activeEditor.value as string]
-  if (!active || !selectSource.code) {
-    return
-  }
-  const id = Math.random().toString(36).substring(2)
-  localStorage.setItem(`QueryContent_${ id }`, active.content)
-  router.push(`/dataset/info/source/${ selectSource.code }?tempId=${ id }`)
+const creationModeVisible = ref(false)
+const datasetWizardVisible = ref(false)
+const existingMappingVisible = ref(false)
+const datasetEntry = ref<DatasetCreationEntry>({ origin:'manual' })
+const resultEntry = computed<DatasetCreationEntry | null>(() => {
+  const result = responseConfigure.response
+  if (loading.running || loading.planning || responseConfigure.kind !== 'query' || !result?.status || result.data?.isSuccessful === false || !result.data?.headers?.length || new Set(result.data.headers).size !== result.data.headers.length) return null
+  return { origin:'result', sourceCode:responseConfigure.sourceCode, query:responseConfigure.query,
+    headers:[...result.data.headers], rows:(result.data.columns || []).slice(0,100).map((row: Record<string,unknown>)=>({...row})),
+    rowCount:result.data.columns?.length || 0, elapsed:result.data.processor?.elapsed }
+})
+const sqlEntry = computed<DatasetCreationEntry | null>(() => {
+  const editor = editors.value[activeEditor.value as string]
+  return selectSource.code && editor?.content.trim() ? { origin:'sql', sourceCode:selectSource.code as string, query:editor.content } : null
+})
+const openCreation = (entry: DatasetCreationEntry) => {
+  datasetEntry.value = entry
+  creationModeVisible.value = false
+  datasetWizardVisible.value = true
+}
+const onCreateFromResult = () => { if (resultEntry.value) creationModeVisible.value = true }
+const onAddDataset = () => { creationModeVisible.value = true }
+const onExistingDataset = () => {
+  if (!resultEntry.value) return
+  datasetEntry.value = resultEntry.value
+  existingMappingVisible.value = true
+}
+const onDatasetSubmitted = (result: {code:string}) => {
+  datasetWizardVisible.value = false
+  existingMappingVisible.value = false
+  sidePanelRefresh.value++
+  router.push(result.code ? `/dataset/detail/${encodeURIComponent(result.code)}?submitted=1` : '/dataset')
 }
 
 const visibleQueryHelp = (value: boolean) => {
@@ -692,6 +744,7 @@ const onSnippetClosed = () => {
 }
 
 const onSearchHotkey = (event: KeyboardEvent) => {
+  if (creationModeVisible.value || datasetWizardVisible.value || existingMappingVisible.value) return
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault()
     treeSearchRef.value?.focus()

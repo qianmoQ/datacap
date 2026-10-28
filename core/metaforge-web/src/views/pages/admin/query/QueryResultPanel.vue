@@ -1,6 +1,6 @@
 <template>
   <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-    <div class="flex shrink-0 items-center justify-between border-b border-line pl-2 pr-3">
+    <div class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line py-1 pl-2 pr-3">
       <div class="flex items-center gap-1">
         <button v-for="tab in tabs"
                 :key="tab.key"
@@ -11,13 +11,10 @@
           {{ tab.label }}
         </button>
 
-        <MfButton size="sm" variant="ghost" class="ml-1" :disabled="!canAddDataset" @click="emit('add-dataset')">
-          <Plus :size="14"/>
-          {{ $t('query.result.addToDataset') }}
-        </MfButton>
+
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex max-w-full flex-wrap items-center gap-2">
         <MfButton size="sm" :disabled="!exportable" @click="onExport">
           <Download :size="14"/>
           {{ $t('common.export') }}
@@ -27,6 +24,8 @@
           <ChartColumn :size="14"/>
           {{ $t('dataset.common.visual') }}
         </MfButton>
+        <MfButton size="sm" variant="primary" :disabled="!canAddDataset" @click="emit('add-dataset')"><Plus :size="14"/>{{ $t('dataset.common.create') }}</MfButton>
+        <MfDropdown trigger="click" placement="bottomRight"><MfButton size="sm" :disabled="!canAddDataset" :aria-label="$t('dataset.prototype.moreCreation')">···</MfButton><template #overlay><button type="button" class="rounded-mf-md px-3 py-2 text-sm text-content hover:bg-surface-hover" @click="emit('existing-dataset')">{{ $t('dataset.prototype.applyExisting') }}</button></template></MfDropdown>
       </div>
     </div>
 
@@ -172,16 +171,19 @@ const props = withDefaults(defineProps<{
   sourceId?: number
   sourceCode?: string
   query?: string
+  datasetAvailable?: boolean
 }>(), {
   response: null,
   running: false,
   sourceId: undefined,
   sourceCode: undefined,
-  query: ''
+  query: '',
+  datasetAvailable: true
 })
 
 const emit = defineEmits<{
   (e: 'add-dataset'): void
+  (e: 'existing-dataset'): void
   (e: 'refresh'): void
 }>()
 
@@ -215,7 +217,8 @@ const rows = computed<any[]>(() => (isSuccess.value ? props.response?.data?.colu
 const rowCount = computed(() => rows.value.length)
 const hasRows = computed(() => isSuccess.value && rowCount.value > 0)
 const exportable = computed(() => hasResponse.value && isSuccess.value)
-const canAddDataset = computed(() => isSuccess.value && !!props.sourceCode)
+const canAddDataset = computed(() => isSuccess.value && props.response?.data?.isSuccessful !== false
+  && !!props.sourceCode && headers.value.length > 0 && !props.running && props.datasetAvailable)
 const elapsed = computed(() => props.response?.data?.processor?.elapsed ?? 0)
 const connectionElapsed = computed(() => props.response?.data?.connection?.elapsed ?? 0)
 

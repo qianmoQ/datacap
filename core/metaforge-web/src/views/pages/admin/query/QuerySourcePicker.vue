@@ -70,10 +70,11 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { Check, ChevronDown, Database, Search } from '@lucide/vue'
 import SourceService from '@/services/source'
 import { FilterModel } from '@/model/filter.ts'
+import type { SourceModel } from '@/model/source'
 
 defineOptions({ name: 'QuerySourcePicker' })
 
-const props = defineProps<{ modelValue?: string | null }>()
+const props = defineProps<{ modelValue?: string | null, selectedSource?: SourceModel | null }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
@@ -103,7 +104,8 @@ const overlayWidth = ref(256)
 const itemMeta = (item: SourceOption) =>
   `${ item.type }${ item.version ? ' ' + item.version : '' } · ${ item.host ?? '' }:${ item.port ?? '' }`
 
-const current = computed(() => options.value.find(item => item.value === props.modelValue))
+const current = computed(() => options.value.find(item => item.value === props.modelValue)
+  || (props.selectedSource?.code ? mapOption(props.selectedSource) : undefined))
 const currentMeta = computed(() => (current.value ? itemMeta(current.value) : ''))
 
 /** The floating menu follows the trigger width (minus the dropdown's own p-1 padding). */

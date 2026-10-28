@@ -52,7 +52,7 @@
                     <button type="button" class="rounded-mf-md px-2.5 py-1.5 text-left text-sm text-content-secondary hover:bg-surface-hover hover:text-content" @click="onCopySql(item.query)">
                       {{ $t('query.side.copySql') }}
                     </button>
-                    <button v-if="item.code" type="button" class="rounded-mf-md px-2.5 py-1.5 text-left text-sm text-content-secondary hover:bg-surface-hover hover:text-content" @click="router.push(`/dataset/info/${ item.code }`)">
+                    <button v-if="item.code" type="button" class="rounded-mf-md px-2.5 py-1.5 text-left text-sm text-content-secondary hover:bg-surface-hover hover:text-content" @click="router.push(`/dataset/detail/${ item.code }`)">
                       {{ $t('query.side.openDetail') }}
                     </button>
                   </div>
