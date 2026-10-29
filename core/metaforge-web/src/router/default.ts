@@ -175,6 +175,24 @@ const createDefaultRouter = (router: Router) => {
                             type: 'erDiagram'
                         },
                         component: () => import('@/views/pages/admin/source/SourceTableErDiagram.vue')
+                    },
+                    {
+                        path: 'd/:database/t/indexes/:table',
+                        meta: {
+                            title: 'source.tab.indexes',
+                            isRoot: false,
+                            type: 'indexes'
+                        },
+                        component: () => import('@/views/pages/admin/source/SourceTableIndexes.vue')
+                    },
+                    {
+                        path: 'd/:database/t/foreignkeys/:table',
+                        meta: {
+                            title: 'source.tab.foreignKeys',
+                            isRoot: false,
+                            type: 'foreignkeys'
+                        },
+                        component: () => import('@/views/pages/admin/source/SourceTableForeignKeys.vue')
                     }
                 ]
             },

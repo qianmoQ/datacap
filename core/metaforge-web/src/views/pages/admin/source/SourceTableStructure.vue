@@ -3,32 +3,6 @@
     <MfSkeleton v-if="loading"/>
 
     <template v-else>
-      <!-- 表头：图标 + 表名 + 说明 + 引擎徽标 -->
-      <div class="mb-4 flex items-start gap-3">
-        <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-mf-lg bg-primary/10 text-primary">
-          <Table2 :size="20"/>
-        </span>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <h2 class="m-0 truncate font-mono text-xl font-semibold text-content">{{ tableName }}</h2>
-            <button type="button" class="text-content-tertiary transition-colors hover:text-primary"
-                    :title="$t('source.common.tableName')" @click="onCopyName">
-              <Copy :size="14"/>
-            </button>
-          </div>
-          <p v-if="tableComment" class="mb-0 mt-0.5 text-sm text-content-secondary">{{ tableComment }}</p>
-          <div class="mt-1.5 flex items-center gap-1.5">
-            <MfTag v-if="tableEngine" size="sm" variant="info">{{ tableEngine }}</MfTag>
-            <MfTag v-if="tableFormat" size="sm">{{ tableFormat }}</MfTag>
-          </div>
-        </div>
-        <MfTooltip :content="$t('common.refresh')">
-          <MfButton shape="circle" @click="handleInitialize">
-            <RefreshCw :size="14"/>
-          </MfButton>
-        </MfTooltip>
-      </div>
-
       <!-- 工具栏 -->
       <div class="mb-3 flex flex-wrap items-center gap-2">
         <MfButton variant="primary" @click="openPanel('add', null)">
@@ -51,16 +25,26 @@
           <ArrowDown :size="14"/>
           {{ $t('source.structure.moveDown') }}
         </MfButton>
+        <MfButton :disabled="columns.length === 0" @click="reorderVisible = true">
+          <ArrowUpDown :size="14"/>
+          {{ $t('source.structure.reorder') }}
+        </MfButton>
       </div>
 
       <!-- 字段表 -->
       <MfTable :columns="fieldHeaders"
-               :data-source="columns"
+               :data-source="sortedColumns"
                row-key="name"
                empty-text=" ">
         <template #header-__check__>
           <MfCheckbox :model-value="allSelected" :indeterminate="partialSelected"
                       @update:model-value="(checked: any) => toggleAll(!!checked)"/>
+        </template>
+        <template #header-name>
+          <button type="button" class="inline-flex items-center gap-1" @click="toggleNameSort">
+            {{ $t('source.structure.fieldName') }}
+            <ArrowUpDown :size="11" :class="nameSort ? 'text-primary' : 'text-content-tertiary'"/>
+          </button>
         </template>
         <template #cell-__check__="{ record }">
           <MfCheckbox :model-value="selectedNames.has(record.name)"
@@ -241,6 +225,20 @@
                   <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.common.collation') }}</label>
                   <MfSelect v-model="panelForm.collate" :options="collateOptions" clearable/>
                 </div>
+
+                <div class="rounded-mf-md bg-surface-hover/50 p-2.5">
+                  <MfCheckbox v-model="panelForm.createIndex">{{ $t('source.tab.indexes') }}</MfCheckbox>
+                  <div v-if="panelForm.createIndex" class="mt-2 grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.index.indexType') }}</label>
+                      <MfSelect v-model="panelForm.indexType" size="sm" :options="indexTypeOptions"/>
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.index.indexName') }}</label>
+                      <MfInput v-model="panelForm.indexName" size="sm" placeholder="idx_"/>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -254,6 +252,22 @@
         </div>
       </aside>
     </Transition>
+
+    <!-- 调整字段顺序 -->
+    <MfModal v-model:open="reorderVisible" :title="$t('source.structure.reorderTitle')" width="440px">
+      <div class="divide-y divide-line rounded-mf-md border border-line">
+        <div v-for="(column, index) in columns" :key="column.name" class="flex items-center gap-2 px-3 py-2">
+          <span class="w-6 text-xs text-content-tertiary">{{ index + 1 }}</span>
+          <span class="min-w-0 flex-1 truncate font-mono text-sm text-content">{{ column.name }}</span>
+          <MfButton size="sm" shape="circle" :disabled="index === 0" @click="onMoveByName(column.name, -1)">
+            <ArrowUp :size="13"/>
+          </MfButton>
+          <MfButton size="sm" shape="circle" :disabled="index === columns.length - 1" @click="onMoveByName(column.name, 1)">
+            <ArrowDown :size="13"/>
+          </MfButton>
+        </div>
+      </div>
+    </MfModal>
 
     <!-- 删除字段确认 -->
     <MfModal v-model:open="dropVisible" :title="$t('source.structure.dropTitle')" width="440px">
@@ -272,17 +286,16 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
 import {
-  ArrowDown, ArrowUp, ChevronDown, Columns3, Copy, KeyRound, ListPlus, Pencil,
-  Plus, RefreshCw, Table2, Trash2, X
+  ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Columns3, KeyRound, ListPlus, Pencil,
+  Plus, Trash2, X
 } from '@lucide/vue'
 import MetadataService from '@/services/metadata'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
-import { ObjectUtils } from '@/utils/object'
 
 defineOptions({ name: 'SourceTableStructure' })
 
@@ -296,9 +309,6 @@ const COLLATES = ['utf8mb4_general_ci', 'utf8mb4_unicode_ci', 'utf8mb4_bin', 'ut
 
 const loading = ref(false)
 const tableName = ref(String(route.params.table || ''))
-const tableComment = ref('')
-const tableEngine = ref('')
-const tableFormat = ref('')
 const columns = ref<any[]>([])
 const primaryNames = ref<Set<string>>(new Set())
 const selectedNames = ref<Set<string>>(new Set())
@@ -321,8 +331,23 @@ const panelForm = ref({
   defaultValue: '',
   comment: '',
   charset: '',
-  collate: ''
+  collate: '',
+  createIndex: false,
+  indexType: 'normal',
+  indexName: ''
 })
+const reorderVisible = ref(false)
+const nameSort = ref(false)
+const refreshKey = inject<import('vue').Ref<number> | null>('metadataRefreshKey', null)
+
+const sortedColumns = computed(() => {
+  if (!nameSort.value) return columns.value
+  return [...columns.value].sort((left, right) => String(left.name).localeCompare(String(right.name)))
+})
+
+const toggleNameSort = () => {
+  nameSort.value = !nameSort.value
+}
 
 const typeOptions = computed(() => {
   const options = DATA_TYPES.map(value => ({ label: value, value }))
@@ -340,6 +365,10 @@ const defaultModeOptions = computed(() => [
 ])
 const charsetOptions = computed(() => CHARSETS.map(value => ({ label: value, value })))
 const collateOptions = computed(() => COLLATES.map(value => ({ label: value, value })))
+const indexTypeOptions = computed(() => [
+  { label: t('source.index.normal'), value: 'normal' },
+  { label: t('source.index.unique'), value: 'unique' }
+])
 
 const allSelected = computed(() => columns.value.length > 0 && columns.value.every(item => selectedNames.value.has(item.name)))
 const partialSelected = computed(() => selectedNames.value.size > 0 && !allSelected.value)
@@ -374,17 +403,8 @@ const handleInitialize = () => {
   if (!(code && database && table)) return
 
   loading.value = true
-  Promise.all([
-    MetadataService.getTable(code as string, database as string, table as string),
-    MetadataService.getColumnsByTable(code as string, database as string, table as string)
-  ])
-      .then(([tableResponse, columnResponse]) => {
-        if (tableResponse.status && tableResponse.data?.isSuccessful) {
-          const info = tableResponse.data.columns?.[0] || null
-          tableComment.value = info?.object_comment || ''
-          tableEngine.value = info?.object_engine || ''
-          tableFormat.value = info?.object_format || ''
-        }
+  MetadataService.getColumnsByTable(code as string, database as string, table as string)
+      .then((columnResponse) => {
         if (columnResponse.status && columnResponse.data?.isSuccessful) {
           const rows = columnResponse.data.columns || []
           primaryNames.value = new Set(rows.filter((row: any) => row.type_name === 'primary').map((row: any) => row.object_name))
@@ -410,11 +430,6 @@ const handleInitialize = () => {
         }
       })
       .finally(() => (loading.value = false))
-}
-
-const onCopyName = () => {
-  ObjectUtils.copy(tableName.value)
-  MfMessage.success(t('query.tip.copySuccess'))
 }
 
 const toggleAll = (checked: boolean) => {
@@ -443,13 +458,17 @@ const openPanel = (mode: 'add' | 'edit' | 'insert', row: any) => {
       defaultValue: row.default && row.default.toUpperCase() !== 'CURRENT_TIMESTAMP' ? row.default : '',
       comment: row.comment || '',
       charset: '',
-      collate: ''
+      collate: '',
+      createIndex: false,
+      indexType: 'normal',
+      indexName: `idx_${ row.name }`
     }
   }
   else {
     panelForm.value = {
       name: '', type: 'VARCHAR', length: '', nullable: true, autoIncrement: false,
-      defaultMode: 'none', defaultValue: '', comment: '', charset: '', collate: ''
+      defaultMode: 'none', defaultValue: '', comment: '', charset: '', collate: '',
+      createIndex: false, indexType: 'normal', indexName: ''
     }
   }
   moreOptionsOpen.value = false
@@ -501,12 +520,32 @@ const onSubmitPanel = () => {
   request
       .then(response => {
         if (response.status) {
-          MfMessage.success(t('source.structure.saveSuccess'))
-          closePanel()
-          handleInitialize()
+          if (panelMode.value !== 'edit' && form.createIndex && form.indexName.trim()) {
+            const indexPayload = {
+              name: table,
+              indexes: [{
+                name: form.indexName.trim(),
+                columns: [form.name.trim()],
+                unique: form.indexType === 'unique'
+              }]
+            }
+            return MetadataService.createIndex(code, database, table, indexPayload)
+          }
+          return undefined
         }
-        else {
-          MfMessage.error(response.message)
+        return Promise.reject(new Error(response.message))
+      })
+      .then(indexResponse => {
+        if (indexResponse && !indexResponse.status) {
+          MfMessage.error(indexResponse.message)
+        }
+        MfMessage.success(t('source.structure.saveSuccess'))
+        closePanel()
+        handleInitialize()
+      })
+      .catch((error: Error) => {
+        if (error?.message) {
+          MfMessage.error(error.message)
         }
       })
       .finally(() => (saving.value = false))
@@ -542,12 +581,17 @@ const onDropFields = () => {
 }
 
 const onMove = (direction: -1 | 1) => {
-  const column = detailColumn.value
-  if (!column) {
+  if (!detailColumn.value) {
     MfMessage.warning(t('source.structure.selectFirst'))
     return
   }
-  const index = columns.value.findIndex(item => item.name === column.name)
+  onMoveByName(detailColumn.value.name, direction)
+}
+
+const onMoveByName = (columnName: string, direction: -1 | 1) => {
+  const column = columns.value.find(item => item.name === columnName)
+  if (!column) return
+  const index = columns.value.findIndex(item => item.name === columnName)
   const targetIndex = index + direction
   if (targetIndex < 0 || targetIndex >= columns.value.length) return
 
@@ -590,6 +634,9 @@ const onMove = (direction: -1 | 1) => {
 }
 
 watch(() => route.params.table, () => handleInitialize())
+
+// 容器头部的「刷新」按钮递增该值，触发列重新加载
+watch(refreshKey, () => handleInitialize())
 
 onMounted(() => handleInitialize())
 </script>

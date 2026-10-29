@@ -2,12 +2,31 @@
   <MfCard :bordered="false">
     <MfSelect v-model="selectDatabase" :options="databaseOptions" :loading="loading" :style="{ width: '100%' }" @change="onChangeDatabase"/>
 
+    <div class="mt-3 flex items-center gap-1.5 px-1 text-sm">
+      <Database :size="14" class="shrink-0 text-primary"/>
+      <span class="min-w-0 truncate font-medium text-content">{{ tableEngine || (originalSource ?? '') }}</span>
+      <span class="shrink-0 text-content-tertiary">· {{ $t('source.sidebar.tableCount', { count: tableCount }) }}</span>
+    </div>
+
+    <div class="mt-2 flex items-center gap-2">
+      <MfInput v-model="searchKeyword" size="sm" class="min-w-0 flex-1" :placeholder="$t('source.sidebar.searchTable')">
+        <template #prefix>
+          <Search :size="13" class="text-content-tertiary"/>
+        </template>
+      </MfInput>
+      <MfTooltip :content="$t('source.common.menuNewTable')">
+        <MfButton shape="circle" variant="primary" @click="visibleCreateTable(true)">
+          <Plus :size="15"/>
+        </MfButton>
+      </MfTooltip>
+    </div>
+
     <div class="relative h-screen overflow-x-auto overflow-y-auto">
       <MfSkeleton v-if="loading" class="mt-2"/>
 
-      <MfTree v-else-if="!loading && dataTreeArray.length > 0"
+      <MfTree v-else-if="!loading && filteredTreeArray.length > 0"
               v-model:selected-keys="selectedKeys"
-              :data="dataTreeArray"
+              :data="filteredTreeArray"
               :load-data="onLoadData"
               @select="onSelect">
         <template #title="{ node }">
@@ -124,10 +143,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { MfMessage, useDismissableLayer } from 'metaforge-ui'
+import { Database, Plus, Search } from '@lucide/vue'
 import MetadataService from '@/services/metadata.ts'
 import { StructureEnum, StructureModel } from '@/model/structure.ts'
 import ColumnCreate from '@/views/pages/admin/source/components/ColumnCreate.vue'
@@ -198,6 +218,27 @@ const contextmenu = reactive({
 })
 
 const databaseOptions = computed(() => databaseArray.value.map((item: StructureModel) => ({ label: item.title || '', value: item.code || '' })))
+
+const tableInfo = inject<import('vue').Ref<any | null>>('metadataTableInfo', ref(null))
+const tableEngine = computed(() => String(tableInfo.value?.object_engine || ''))
+const searchKeyword = ref('')
+
+const tableCount = computed(() => {
+  const group = dataTreeArray.value.find((group: any) => group.type === 'table')
+  return group?.children?.length || 0
+})
+
+// 搜索框按表名过滤树节点；分组下无匹配节点时整组隐藏
+const filteredTreeArray = computed(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase()
+  if (!keyword) return dataTreeArray.value
+  return dataTreeArray.value
+      .map((group: any) => ({
+        ...group,
+        children: (group.children || []).filter((child: any) => String(child.title || '').toLowerCase().includes(keyword))
+      }))
+      .filter((group: any) => (group.children || []).length > 0)
+})
 
 const convertToTreeData = (flatData: SourceData[], level: StructureEnum = StructureEnum.DATABASE): MenuItem[] => {
   const groupedData = flatData.reduce((acc, curr) => {

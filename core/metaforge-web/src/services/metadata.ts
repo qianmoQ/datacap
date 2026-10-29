@@ -102,6 +102,26 @@ class MetadataService
         return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/drop-column`, configure)
     }
 
+    getIndexes(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/indexes`)
+    }
+
+    getForeignKeys(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/foreign-keys`)
+    }
+
+    createIndex(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/create-index`, configure)
+    }
+
+    dropIndex(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/drop-index`, configure)
+    }
+
     getColumn(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/get-column`, configure)
