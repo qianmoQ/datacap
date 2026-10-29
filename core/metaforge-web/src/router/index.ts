@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
+import i18n from '@/i18n/I18n'
 import { createAuthRoute } from '@/router/auth'
 import { createDefaultRouter } from '@/router/default'
 import { createHttpRoute } from '@/router/http'
@@ -37,6 +38,13 @@ export function invalidateSetupCheck(): void
 {
     setupChecked = undefined
 }
+
+// 标题统一为「页面名 - MetaForge」；无页面标题的路由只显示 MetaForge。
+router.afterEach(to => {
+    const key = to.meta?.title
+    const page = typeof key === 'string' ? i18n.global.t(key) : ''
+    document.title = page && page !== key ? `${page} - MetaForge` : 'MetaForge'
+})
 
 router.beforeEach(async (_to, _from, _next) => {
     if (_to.matched.length === 0) {
