@@ -197,6 +197,30 @@ const createDefaultRouter = (router: Router) => {
                 ]
             },
             {
+                path: 'import',
+                meta: {
+                    title: 'navigation.dataImport',
+                    isRoot: false
+                },
+                component: () => import('@/views/pages/tools/ImportHome.vue')
+            },
+            {
+                path: 'export',
+                meta: {
+                    title: 'navigation.dataExport',
+                    isRoot: false
+                },
+                component: () => import('@/views/pages/tools/ExportHome.vue')
+            },
+            {
+                path: 'compare',
+                meta: {
+                    title: 'navigation.dataCompare',
+                    isRoot: false
+                },
+                component: () => import('@/views/pages/tools/CompareHome.vue')
+            },
+            {
                 path: 'history',
                 meta: {
                     title: 'common.history',
