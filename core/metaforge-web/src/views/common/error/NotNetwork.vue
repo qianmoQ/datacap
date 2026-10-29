@@ -1,47 +1,79 @@
 <template>
   <BaseLayout>
-    <div class="relative min-h-screen overflow-hidden bg-surface">
-      <!-- 品牌波浪背景 -->
-      <svg aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-[480px] w-full" viewBox="0 0 1440 480" preserveAspectRatio="none">
-        <path d="M0 0h1440v72c-200 120-420 20-660 96C560 240 300 130 0 244Z" fill="var(--mf-color-primary)" fill-opacity="0.07"/>
-        <path d="M0 148c220 96 470-28 720 66 250 94 520-8 720-96V0H0Z" fill="var(--mf-color-primary)" fill-opacity="0.05"/>
-        <path d="M0 472c260-96 540 28 820-40 240-58 440 10 620-16V360c-200 84-420-20-660 44-240 64-520-40-780 40Z" fill="var(--mf-color-primary)" fill-opacity="0.04"/>
-      </svg>
-
-      <div class="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <span class="text-warning">
-          <CircleAlert :size="96" :stroke-width="1.4"/>
-        </span>
-        <h1 class="mt-7 text-3xl font-semibold text-content">{{ $t('common.pageNotNetwork') }}</h1>
-        <p class="mt-3 text-base text-content-secondary">{{ $t('common.tip.pageNotNetwork') }}</p>
-
-        <div class="mt-9 flex items-center justify-center gap-3">
-          <MfButton size="lg" @click="goBack">{{ $t('common.backTo') }}</MfButton>
-          <MfButton size="lg" variant="primary" @click="$router.push('/')">{{ $t('common.backToHome') }}</MfButton>
+    <div class="flex min-h-screen flex-col" style="min-height: 100vh">
+      <!-- 顶部品牌栏：Logo + 离线状态 -->
+      <header class="flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface px-6">
+        <div class="flex items-center gap-2.5">
+          <img src="/static/images/logo.png" alt="MetaForge" class="h-8 w-auto"/>
+          <span class="text-xl font-semibold text-content">MetaForge</span>
         </div>
-      </div>
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-warning"/>
+          <span class="text-sm text-content-secondary">{{ $t('common.network.offline') }}</span>
+        </div>
+      </header>
+
+      <!-- 主体：严格居中 -->
+      <main class="relative flex flex-1 items-center justify-center overflow-hidden px-6">
+        <!-- 圆弧装饰 -->
+        <div aria-hidden="true" class="pointer-events-none absolute -left-44 -top-44 size-[430px] rounded-full border border-primary/10"/>
+        <div aria-hidden="true" class="pointer-events-none absolute -left-28 -top-28 size-[270px] rounded-full border border-primary/15"/>
+        <div aria-hidden="true" class="pointer-events-none absolute -bottom-48 -right-44 size-[460px] rounded-full border border-primary/10"/>
+        <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -right-28 size-[300px] rounded-full border border-primary/15"/>
+
+        <div class="relative flex flex-col items-center text-center">
+          <!-- 品牌 Logo + 断网徽章 + 光晕 -->
+          <div class="relative">
+            <div aria-hidden="true" class="absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"/>
+            <img src="/static/images/logo.png" alt="MetaForge" class="relative w-56 select-none" draggable="false"/>
+            <span class="absolute -bottom-1 -right-8 inline-flex size-20 items-center justify-center rounded-full border border-line bg-surface shadow-mf-md">
+              <WifiOff :size="34" :stroke-width="1.8" class="text-content-tertiary"/>
+            </span>
+          </div>
+
+          <h1 class="mt-8 text-3xl font-semibold text-content">{{ $t('common.pageNotNetwork') }}</h1>
+          <p class="mt-3 text-base text-content-secondary">{{ $t('common.tip.pageNotNetwork') }}</p>
+
+          <MfButton size="lg" variant="primary" class="mt-8 px-10!" :loading="checking" @click="onRetry">
+            <RefreshCw :size="15"/>
+            {{ $t('common.network.retry') }}
+          </MfButton>
+        </div>
+      </main>
     </div>
   </BaseLayout>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { CircleAlert } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
+import { MfMessage } from 'metaforge-ui'
+import { RefreshCw, WifiOff } from '@lucide/vue'
 import BaseLayout from '@/views/layouts/base/BaseLayout.vue'
+import SetupService from '@/services/setup'
 
 defineOptions({ name: 'NotNetwork' })
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-// 返回：优先回到被中断的原始页面；没有历史时浏览器后退。
-const goBack = () => {
-  const redirect = route.query.redirect
-  if (redirect) {
-    router.push(String(redirect))
-  }
-  else {
-    router.back()
-  }
+const targetPath = String(route.query.redirect || '/home')
+const checking = ref(false)
+
+// HttpUtils resolves transport failures with code 0; any other response means the server answered.
+const onRetry = () => {
+  checking.value = true
+  SetupService.getStatus()
+               .then(response => {
+                 if (response && response.code !== 0) {
+                   router.push(targetPath)
+                 }
+                 else {
+                   MfMessage.error(t('common.network.reconnectFailed'))
+                 }
+               })
+               .finally(() => (checking.value = false))
 }
 </script>
