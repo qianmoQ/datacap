@@ -1,81 +1,47 @@
 <template>
   <BaseLayout>
-    <div class="flex min-h-screen items-center justify-center px-6 py-10">
-      <div class="w-full max-w-lg rounded-mf-lg border border-line bg-surface px-8 py-10 text-center shadow-mf-sm">
-        <div class="mx-auto flex size-16 items-center justify-center rounded-mf-full bg-warning/10 text-warning">
-          <WifiOff :size="28"/>
+    <div class="relative min-h-screen overflow-hidden bg-surface">
+      <!-- 品牌波浪背景 -->
+      <svg aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-[480px] w-full" viewBox="0 0 1440 480" preserveAspectRatio="none">
+        <path d="M0 0h1440v72c-200 120-420 20-660 96C560 240 300 130 0 244Z" fill="var(--mf-color-primary)" fill-opacity="0.07"/>
+        <path d="M0 148c220 96 470-28 720 66 250 94 520-8 720-96V0H0Z" fill="var(--mf-color-primary)" fill-opacity="0.05"/>
+        <path d="M0 472c260-96 540 28 820-40 240-58 440 10 620-16V360c-200 84-420-20-660 44-240 64-520-40-780 40Z" fill="var(--mf-color-primary)" fill-opacity="0.04"/>
+      </svg>
+
+      <div class="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <span class="text-warning">
+          <CircleAlert :size="96" :stroke-width="1.4"/>
+        </span>
+        <h1 class="mt-7 text-3xl font-semibold text-content">{{ $t('common.pageNotNetwork') }}</h1>
+        <p class="mt-3 text-base text-content-secondary">{{ $t('common.tip.pageNotNetwork') }}</p>
+
+        <div class="mt-9 flex items-center justify-center gap-3">
+          <MfButton size="lg" @click="goBack">{{ $t('common.backTo') }}</MfButton>
+          <MfButton size="lg" variant="primary" @click="$router.push('/')">{{ $t('common.backToHome') }}</MfButton>
         </div>
-
-        <h1 class="mt-5 text-xl font-semibold text-content">{{ $t('common.pageNotNetwork') }}</h1>
-        <p class="mt-2 text-sm leading-6 text-content-secondary">{{ $t('common.tip.pageNotNetwork') }}</p>
-
-        <div class="mt-6 space-y-1.5 rounded-mf-md border border-line bg-surface-hover/50 px-4 py-3 text-xs">
-          <div class="flex items-center justify-between gap-3">
-            <span class="shrink-0 text-content-tertiary">{{ $t('common.network.service') }}</span>
-            <span class="min-w-0 truncate font-mono text-content" :title="serviceUrl">{{ serviceUrl }}</span>
-          </div>
-          <div class="flex items-center justify-between gap-3">
-            <span class="shrink-0 text-content-tertiary">{{ $t('common.network.targetPage') }}</span>
-            <span class="min-w-0 truncate font-mono text-content" :title="targetPath">{{ targetPath }}</span>
-          </div>
-        </div>
-
-        <p v-if="restored" class="mt-4 text-xs text-success">{{ $t('common.network.restored') }}</p>
-        <p v-else-if="lastChecked" class="mt-4 text-xs text-content-tertiary">
-          {{ $t('common.network.lastChecked', { time: lastChecked }) }}
-        </p>
-
-        <div class="mt-6 flex items-center justify-center gap-2">
-          <MfButton variant="primary" :loading="checking" @click="onRetry">
-            <RefreshCw :size="14"/>
-            {{ $t('common.network.retry') }}
-          </MfButton>
-          <MfButton @click="$router.push('/')">
-            {{ $t('common.backToHome') }}
-          </MfButton>
-        </div>
-
-        <p class="mt-4 text-xs text-content-tertiary">{{ $t('common.network.hint') }}</p>
       </div>
     </div>
   </BaseLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
-import { RefreshCw, WifiOff } from '@lucide/vue'
+import { CircleAlert } from '@lucide/vue'
 import BaseLayout from '@/views/layouts/base/BaseLayout.vue'
-import SetupService from '@/services/setup'
 
 defineOptions({ name: 'NotNetwork' })
 
 const route = useRoute()
 const router = useRouter()
 
-const targetPath = String(route.query.redirect || '/')
-const serviceUrl = axios.defaults.baseURL || window.location.origin
-
-const checking = ref(false)
-const restored = ref(false)
-const lastChecked = ref('')
-
-// HttpUtils resolves transport failures with code 0; anything else means the server answered.
-const onRetry = () => {
-  checking.value = true
-  restored.value = false
-  SetupService.getStatus()
-               .then(response => {
-                 if (response && response.code !== 0) {
-                   restored.value = true
-                   lastChecked.value = new Date().toLocaleTimeString()
-                   window.setTimeout(() => router.push(targetPath), 800)
-                 }
-                 else {
-                   lastChecked.value = new Date().toLocaleTimeString()
-                 }
-               })
-               .finally(() => (checking.value = false))
+// 返回：优先回到被中断的原始页面；没有历史时浏览器后退。
+const goBack = () => {
+  const redirect = route.query.redirect
+  if (redirect) {
+    router.push(String(redirect))
+  }
+  else {
+    router.back()
+  }
 }
 </script>
