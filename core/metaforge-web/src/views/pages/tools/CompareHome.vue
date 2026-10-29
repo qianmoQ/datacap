@@ -9,7 +9,7 @@
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.common.name') }} <span class="text-danger">*</span></label>
-          <MfSelect v-model="sourceCode" :options="sourceOptions" @update:model-value="onSourceChange"/>
+          <MfSelect v-model="sourceCode" :options="sourceOptions"/>
         </div>
         <div>
           <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.common.database') }} <span class="text-danger">*</span></label>
@@ -20,11 +20,11 @@
       <div class="mt-4 grid grid-cols-3 items-end gap-3">
         <div>
           <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('tools.compare.tableA') }} <span class="text-danger">*</span></label>
-          <MfSelect v-model="tableA" :options="tableOptions"/>
+          <MfSelect v-model="tableA" :options="tableSelectOptions"/>
         </div>
         <div>
           <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('tools.compare.tableB') }} <span class="text-danger">*</span></label>
-          <MfSelect v-model="tableB" :options="tableOptions"/>
+          <MfSelect v-model="tableB" :options="tableSelectOptions"/>
         </div>
         <MfButton variant="primary" :loading="comparing" :disabled="!tableA || !tableB || tableA === tableB" @click="onCompare">
           <GitCompare :size="14"/>
@@ -50,6 +50,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSourceCascade } from '@/composables/useSourceCascade'
 import { GitCompare } from '@lucide/vue'
 import { FilterModel } from '@/model/filter'
 import SourceService from '@/services/source'
@@ -59,35 +60,15 @@ defineOptions({ name: 'CompareHome' })
 
 const { t } = useI18n()
 
-const sourceCode = ref('')
-const databaseName = ref('')
+const { sourceCode, databaseName, sourceOptions, databaseOptions, tableOptions: tableSelectOptions } = useSourceCascade()
 const tableA = ref('')
 const tableB = ref('')
-const sourceOptions = ref<{ label: string; value: string }[]>([])
-const databaseOptions = ref<{ label: string; value: string }[]>([])
-const tableOptions = ref<{ label: string; value: string }[]>([])
 const comparing = ref(false)
 const compared = ref(false)
 const onlyInA = ref<any[]>([])
 const onlyInB = ref<any[]>([])
 const mismatches = ref<any[]>([])
 
-const loadDatabases = () => {
-  databaseName.value = ''
-  tableOptions.value = []
-  databaseOptions.value = []
-  if (!sourceCode.value) return
-  MetadataService.getDatabaseBySource(sourceCode.value)
-                 .then(response => {
-                   if (response.status) {
-                     databaseOptions.value = (response.data?.columns || [])
-                         .map((item: any) => ({ label: item.object_name || item.schema_name, value: item.object_name || item.schema_name }))
-                         .filter((item: any) => item.value)
-                   }
-                 })
-}
-
-const onSourceChange = () => loadDatabases()
 
 const loadColumns = (table: string) => {
   return MetadataService.getColumnsByTable(sourceCode.value, databaseName.value, table)
@@ -100,6 +81,12 @@ const loadColumns = (table: string) => {
         return []
       })
 }
+
+watch(databaseName, () => {
+  tableA.value = ''
+  tableB.value = ''
+  compared.value = false
+})
 
 const onCompare = () => {
   comparing.value = true
@@ -147,9 +134,4 @@ SourceService.getAll(new FilterModel())
                }
              })
 
-watch(databaseName, () => {
-  tableA.value = ''
-  tableB.value = ''
-  compared.value = false
-})
 </script>

@@ -55,6 +55,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSourceCascade } from '@/composables/useSourceCascade'
 import { MfMessage } from 'metaforge-ui'
 import { Upload } from '@lucide/vue'
 import { FilterModel } from '@/model/filter'
@@ -67,12 +68,7 @@ defineOptions({ name: 'ImportHome' })
 
 const { t } = useI18n()
 
-const sourceCode = ref('')
-const databaseName = ref('')
-const tableName = ref('')
-const sourceOptions = ref<{ label: string; value: string }[]>([])
-const databaseOptions = ref<{ label: string; value: string }[]>([])
-const tableOptions = ref<{ label: string; value: string }[]>([])
+const { sourceCode, databaseName, tableName, sourceOptions, databaseOptions, tableOptions } = useSourceCascade()
 const pasteText = ref('')
 const document = ref<{ columns: string[]; rows: string[][] }>({ columns: [], rows: [] })
 const importing = ref(false)

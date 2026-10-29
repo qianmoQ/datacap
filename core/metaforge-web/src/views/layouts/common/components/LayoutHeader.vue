@@ -1,4 +1,10 @@
 <template>
+  <MfAlert variant="info" closable class="dc-header-banner rounded-none!">
+    <router-link to="/chat" target="_blank" class="hover:text-primary">
+      Support ChatGPT
+    </router-link>
+  </MfAlert>
+
   <!-- 白底铺满整行：底色在宽屏下从两侧透出来 -->
   <div class="dc-header__bar">
     <div class="container dc-header__layout flex min-h-16 w-full items-center justify-between gap-6 py-3">
@@ -8,66 +14,49 @@
           <span class="dc-header__wordmark">MetaForge</span>
         </router-link>
 
-        <!-- 数据源选择器 + 原型导航 -->
-        <MfSelect v-model="headerSource" class="w-36 shrink-0" size="sm"
-                  :options="sourceOptions" :placeholder="$t('source.common.name')"
-                  @update:model-value="onHeaderSourceChange"/>
+        <div class="min-w-0">
+          <MfMenu mode="horizontal" class="dc-header__menu" :selected-keys="selectedKeys">
+            <template v-for="item in activeMenus" :key="item.id">
+              <MfSubMenu v-if="item.children" :key_="item.url || item.id">
+                <template #title>
+                  <div class="flex items-center space-x-2">
+                    <component :size="16" v-if="item.icon" :is="menuIcons[item.icon]" />
+                    <span>{{ item.i18nKey ? $t(item.i18nKey) : 'Unknown' }}</span>
+                  </div>
+                </template>
 
-        <nav class="flex min-w-0 items-center gap-1">
-          <router-link v-for="item in navItems" :key="item.path" :to="item.path"
-                       class="dc-header__nav-link inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-2.5 py-4 text-sm font-medium transition-colors"
-                       :class="isNavActive(item.path) ? 'border-primary text-primary' : 'border-transparent text-content-secondary hover:text-content'">
-            <component :size="15" :is="item.icon"/>
-            {{ item.label }}
-          </router-link>
-
-          <MfDropdown trigger="click" placement="bottomRight">
-            <button type="button"
-                    class="inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2.5 py-4 text-sm font-medium text-content-secondary transition-colors hover:text-content">
-              <Ellipsis :size="15"/>
-              {{ $t('common.moreNav') }}
-              <ChevronDown :size="12"/>
-            </button>
-            <template #overlay>
-              <MfMenu>
-                <MfMenuItem v-for="item in moreNavItems" :key_="item.path">
-                  <router-link :to="item.path" class="flex items-center gap-2">
-                    <component :size="15" v-if="item.icon" :is="item.icon"/>
-                    <span>{{ item.label }}</span>
+                <MfMenuItem v-for="children in item.children" :key_="children.url">
+                  <router-link :to="children.url" class="flex items-center space-x-2">
+                    <component :size="16" v-if="children.icon" :is="menuIcons[children.icon]" />
+                    <span>{{ children.i18nKey ? $t(children.i18nKey) : 'Unknown' }}</span>
                   </router-link>
                 </MfMenuItem>
-              </MfMenu>
+              </MfSubMenu>
+
+              <MfMenuItem v-else :key_="item.url">
+                <router-link :to="item.url" class="flex items-center space-x-2">
+                  <component :size="16" v-if="item.icon" :is="menuIcons[item.icon]" />
+                  <span>{{ item.i18nKey ? $t(item.i18nKey) : 'Unknown' }}</span>
+                </router-link>
+              </MfMenuItem>
             </template>
-          </MfDropdown>
-        </nav>
+          </MfMenu>
+        </div>
       </div>
 
         <MfSpace :size="16" :wrap="false" class="dc-header__actions shrink-0">
-          <!-- 全局搜索：在当前数据源内检索数据表 -->
-          <div class="relative" @focusin="searchFocused = true" @focusout="onSearchBlur">
-            <MfInput ref="searchInputRef"
-                     v-model="searchText"
-                     class="dc-header__search"
-                     :placeholder="$t('common.searchPlaceholder')">
-              <template #prefix>
-                <Search :size="14" :style="{ color: 'var(--dc-text-secondary)' }"/>
-              </template>
-              <template #suffix>
-                <span class="dc-header__kbd">⌘K</span>
-              </template>
-            </MfInput>
-
-            <div v-if="searchFocused && searchResults.length > 0"
-                 class="absolute right-0 top-full z-50 mt-1 max-h-80 w-80 overflow-y-auto rounded-mf-lg border border-line bg-surface p-1 shadow-mf-lg">
-              <button v-for="item in searchResults" :key="`${ item.database }_${ item.table }`" type="button"
-                      class="flex w-full items-center gap-2 rounded-mf-md px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-surface-hover"
-                      @mousedown.prevent="onSearchPick(item)">
-                <Database :size="13" class="shrink-0 text-content-tertiary"/>
-                <span class="shrink-0 text-xs text-content-tertiary">{{ item.database }}</span>
-                <span class="min-w-0 flex-1 truncate font-mono text-content">{{ item.table }}</span>
-              </button>
-            </div>
-          </div>
+          <!-- 全局搜索 -->
+          <MfInput ref="searchInputRef"
+                   v-model="searchText"
+                   class="dc-header__search"
+                   :placeholder="$t('common.searchPlaceholder')">
+            <template #prefix>
+              <Search :size="14" :style="{ color: 'var(--dc-text-secondary)' }"/>
+            </template>
+            <template #suffix>
+              <span class="dc-header__kbd">⌘K</span>
+            </template>
+          </MfInput>
 
           <!-- 帮助 -->
           <MfTooltip :content="$t('common.feedback')">
@@ -176,127 +165,53 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { MfMessage } from 'metaforge-ui'
 import { useUserStore } from '@/stores/user'
-import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { TokenUtils } from '@/utils/token'
 import router from '@/router'
 import NotificationService from '@/services/notification'
-import SourceService from '@/services/source'
-import MetadataService from '@/services/metadata'
 import { FilterModel } from '@/model/filter.ts'
-import {
-  Bell, ChevronDown, CircleHelp, Database, Download, Ellipsis, GitBranch, GitCompare, History,
-  Home, LayoutDashboard, LogOut, Presentation, Search, Settings, SquareDashedBottomCode,
-  SquarePlay, Store, Upload
-} from '@lucide/vue'
+import { Bell, CircleHelp, LogOut, Search } from '@lucide/vue'
+import { MENU_ICONS } from '@/config/menu-icons'
 
 defineOptions({ name: 'LayoutHeader' })
 
+/**
+ * 顶级菜单高亮：按路径前缀匹配（子页面如 /account/profile 也命中所属菜单）
+ */
+const selectedKeys = computed(() => {
+    const urls: string[] = []
+    ;(activeMenus.value || []).forEach((item: any) => {
+        if (item.children?.length) {
+            if (item.url) {
+                urls.push(item.url)
+            }
+            item.children.forEach((child: any) => urls.push(child.url))
+        }
+        else if (item.url) {
+            urls.push(item.url)
+        }
+    })
+    const matched = urls.filter(url => route.path.startsWith(url))
+                        .sort((a, b) => b.length - a.length)[0]
+    return matched ? [matched] : []
+})
+
+// 后端菜单返回的是图标名字符串，映射表统一维护在 src/config/menu-icons.ts
+const menuIcons = MENU_ICONS
+
 const route = useRoute()
-const { t } = useI18n()
 const userStore = useUserStore()
 const filter: FilterModel = new FilterModel()
-
-// ===== 原型导航：源选择器 + 固定导航项 + 更多下拉 =====
-const navItems = computed(() => [
-  { path: '/home', label: t('common.home'), icon: Home },
-  { path: '/source', label: t('source.common.database'), icon: Database },
-  { path: '/query', label: 'SQL', icon: SquarePlay },
-  { path: '/import', label: t('navigation.dataImport'), icon: Upload },
-  { path: '/export', label: t('navigation.dataExport'), icon: Download },
-  { path: '/compare', label: t('navigation.dataCompare'), icon: GitCompare }
-])
-
-const moreNavItems = computed(() => [
-  { path: '/dataset', label: t('common.dataset'), icon: Database },
-  { path: '/workflow', label: t('common.workflow'), icon: GitBranch },
-  { path: '/snippet', label: t('common.snippet'), icon: SquareDashedBottomCode },
-  { path: '/history', label: t('common.history'), icon: History },
-  { path: '/report', label: t('common.report'), icon: Presentation },
-  { path: '/dashboard', label: t('common.dashboard'), icon: LayoutDashboard },
-  { path: '/store', label: t('common.store'), icon: Store },
-  ...(userStore.userInfo?.roles?.some((role: any) => String(role.code).includes('ADMIN'))
-      ? [{ path: '/admin/user', label: t('navigation.systemManagement'), icon: Settings }]
-      : [])
-])
-
-const isNavActive = (path: string) => {
-  if (path === '/home') return route.path === '/home' || route.path === '/'
-  if (path === '/source') return route.path.startsWith('/source') || route.path.startsWith('/compare')
-  if (path === '/query') return route.path.startsWith('/query')
-  return route.path.startsWith(path)
-}
-
-const sourceOptions = ref<{ label: string; value: string }[]>([])
-const headerSource = ref<string>('')
-const searchIndex = ref<{ database: string; table: string }[]>([])
-const searchFocused = ref(false)
-let searchIndexSource = ''
-
-const onHeaderSourceChange = () => {
-  searchIndex.value = []
-  searchIndexSource = ''
-  if (headerSource.value) {
-    localStorage.setItem('MetaForgeHeaderSource', headerSource.value)
-  }
-}
-
-const buildSearchIndex = () => {
-  const source = headerSource.value
-  if (!source || searchIndexSource === source) return
-  searchIndexSource = source
-  MetadataService.getDatabaseBySource(source)
-                 .then(response => {
-                   const databases = (response.data?.columns || [])
-                       .map((item: any) => item.object_name || item.schema_name)
-                       .filter(Boolean)
-                       .slice(0, 20)
-                   Promise.all(databases.map((database: string) =>
-                       MetadataService.getTablesByDatabase(source, database)
-                           .then(res => (res.data?.columns || [])
-                               .filter((item: any) => item.type_name === 'table')
-                               .map((item: any) => ({ database, table: item.object_name })))
-                           .catch(() => [] as { database: string; table: string }[])
-                   ))
-                       .then(groups => {
-                         if (headerSource.value === source) {
-                           searchIndex.value = groups.flat()
-                         }
-                       })
-                 })
-}
-
-const searchResults = computed(() => {
-  const keyword = searchText.value.trim().toLowerCase()
-  if (!keyword) return []
-  return searchIndex.value
-      .filter(item => item.table.toLowerCase().includes(keyword) || item.database.toLowerCase().includes(keyword))
-      .slice(0, 20)
-})
-
-const onSearchBlur = () => {
-  window.setTimeout(() => (searchFocused.value = false), 150)
-}
-
-const onSearchPick = (item: { database: string; table: string }) => {
-  searchFocused.value = false
-  searchText.value = ''
-  router.push(`/source/${ headerSource.value }/d/${ item.database }/t/structure/${ item.table }`)
-}
-
-watch(headerSource, value => {
-  if (value) buildSearchIndex()
-})
 const messages = ref<any[]>([])
 const pageIndex = ref<number>(1)
 const hasMoreData = ref(true)
 const loading = ref(false)
 
-const { userInfo, isLoggedIn } = storeToRefs(userStore)
+const { userInfo, isLoggedIn, menu: activeMenus } = storeToRefs(userStore)
 
 const fetchMessages = async (value: number = 1, append = false) => {
   filter.page = value
@@ -336,17 +251,6 @@ onMounted(async () => {
   if (TokenUtils.getAuthUser()) {
     await Promise.all([userStore.fetchUserInfo(), userStore.fetchMenus()])
     await fetchMessages()
-    SourceService.getAll(new FilterModel())
-                 .then(response => {
-                   if (response.status) {
-                     sourceOptions.value = (response.data.content || [])
-                         .map((item: any) => ({ label: item.name, value: item.code }))
-                     const saved = localStorage.getItem('MetaForgeHeaderSource')
-                     headerSource.value = sourceOptions.value.some(option => option.value === saved)
-                         ? saved as string
-                         : sourceOptions.value[0]?.value || ''
-                   }
-                 })
   }
   window.addEventListener('keydown', onGlobalKeydown)
 })

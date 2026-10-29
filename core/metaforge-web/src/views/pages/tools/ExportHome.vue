@@ -45,8 +45,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSourceCascade } from '@/composables/useSourceCascade'
 import { MfMessage } from 'metaforge-ui'
 import { Download } from '@lucide/vue'
 import { FilterModel } from '@/model/filter'
@@ -58,12 +59,7 @@ defineOptions({ name: 'ExportHome' })
 
 const { t } = useI18n()
 
-const sourceCode = ref('')
-const databaseName = ref('')
-const tableName = ref('')
-const sourceOptions = ref<{ label: string; value: string }[]>([])
-const databaseOptions = ref<{ label: string; value: string }[]>([])
-const tableOptions = ref<{ label: string; value: string }[]>([])
+const { sourceCode, databaseName, tableName, sourceOptions, databaseOptions, tableOptions } = useSourceCascade()
 const format = ref('JsonConvert')
 const formatOptions = ref<{ label: string; value: string }[]>([])
 const count = ref('5000')
@@ -140,5 +136,4 @@ PluginService.getPlugins()
                }
              })
 
-watch(tableName, () => (downloadPath.value = ''))
 </script>

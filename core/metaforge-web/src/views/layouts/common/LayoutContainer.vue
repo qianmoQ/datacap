@@ -6,7 +6,9 @@
 
     <div v-show="!loadingState">
       <div class="relative z-30 flex w-full flex-col">
-        <LayoutHeader/>
+        <!-- 数据源管理工作台使用独立头部（原型设计），其余页面使用默认头部 -->
+        <WorkbenchHeader v-if="workbenchMode"/>
+        <LayoutHeader v-else/>
       </div>
 
       <!-- Workspace pages (query console) own a fixed-height IDE layout: no page
@@ -28,6 +30,7 @@
 import { computed, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import LayoutHeader from '@/views/layouts/common/components/LayoutHeader.vue'
+import WorkbenchHeader from '@/views/layouts/metadata/components/WorkbenchHeader.vue'
 import LayoutFooter from '@/views/layouts/common/components/LayoutFooter.vue'
 import { provideI18nHandler } from '@/i18n/I18n'
 
@@ -35,6 +38,7 @@ const { loadLocale, loadingState, loadingText } = provideI18nHandler()
 
 const route = useRoute()
 const workspaceMode = computed(() => route.meta.workspace === true)
+const workbenchMode = computed(() => route.path.startsWith('/source'))
 
 onBeforeMount(async () => {
   try {
