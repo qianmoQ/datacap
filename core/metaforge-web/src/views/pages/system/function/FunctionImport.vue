@@ -1,5 +1,5 @@
 <template>
-  <MfModal v-model:open="visible" width="720px" body-class="px-5 py-4">
+  <MfModal v-model:open="visible" width="min(880px, 94vw)" body-class="px-5 py-4">
     <template #title>
       <span class="flex items-center gap-2.5">
         <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-mf-lg bg-primary/10 text-primary">
@@ -40,10 +40,10 @@
         </div>
       </div>
 
-      <div class="mb-3 flex rounded-mf-md border border-line bg-surface p-1">
+      <div class="mb-3 flex gap-1.5 rounded-mf-md border border-line bg-surface p-1">
         <button v-for="tab in sourceTabs" :key="tab.key" type="button"
-                class="flex flex-1 items-center justify-center gap-1.5 rounded-mf-sm px-2 py-1.5 text-sm transition-colors"
-                :class="source === tab.key ? 'border border-primary bg-primary/5 font-medium text-primary' : 'border border-transparent text-content-secondary hover:bg-surface-hover'"
+                class="flex flex-1 items-center justify-center gap-1.5 rounded-mf-sm border border-transparent px-2 py-1.5 text-sm transition-colors"
+                :class="source === tab.key ? 'border-primary bg-primary/5 font-medium text-primary' : 'text-content-secondary hover:bg-surface-hover'"
                 @click="source = tab.key">
           <component :is="tab.icon" :size="14"/>
           {{ $t(tab.label) }}
