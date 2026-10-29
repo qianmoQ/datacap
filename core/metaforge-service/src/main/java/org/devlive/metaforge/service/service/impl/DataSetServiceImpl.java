@@ -53,6 +53,7 @@ import org.devlive.metaforge.service.event.NotificationEventPublisher;
 import org.devlive.metaforge.service.initializer.InitializerConfigure;
 import org.devlive.metaforge.service.initializer.job.DatasetJob;
 import org.devlive.metaforge.service.model.CreatedModel;
+import org.devlive.metaforge.service.persistence.Persistence;
 import org.devlive.metaforge.service.repository.BaseRepository;
 import org.devlive.metaforge.service.repository.DataSetColumnRepository;
 import org.devlive.metaforge.service.repository.DataSetRepository;
@@ -79,8 +80,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.Date;
@@ -153,7 +153,7 @@ public class DataSetServiceImpl
         if (configure.getId() != null) {
             DataSetEntity original = repository.findById(configure.getId()).orElseThrow(() -> new IllegalArgumentException("Dataset not found"));
             isSelf(original);
-            Set<Long> ownedColumns = columnRepository.findAllByDataset(original).stream().map(DataSetColumnEntity::getId).collect(Collectors.toSet());
+            Set<Long> ownedColumns = columnRepository.findAllByDatasetId(original.getId()).stream().map(DataSetColumnEntity::getId).collect(Collectors.toSet());
             if (configure.getColumns().stream().anyMatch(column -> column.getId() != null && !ownedColumns.contains(column.getId()))) {
                 return CommonResponse.failure("A column does not belong to this dataset");
             }
@@ -180,7 +180,7 @@ public class DataSetServiceImpl
                 return CommonResponse.<Response>failure("Dataset storage is not ready");
             }
             String database = initializerConfigure.getDataSetConfigure().getDatabase();
-            String sql = DatasetVirtualColumns.previewSql(database, dataset.getTableName(), columnRepository.findAllByDatasetOrderByPositionAsc(dataset));
+            String sql = DatasetVirtualColumns.previewSql(database, dataset.getTableName(), columnRepository.findAllByDatasetIdOrderByPositionAsc(dataset.getId()));
             String type = initializerConfigure.getDataSetConfigure().getType();
             return pluginManager.getPlugin(type).map(plugin -> {
                 PluginService pluginService = plugin.getService(PluginService.class);
@@ -209,7 +209,7 @@ public class DataSetServiceImpl
         return repository.findByCode(code)
                 .map(item -> {
                     isSelf(item);
-                    return CommonResponse.success(columnRepository.findAllByDatasetOrderByPositionAsc(item));
+                    return CommonResponse.success(columnRepository.findAllByDatasetIdOrderByPositionAsc(item.getId()));
                 })
                 .orElseGet(() -> CommonResponse.failure(String.format("DataSet [ %s ] not found", code)));
     }
@@ -321,7 +321,7 @@ public class DataSetServiceImpl
                                     }));
 
                     String virtualTable = DatasetVirtualColumns.table(database, item.getTableName(),
-                            columnRepository.findAllByDatasetOrderByPositionAsc(item),
+                            columnRepository.findAllByDatasetIdOrderByPositionAsc(item.getId()),
                             configure.getColumns().stream().map(column -> column.getId()).collect(Collectors.toSet()));
                     SqlBody body = SqlBody.builder()
                             .type(SqlType.SELECT)
@@ -371,6 +371,7 @@ public class DataSetServiceImpl
     public CommonResponse<DataSetEntity> getInfo(String code)
     {
         return repository.findByCode(code)
+                .map(Persistence.references()::load)
                 .map(CommonResponse::success)
                 .orElseGet(() -> CommonResponse.failure(String.format("DataSet [ %s ] not found", code)));
     }
@@ -381,7 +382,7 @@ public class DataSetServiceImpl
         return repository.findByCode(code)
                 .map(item -> {
                     Pageable pageable = PageRequestAdapter.of(filter);
-                    return CommonResponse.success(PageEntity.build(historyRepository.findAllByDatasetOrderByCreateTimeDesc(item, pageable)));
+                    return CommonResponse.success(PageEntity.build(Persistence.references().load(historyRepository.findAllByDatasetIdOrderByCreateTimeDesc(item.getId(), pageable))));
                 })
                 .orElse(CommonResponse.failure(String.format("DataSet [ %s ] not found", code)));
     }
@@ -438,7 +439,7 @@ public class DataSetServiceImpl
                     if (StringUtils.isBlank(taskName)) {
                         return CommonResponse.<Boolean>failure("Sync history has no taskName (older record), cannot stop");
                     }
-                    DataSetEntity dataset = history.getDataset();
+                    DataSetEntity dataset = history.getDatasetId() == null ? null : repository.findById(history.getDatasetId()).orElse(null);
                     if (dataset == null || StringUtils.isBlank(dataset.getExecutor())) {
                         return CommonResponse.<Boolean>failure("Sync history has no associated dataset executor");
                     }
@@ -488,6 +489,8 @@ public class DataSetServiceImpl
                                     TableDefinition definition = TableDefinition.create(initializerConfigure.getDataSetConfigure().getDatabase(), value.getTableName());
                                     pluginService.dropTable(getConfigure(initializerConfigure.getDataSetConfigure().getDatabase(), plugin), definition);
                                 });
+                        columnRepository.deleteAllByDatasetId(value.getId());
+                        historyRepository.deleteAllByDatasetId(value.getId());
                         repository.delete(value);
                     });
                     return CommonResponse.success(code);
@@ -542,7 +545,10 @@ public class DataSetServiceImpl
 
     private void startBuild(DataSetEntity entity, boolean rebuildColumn)
     {
-        sourceRepository.findByCode(entity.getSource().getCode())
+        Optional<SourceEntity> requested = entity.getSource() != null && entity.getSource().getCode() != null
+                ? sourceRepository.findByCode(entity.getSource().getCode())
+                : Optional.ofNullable(entity.getSourceId()).flatMap(sourceRepository::findById);
+        requested
                 .ifPresentOrElse(
                         source -> {
                             if (entity.getId() == null) {
@@ -574,7 +580,7 @@ public class DataSetServiceImpl
                         .forEach(item -> item.setDataset(DataSetEntity.builder().id(entity.getId()).build()));
                 columnRepository.saveAll(entity.getColumns());
 
-                List<DataSetColumnEntity> originalColumns = columnRepository.findAllByDataset(entity);
+                List<DataSetColumnEntity> originalColumns = columnRepository.findAllByDatasetId(entity.getId());
                 List<DataSetColumnEntity> columnsNotInEntity = originalColumns.stream()
                         .filter(originalColumn -> entity.getColumns().stream()
                                 .noneMatch(addedColumn -> addedColumn.getId().equals(originalColumn.getId())))
@@ -619,7 +625,7 @@ public class DataSetServiceImpl
                                 String tableDefaultEngine = initializerConfigure.getDataSetConfigure().getTableDefaultEngine();
 
                                 List<Column> columns = Lists.newArrayList();
-                                List<DataSetColumnEntity> columnEntities = columnRepository.findAllByDataset(entity);
+                                List<DataSetColumnEntity> columnEntities = columnRepository.findAllByDatasetId(entity.getId());
                                 columnEntities.stream()
                                         .filter(item -> !item.isVirtualColumn())
                                         .forEach(item -> {
@@ -974,7 +980,7 @@ public class DataSetServiceImpl
                 @SuppressWarnings("unchecked")
                 List<Object> data = (List<Object>) columnData;
                 if (!data.isEmpty()) {
-                    entity.setTotalRows(data.get(0).toString());
+                    entity.setTotalRows(Long.parseLong(String.valueOf(data.get(0)).trim()));
                     entity.setTotalSize(data.get(1).toString());
                     repository.save(entity);
                 }
@@ -1001,7 +1007,7 @@ public class DataSetServiceImpl
                 return models;
             }
 
-            List<DataSetColumnEntity> sourceColumns = columnRepository.findAllByDataset(entity)
+            List<DataSetColumnEntity> sourceColumns = columnRepository.findAllByDatasetId(entity.getId())
                     .stream()
                     .filter(item -> !item.isVirtualColumn())
                     .collect(Collectors.toList());
@@ -1029,7 +1035,7 @@ public class DataSetServiceImpl
             if (entity.getLifeCycleColumn() != null) {
                 DataSetColumnEntity column = DataSetColumnEntity.builder()
                         .name(entity.getLifeCycleColumn())
-                        .length(Integer.parseInt(entity.getLifeCycle()))
+                        .length(entity.getLifeCycle().intValue())
                         .defaultValue(entity.getLifeCycleType())
                         .build();
                 models.add(new CreatedModel(column, CreatedMode.MODIFY_LIFECYCLE));
@@ -1109,6 +1115,9 @@ public class DataSetServiceImpl
     {
         DatasetHistoryEntity history = new DatasetHistoryEntity();
         try {
+            if (entity.getSource() == null || entity.getUser() == null) {
+                Persistence.references().load(entity);
+            }
             SourceEntity source = entity.getSource();
 
             pluginManager.getPlugin(source.getType())
@@ -1125,7 +1134,7 @@ public class DataSetServiceImpl
                                                 executor -> {
                                                     ExecutorService executorService = executor.getService(ExecutorService.class);
 
-                                                    Set<OriginColumn> originColumns = columnRepository.findAllByDataset(entity)
+                                                    Set<OriginColumn> originColumns = columnRepository.findAllByDatasetId(entity.getId())
                                                             .stream()
                                                             .filter(item -> !item.isVirtualColumn())
                                                             .map(item -> new OriginColumn(item.getName(), item.getOriginal()))
@@ -1186,7 +1195,7 @@ public class DataSetServiceImpl
 
                                                                 Properties originOutputProperties = new Properties();
                                                                 List<String> fields = Lists.newArrayList();
-                                                                columnRepository.findAllByDataset(entity)
+                                                                columnRepository.findAllByDatasetId(entity.getId())
                                                                         .forEach(item -> fields.add(item.getName()));
                                                                 originOutputProperties.put("fields", String.join("\n", fields));
                                                                 originOutputProperties.put("database", database);
@@ -1318,7 +1327,7 @@ public class DataSetServiceImpl
                                                                     }
                                                                     // 同步期间用已写入行数滚动刷新 dataset.totalRows，方便列表实时看到进度
                                                                     try {
-                                                                        progressEntity.setTotalRows(String.valueOf(processed));
+                                                                        progressEntity.setTotalRows(processed);
                                                                         repository.save(progressEntity);
                                                                     }
                                                                     catch (Exception ex) {

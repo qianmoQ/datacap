@@ -14,6 +14,7 @@ import org.devlive.metaforge.service.audit.AuditPlugin;
 import org.devlive.metaforge.service.body.ExecuteDslBody;
 import org.devlive.metaforge.service.entity.ExecuteEntity;
 import org.devlive.metaforge.service.entity.SourceEntity;
+import org.devlive.metaforge.service.persistence.Persistence;
 import org.devlive.metaforge.service.repository.SourceRepository;
 import org.devlive.metaforge.service.service.ExecuteService;
 import org.devlive.metaforge.spi.PluginService;
@@ -156,6 +157,9 @@ public class ExecuteServiceImpl
     private void configureEntity(SourceEntity entity)
     {
         if (entity.isUsedConfig()) {
+            if (entity.getUser() == null) {
+                Persistence.references().load(entity);
+            }
             entity.setUsername(entity.getUser().getUsername());
             String configHome = getConfigHome();
             entity.setHome(configHome);

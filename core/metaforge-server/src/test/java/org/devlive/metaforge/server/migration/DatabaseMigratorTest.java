@@ -1,5 +1,6 @@
 package org.devlive.metaforge.server.migration;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.devlive.metaforge.server.support.TestDatabase;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Applies the changelog to the database selected with {@code -Dmetaforge.it.database}
  * (fresh install) and upgrades a pre-changelog installation, which only ever existed on H2 and MySQL.
  */
+@SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification = "COUNT(*) and selected fixture rows are never null")
 public class DatabaseMigratorTest
 {
     private static TestDatabase database;
@@ -77,7 +79,7 @@ public class DatabaseMigratorTest
             throws Exception
     {
         try (TestDatabase legacy = TestDatabase.h2(); TestDatabase fresh = TestDatabase.h2()) {
-            assertLegacyUpgrade(legacy, fresh, "schema/setup-schema-h2.sql");
+            assertLegacyUpgrade(legacy, fresh, "legacy/setup-schema-h2.sql");
         }
     }
 
@@ -96,7 +98,7 @@ public class DatabaseMigratorTest
         }
         try (Connection legacy = DriverManager.getConnection(base + "legacy_upgrade", "root", database.password());
                 Connection fresh = DriverManager.getConnection(base + "legacy_fresh", "root", database.password())) {
-            assertLegacyUpgrade(legacy, fresh, "schema/setup-schema.sql");
+            assertLegacyUpgrade(legacy, fresh, "legacy/setup-schema.sql");
         }
     }
 
@@ -112,7 +114,7 @@ public class DatabaseMigratorTest
             throws Exception
     {
         ScriptUtils.executeSqlScript(legacy, new ClassPathResource(schema));
-        ScriptUtils.executeSqlScript(legacy, new ClassPathResource("schema/setup-data.sql"));
+        ScriptUtils.executeSqlScript(legacy, new ClassPathResource("legacy/setup-data.sql"));
         JdbcTemplate jdbc = jdbc(legacy);
         // Business rows linked the way the JPA mapping wrote them.
         jdbc.update("INSERT INTO metaforge_user (id, username, code) VALUES (7, 'alice', 'u7')");

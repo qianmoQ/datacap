@@ -22,7 +22,7 @@
             <column name="create_time" type="${instant}"/>
             <column name="update_time" type="${instant}"/>
             <column name="username" type="${string}(255)"/>
-            <column name="password" type="${string}(255)"/>
+            <column name="password_hash" type="${string}(255)"/>
             <column name="chat_configure" type="${text}"/>
             <column name="is_system" type="${flag}" defaultValueBoolean="false"/>
             <column name="editor_configure" type="${text}"/>
@@ -379,7 +379,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="username" type="${string}(255)"/>
-            <column name="password" type="${string}(255)"/>
+            <column name="connection_password" type="${string}(255)"/>
             <column name="catalog_name" type="${string}(255)"/>
             <column name="database_name" type="${string}(255)"/>
             <column name="use_ssl" type="${flag}" defaultValueBoolean="false"/>

@@ -4,7 +4,6 @@ import org.devlive.metaforge.plugin.PluginManager;
 import org.devlive.metaforge.service.SelfException;
 import org.devlive.metaforge.service.entity.DataSetColumnEntity;
 import org.devlive.metaforge.service.entity.DataSetEntity;
-import org.devlive.metaforge.service.entity.UserEntity;
 import org.devlive.metaforge.service.repository.DataSetColumnRepository;
 import org.devlive.metaforge.service.repository.DataSetRepository;
 import org.devlive.metaforge.service.security.UserDetailsService;
@@ -50,7 +49,7 @@ public class DatasetAccessTest
 
     private DataSetEntity dataset(long owner)
     {
-        return DataSetEntity.builder().id(7L).code("TARGET").user(UserEntity.builder().id(owner).build())
+        return DataSetEntity.builder().id(7L).code("TARGET").userId(owner)
                 .columns(Set.of(DataSetColumnEntity.builder().name("amount").id(42L).build())).build();
     }
 
@@ -76,7 +75,7 @@ public class DatasetAccessTest
     {
         DataSetEntity original = dataset(1);
         when(datasets.findById(7L)).thenReturn(Optional.of(original));
-        when(columns.findAllByDataset(original)).thenReturn(List.of(DataSetColumnEntity.builder().id(99L).name("owned").build()));
+        when(columns.findAllByDatasetId(7L)).thenReturn(List.of(DataSetColumnEntity.builder().id(99L).name("owned").build()));
         assertFalse(service.saveOrUpdate(datasets, dataset(1)).getStatus());
         verify(datasets, never()).save(any());
         verifyNoInteractions(plugins);

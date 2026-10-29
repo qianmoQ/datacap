@@ -186,13 +186,15 @@
             <tableExists tableName="metaforge_user_role_relation"/>
             <columnExists tableName="metaforge_source" columnName="_type"/>
         </preConditions>
-        <comment>Oracle rejects reserved words (public, comment) and identifiers starting with an underscore.</comment>
+        <comment>Oracle rejects reserved words (public, comment) and identifiers starting with an underscore; Liquibase quotes password there.</comment>
         <sql dbms="mysql,mariadb">
             ALTER TABLE metaforge_source RENAME COLUMN `_type` TO source_type;
             ALTER TABLE metaforge_source RENAME COLUMN `_catalog` TO catalog_name;
             ALTER TABLE metaforge_source RENAME COLUMN `_database` TO database_name;
             ALTER TABLE metaforge_source RENAME COLUMN `_ssl` TO use_ssl;
             ALTER TABLE metaforge_source RENAME COLUMN `public` TO is_public;
+            ALTER TABLE metaforge_source RENAME COLUMN `password` TO connection_password;
+            ALTER TABLE metaforge_user RENAME COLUMN `password` TO password_hash;
             ALTER TABLE metaforge_dataset_column RENAME COLUMN `comment` TO column_comment;
             ALTER TABLE metaforge_workflow RENAME COLUMN j_from_id TO from_source_id;
             ALTER TABLE metaforge_workflow RENAME COLUMN j_to_id TO to_source_id;
@@ -205,6 +207,8 @@
             ALTER TABLE metaforge_source ALTER COLUMN `_database` RENAME TO database_name;
             ALTER TABLE metaforge_source ALTER COLUMN `_ssl` RENAME TO use_ssl;
             ALTER TABLE metaforge_source ALTER COLUMN `public` RENAME TO is_public;
+            ALTER TABLE metaforge_source ALTER COLUMN `password` RENAME TO connection_password;
+            ALTER TABLE metaforge_user ALTER COLUMN `password` RENAME TO password_hash;
             ALTER TABLE metaforge_dataset_column ALTER COLUMN `comment` RENAME TO column_comment;
             ALTER TABLE metaforge_workflow ALTER COLUMN j_from_id RENAME TO from_source_id;
             ALTER TABLE metaforge_workflow ALTER COLUMN j_to_id RENAME TO to_source_id;
