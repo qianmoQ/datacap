@@ -18,7 +18,7 @@
                 <MfInput :model-value="formState.oldUsername" disabled/>
               </MfFormItem>
 
-              <MfFormItem name="newUsername" required-mark :label="$t('user.common.newUsername')">
+              <MfFormItem name="newUsername" required-mark :label="$t('user.common.newUsername')" :tip="$t('user.tip.newUsernameFormat')">
                 <MfInput v-model="formState.newUsername"
                          @input="onUsernameInput">
                   <template #suffix>
@@ -28,12 +28,10 @@
                   </template>
                 </MfInput>
                 <div v-if="checkState === 'error'" class="dc-rename__field-error">{{ checkMessage }}</div>
-                <div v-else class="dc-rename__field-hint">{{ $t('user.tip.newUsernameFormat') }}</div>
               </MfFormItem>
 
-              <MfFormItem name="password" required-mark :label="$t('user.common.currentPassword')">
+              <MfFormItem name="password" required-mark :label="$t('user.common.currentPassword')" :tip="$t('user.tip.passwordConfirm')">
                 <MfInput v-model="formState.password" type="password" show-password/>
-                <div class="dc-rename__field-hint">{{ $t('user.tip.passwordConfirm') }}</div>
               </MfFormItem>
             </MfForm>
 

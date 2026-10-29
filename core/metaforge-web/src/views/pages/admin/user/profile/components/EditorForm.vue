@@ -5,9 +5,9 @@
         <MfFormItem name="fontSize"
                      class="w-[40%]"
                      :label="$t('user.common.fontSize')"
+                     :tip="$t('user.tip.fontSize')"
                      :rules="[{ pattern: /^[0-9]*$/, message: 'Please enter number!' }]">
           <MfInput v-model="formState.fontSize"/>
-          <div class="text-xs text-content-tertiary">{{ $t('user.tip.fontSize') }}</div>
         </MfFormItem>
 
         <MfButton variant="primary" type="submit" :loading="submitting" :disabled="submitting">
