@@ -619,12 +619,15 @@ const onDownloadTemplate = () => {
   const rows = [headers, example.slice(0, headers.length)]
   const csv = rows.map(row => row.map(cell => `"${ String(cell).replace(/"/g, '""') }"`).join(',')).join('\r\n')
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })
-  const link = document.createElement('a')
+  // 挂到 DOM 再点击，并延迟释放 blob URL，避免部分浏览器取消下载
+  const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
-  anchor.href = URL.createObjectURL(blob)
-  link.download = 'metaforge_function_template.csv'
-  link.click()
-  URL.revokeObjectURL(link.href)
+  anchor.href = url
+  anchor.download = 'metaforge_function_template.csv'
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
 
 const loadPlugins = () => {
