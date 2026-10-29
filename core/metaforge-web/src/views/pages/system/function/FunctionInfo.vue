@@ -16,6 +16,14 @@
       <MfSpinner size="lg"/>
     </div>
     <MfForm v-else-if="formState" id="function-info-form" :model="formState" layout="vertical" class="space-y-0" @finish="onSubmit">
+      <div class="mb-3 flex items-start gap-3">
+        <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-mf-full bg-primary text-sm font-semibold text-on-primary">1</span>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-content">{{ $t('function.info.basicInfo') }}</div>
+          <div class="mt-0.5 text-xs text-content-tertiary">{{ $t('function.info.basicInfoDesc') }}</div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-2 gap-x-3">
         <MfFormItem name="name"
                     :label="$t('function.field.name')"
@@ -43,6 +51,14 @@
                     :placeholder="$t('function.tip.selectPluginHolder')"
                     :options="plugins"/>
         </MfFormItem>
+      </div>
+
+      <div class="mb-3 mt-5 flex items-start gap-3">
+        <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-mf-full bg-primary text-sm font-semibold text-on-primary">2</span>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-content">{{ $t('function.info.knowledge') }}</div>
+          <div class="mt-0.5 text-xs text-content-tertiary">{{ $t('function.info.knowledgeDesc') }}</div>
+        </div>
       </div>
 
       <MfFormItem name="syntax"
