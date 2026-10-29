@@ -1,6 +1,6 @@
 <template>
 
-    <DataTable filterable :filter-fields="tableFilters" :title="$t('source.common.list')"
+    <DataTable filterable :filter-fields="tableFilters" :title="$t('common.history')"
                :columns="headers"
                :data-source="data"
                :loading="loading"
@@ -17,12 +17,13 @@
           <EllipsisCell :text="record?.source?.name"/>
         </template>
         <template v-else-if="column.key === 'type'">
-          <MfTooltip :content="record?.source?.type">
+          <MfTooltip v-if="record?.source?.type" :content="record.source.type">
             <MfAvatar size="sm"
-                      :src="'/static/images/plugin/' + record?.source?.type.toLowerCase() + '.svg'"
-                      :alt="record?.source?.type"
+                      :src="'/static/images/plugin/' + record.source.type.toLowerCase() + '.svg'"
+                      :alt="record.source.type"
                       class="cursor-pointer"/>
           </MfTooltip>
+          <span v-else class="text-content-tertiary">-</span>
         </template>
         <template v-else-if="column.key === 'mode'">
           <MfTag v-if="record.mode === 'ADHOC'">{{ $t('common.adhoc') }}</MfTag>
@@ -33,15 +34,28 @@
           <MfTag v-else>{{ record.mode }}</MfTag>
         </template>
         <template v-else-if="column.key === 'state'">
-          <MfTag :variant="record.state === 'SUCCESS' ? 'success' : 'danger'">{{ record.state }}</MfTag>
+          <MfTag :variant="record.state === 'SUCCESS' ? 'success' : 'danger'">
+            {{ record.state === 'SUCCESS' ? $t('common.success') : $t('common.failure') }}
+          </MfTag>
         </template>
         <template v-else-if="column.key === 'format'">
-          <MfTooltip :content="record?.format">
+          <MfTooltip v-if="record?.format" :content="record?.format">
             <MfAvatar size="sm"
-                      :src="'/static/images/convert/' + record?.format.replace('Convert', '').toLowerCase() + '.svg'"
-                      :alt="record?.source?.type"
+                      :src="'/static/images/convert/' + record.format.replace('Convert', '').toLowerCase() + '.svg'"
+                      :alt="record.format"
                       class="cursor-pointer"/>
           </MfTooltip>
+          <span v-else class="text-content-tertiary">-</span>
+        </template>
+        <template v-else-if="column.key === 'content'">
+          <EllipsisCell :text="record?.content" class="font-mono text-xs"/>
+        </template>
+        <template v-else-if="column.key === 'user'">
+          <div v-if="record?.user" class="flex items-center gap-2">
+            <MfAvatar size="xs" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
+            <span class="min-w-0 truncate text-xs">{{ record.user.username }}</span>
+          </div>
+          <span v-else class="text-content-tertiary">-</span>
         </template>
         <template v-else-if="column.key === 'action'">
           <MfSpace size="xs">
@@ -92,7 +106,7 @@
       </template>
     </DataTable>
 
-  <SqlInfo v-if="contentVisible && content"
+  <SqlInfo v-if="contentVisible"
            :is-visible="contentVisible"
            :content="content"
            @close="handlerShowContent(false, null)"/>
