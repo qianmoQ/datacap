@@ -21,14 +21,15 @@ createSetupRoute(router)
 createDefaultRouter(router)
 
 // 首次导航时检查是否已完成首次安装：未安装跳转 /setup，已安装访问 /setup 回登录页。
-// 后端不可达时不拦截，保持原有 not_network 流程。
-let setupChecked: Promise<boolean> | undefined
+// 服务端不可达时状态未知：放行导航，交给全局网络错误处理（not_network 页面），
+// 不能把请求失败误判成"未安装"而跳去 /setup。
+let setupChecked: Promise<boolean | 'unknown'> | undefined
 
-function ensureSetupChecked(): Promise<boolean> {
+function ensureSetupChecked(): Promise<boolean | 'unknown'> {
     if (!setupChecked) {
         setupChecked = SetupService.getStatus()
-            .then(response => Boolean(response?.status && response.data?.installed))
-            .catch(() => false)
+            .then(response => (response?.status && response.data?.installed) ? true : false)
+            .catch(() => 'unknown')
     }
     return setupChecked
 }
@@ -52,6 +53,10 @@ router.beforeEach(async (_to, _from, _next) => {
         return
     }
     const installed = await ensureSetupChecked()
+    if (installed === 'unknown') {
+        _next()
+        return
+    }
     if (!installed && _to.path !== '/setup') {
         _next('/setup')
     }
