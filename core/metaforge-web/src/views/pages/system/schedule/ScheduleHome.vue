@@ -15,12 +15,26 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'active'">
-          <MfSwitch v-model="record.active" size="sm" :disabled="record.active"/>
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+
+        <template v-else-if="column.key === 'description'">
+          <EllipsisCell :text="record.description"/>
+        </template>
+
+        <template v-else-if="column.key === 'type'">
+          {{ $t(`schedule.type.${ record.type }`) }}
+        </template>
+
+        <template v-else-if="column.key === 'active'">
+          <MfSwitch :model-value="record.active" size="sm"
+                    @update:model-value="(value: boolean) => onChangeActive(record, value)"/>
         </template>
 
         <template v-else-if="column.key === 'system'">
-          <MfSwitch v-model="record.system" size="sm" :disabled="record.system"/>
+          <MfSwitch :model-value="record.system" size="sm"
+                    @update:model-value="(value: boolean) => onChangeSystem(record, value)"/>
         </template>
 
         <template v-else-if="column.key === 'expression'">
@@ -84,6 +98,7 @@ import ScheduleService from '@/services/schedule'
 import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import ScheduleHistory from '@/views/pages/system/schedule/ScheduleHistory.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { ScheduleModel } from '@/model/schedule'
 import { CirclePlay, Clock, History } from '@lucide/vue'
 
@@ -144,6 +159,30 @@ const onPageChange = (value: number) => fetchData(value)
 const onSizeChange = (_current: number, size: number) => {
   pageSize.value = size
   fetchData(pageIndex.value)
+}
+
+const onChangeActive = (record: any, value: boolean) => {
+  ScheduleService.changeActive(record.code, value)
+                 .then((response) => {
+                   if (response.status) {
+                     record.active = value
+                   }
+                   else {
+                     showNotice('danger', response.message)
+                   }
+                 })
+}
+
+const onChangeSystem = (record: any, value: boolean) => {
+  ScheduleService.changeSystem(record.code, value)
+                 .then((response) => {
+                   if (response.status) {
+                     record.system = value
+                   }
+                   else {
+                     showNotice('danger', response.message)
+                   }
+                 })
 }
 
 const handlerChangeInfo = (isOpen: boolean, info: any) => {

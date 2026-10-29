@@ -21,7 +21,10 @@
 
       <!-- #bodyCell 透传给 DataTable（其内部仍为 a-table），保持原插槽契约 -->
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'type'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'type'">
           <MfTooltip :content="record.type">
             <MfAvatar class="cursor-pointer" size="sm" :src="'/static/images/plugin/' + record.type.toLowerCase() + '.svg'" :alt="record.type"/>
           </MfTooltip>
@@ -114,6 +117,7 @@ import { useHeaders } from '@/views/pages/admin/source/SourceUtils'
 import { FilterModel, type TableFilters } from '@/model/filter'
 import { SourceModel } from '@/model/source'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import SourceService from '@/services/source'
 import SourceInfo from '@/views/pages/admin/source/SourceInfo.vue'

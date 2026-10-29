@@ -24,7 +24,13 @@
       </template>
 
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'type'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'description'">
+          <EllipsisCell :text="record.description"/>
+        </template>
+        <template v-else-if="column.key === 'type'">
           <MfTag>{{ $t('function.common.' + record.type.toLowerCase()) }}</MfTag>
         </template>
         <template v-else-if="column.key === 'plugin'">
@@ -59,6 +65,7 @@ import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionModel } from '@/model/function'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import FunctionService from '@/services/function'
 import FunctionInfo from '@/views/pages/system/function/FunctionInfo.vue'

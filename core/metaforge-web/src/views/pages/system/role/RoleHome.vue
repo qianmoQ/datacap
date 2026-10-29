@@ -20,7 +20,13 @@
       </template>
 
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'active'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'description'">
+          <EllipsisCell :text="record.description"/>
+        </template>
+        <template v-else-if="column.key === 'active'">
           <MfSwitch :model-value="record.active"
                     :disabled="record.code === 'ADMIN'"
                     @update:model-value="(value: boolean) => onChangeActive(record, value)"/>
@@ -70,6 +76,7 @@ import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/system/role/RoleUtils'
 import { RoleModel } from '@/model/role'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import RoleInfo from '@/views/pages/system/role/RoleInfo.vue'
 import RoleMenu from '@/views/pages/system/role/RoleMenu.vue'

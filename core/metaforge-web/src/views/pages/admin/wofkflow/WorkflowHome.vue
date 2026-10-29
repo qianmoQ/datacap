@@ -23,7 +23,10 @@
       </template>
 
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'executor'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'executor'">
           <MfTooltip :content="record.executor">
             <MfAvatar size="sm" :src="`/static/images/executor/${record.executor.replace('Executor', '').toLowerCase()}.svg`"/>
           </MfTooltip>
@@ -149,6 +152,7 @@ import Common, { useUtil } from '@/utils/common.ts'
 import MarkdownPreview from '@/views/components/markdown/MarkdownView.vue'
 import { WorkflowModel } from '@/model/workflow.ts'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import WorkflowFlow from '@/views/pages/admin/wofkflow/WorkflowFlow.vue'
 import WorkflowDelete from '@/views/pages/admin/wofkflow/WorkflowDelete.vue'

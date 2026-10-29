@@ -13,7 +13,10 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'realtime'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'realtime'">
           <MfSwitch v-model="record.realtime" size="sm" :disabled="record.realtime"/>
         </template>
         <template v-else-if="column.key === 'source'">
@@ -86,6 +89,7 @@ import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/admin/report/ReportUtils'
 import { ReportModel } from '@/model/report'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import ReportService from '@/services/report'
 import ReportView from '@/views/pages/admin/report/ReportView.vue'

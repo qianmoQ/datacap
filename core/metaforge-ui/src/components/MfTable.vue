@@ -8,8 +8,15 @@ export interface MfTableColumn {
     title: string
     dataIndex: string
     key?: string
-    width?: string
+    width?: string | number
     align?: 'left' | 'center' | 'right'
+    /** Pin the column while the table scrolls horizontally. */
+    fixed?: 'left' | 'right'
+    /**
+     * Clamp the column to its width and truncate overflowing text;
+     * pair it with a tooltip cell so the full content stays reachable.
+     */
+    ellipsis?: boolean
     /** Rendered as `--` when falsy. */
     placeholder?: string
 }
@@ -48,6 +55,13 @@ const alignClass = (align?: string) =>
 
 const colKey = (column: MfTableColumn) => column.key ?? column.dataIndex
 
+const widthStyle = (column: MfTableColumn) =>
+    column.width === undefined ? {} : { width: typeof column.width === 'number' ? `${column.width}px` : column.width }
+
+// Sticky cells need an opaque background; striped rows blend surface-hover over
+// surface, so the striped sticky cell uses the pre-mixed solid color.
+const STRIPED_SOLID = 'bg-[color-mix(in_srgb,var(--mf-color-surface-hover)_40%,var(--mf-color-surface))]'
+
 const rows = computed(() => props.dataSource)
 
 function display(record: T, column: MfTableColumn): unknown {
@@ -64,8 +78,13 @@ function display(record: T, column: MfTableColumn): unknown {
                         v-for="column in columns"
                         :key="colKey(column)"
                         class="whitespace-nowrap border-b border-line px-3 py-2.5 text-xs font-semibold text-content-secondary"
-                        :class="[alignClass(column.align), bordered && 'border-r border-line last:border-r-0']"
-                        :style="column.width ? { width: column.width } : {}"
+                        :class="[
+                            alignClass(column.align),
+                            bordered && 'border-r border-line last:border-r-0',
+                            column.fixed === 'right' && 'sticky right-0 z-10 bg-surface-hover border-l border-line',
+                            column.fixed === 'left' && 'sticky left-0 z-10 bg-surface-hover border-r border-line',
+                        ]"
+                        :style="widthStyle(column)"
                     >
                         <slot :name="`header-${colKey(column)}`" :column="column">
                             {{ column.title }}
@@ -77,7 +96,7 @@ function display(record: T, column: MfTableColumn): unknown {
                 <tr
                     v-for="(record, index) in rows"
                     :key="String(record[rowKey] ?? index)"
-                    class="transition-[background-color] duration-(--mf-duration-fast)"
+                    class="group transition-[background-color] duration-(--mf-duration-fast)"
                     :class="clsx(
                         striped && index % 2 === 1 && 'bg-surface-hover/40',
                         hoverable && 'hover:bg-surface-hover',
@@ -88,8 +107,14 @@ function display(record: T, column: MfTableColumn): unknown {
                     <td
                         v-for="column in columns"
                         :key="colKey(column)"
-                        class="px-3 py-2.5 text-content"
-                        :class="[alignClass(column.align), bordered && 'border-r border-line last:border-r-0']"
+                        class="whitespace-nowrap px-3 py-2.5 text-content"
+                        :class="[
+                            alignClass(column.align),
+                            bordered && 'border-r border-line last:border-r-0',
+                            column.ellipsis && 'max-w-0 overflow-hidden',
+                            column.fixed === 'right' && clsx('sticky right-0 z-10 border-l border-line', striped && index % 2 === 1 ? STRIPED_SOLID : 'bg-surface', hoverable && 'group-hover:bg-surface-hover'),
+                            column.fixed === 'left' && clsx('sticky left-0 z-10 border-r border-line', striped && index % 2 === 1 ? STRIPED_SOLID : 'bg-surface', hoverable && 'group-hover:bg-surface-hover'),
+                        ]"
                     >
                         <slot
                             :name="`cell-${colKey(column)}`"

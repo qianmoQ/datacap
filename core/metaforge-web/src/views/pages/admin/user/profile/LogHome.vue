@@ -13,7 +13,10 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'state'">
+        <template v-if="column.key === 'ua'">
+          <EllipsisCell :text="record.ua"/>
+        </template>
+        <template v-else-if="column.key === 'state'">
           <span class="inline-flex items-center gap-2">
             <MfBadge :variant="record.state === 'SUCCESS' ? 'success' : 'danger'" dot/>
             {{ record.state }}
@@ -28,6 +31,7 @@ import { onMounted, ref } from 'vue'
 import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from './ProfileUtils'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import UserService from '@/services/user'
 

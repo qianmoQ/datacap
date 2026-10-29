@@ -8,7 +8,7 @@ export function useHeaders()
     // MfTable 列格式（bodyCell 契约）；source/type/mode/format/state/action 列通过 #bodyCell 按 column.key 渲染
     const headers = computed(() => [
         { title: t('common.id'), dataIndex: 'id', key: 'id' },
-        { title: t('common.plugin'), key: 'source' },
+        { title: t('common.plugin'), key: 'source', width: 200, ellipsis: true },
         { title: t('common.type'), key: 'type' },
         { title: t('common.createTime'), dataIndex: 'createTime', key: 'createTime' },
         { title: t('common.endTime'), dataIndex: 'updateTime', key: 'updateTime' },

@@ -13,7 +13,13 @@
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'username'">
+        <template v-if="column.key === 'name'">
+          <EllipsisCell :text="record.name"/>
+        </template>
+        <template v-else-if="column.key === 'description'">
+          <EllipsisCell :text="record.description"/>
+        </template>
+        <template v-else-if="column.key === 'username'">
           <MfAvatar size="sm" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
         </template>
         <template v-else-if="column.key === 'action'">
@@ -84,6 +90,7 @@ import { FilterModel, type TableFilters } from '@/model/filter.ts'
 import { useHeaders } from '@/views/pages/admin/snippet/SnippetUtils'
 import { SnippetModel } from '@/model/snippet'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import SnippetService from '@/services/snippet'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'

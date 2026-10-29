@@ -14,7 +14,7 @@
                @size-change="onSizeChange">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'source'">
-          <span>{{ record?.source?.name }}</span>
+          <EllipsisCell :text="record?.source?.name"/>
         </template>
         <template v-else-if="column.key === 'type'">
           <MfTooltip :content="record?.source?.type">
@@ -110,6 +110,7 @@ import AuditService from '@/services/audit'
 import { useHeaders } from '@/views/pages/admin/history/HistoryUtils'
 import { HistoryModel } from '@/model/history'
 import DataTable from '@/views/components/table/DataTable.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import HistoryData from '@/views/pages/admin/history/HistoryData.vue'
