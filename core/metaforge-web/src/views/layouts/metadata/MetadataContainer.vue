@@ -1,14 +1,13 @@
 <template>
   <BaseLayout>
-    <div class="flex min-h-screen w-full flex-col">
-      <div class="container my-2 min-h-screen">
-        <div class="flex w-full">
-          <div class="mr-4 w-[250px] shrink-0 bg-surface">
-            <MetadataSidebar/>
-          </div>
-          <div class="ml-2 min-w-0 flex-1">
-            <MetadataContent/>
-          </div>
+    <!-- 工作台通栏布局：侧栏贴左、内容区自适应（严格按原型） -->
+    <div class="flex min-h-[calc(100vh-4rem)] w-full flex-col">
+      <div class="flex w-full flex-1">
+        <aside class="w-[260px] shrink-0 border-r border-line bg-surface">
+          <MetadataSidebar/>
+        </aside>
+        <div class="min-w-0 flex-1 px-6 py-4">
+          <MetadataContent/>
         </div>
       </div>
     </div>

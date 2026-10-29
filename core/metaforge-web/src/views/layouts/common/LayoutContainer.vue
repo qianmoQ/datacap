@@ -6,7 +6,7 @@
 
     <div v-show="!loadingState">
       <div class="relative z-30 flex w-full flex-col">
-        <!-- 数据源管理工作台使用独立头部（原型设计），其余页面使用默认头部 -->
+        <!-- 数据源管理工作台使用独立头部（原型设计，通栏），其余页面使用默认头部 -->
         <WorkbenchHeader v-if="workbenchMode"/>
         <LayoutHeader v-else/>
       </div>
@@ -17,11 +17,16 @@
         <RouterView/>
       </main>
 
+      <!-- 数据源管理工作台：通栏全宽、无页脚、无默认内边距（严格按原型） -->
+      <main v-else-if="workbenchMode" class="isolate min-h-[calc(100vh-4rem)]">
+        <RouterView/>
+      </main>
+
       <main v-else class="container isolate min-h-screen py-6">
         <RouterView/>
       </main>
 
-      <LayoutFooter v-if="!workspaceMode"/>
+      <LayoutFooter v-if="!workspaceMode && !workbenchMode"/>
     </div>
   </div>
 </template>

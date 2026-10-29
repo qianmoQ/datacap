@@ -1,17 +1,20 @@
 <template>
   <!-- 白底铺满整行：底色在宽屏下从两侧透出来 -->
   <div class="dc-header__bar">
-    <div class="container dc-header__layout flex min-h-16 w-full items-center justify-between gap-6 py-3">
+    <div class="flex min-h-16 w-full items-center justify-between gap-6 px-5 py-3">
       <div class="dc-header__navigation flex min-w-0 flex-1 items-center gap-6">
-        <router-link to="/" class="flex items-center gap-2 shrink-0">
-          <img src="/static/images/logo.png" alt="" width="40" height="40" class="dc-brand-logo"/>
-          <span class="dc-header__wordmark">MetaForge</span>
-        </router-link>
+        <!-- 数据源插件 Logo + 数据源名（省略 + tooltip） + 数据库选择器 -->
+        <MfTooltip :content="sourceName" placement="bottom">
+          <span class="flex min-w-0 cursor-default items-center gap-2.5">
+            <MfAvatar size="md" :src="pluginLogo" :alt="sourceName">
+              <Database :size="18"/>
+            </MfAvatar>
+            <span class="max-w-[180px] truncate text-lg font-bold text-content">{{ sourceName }}</span>
+          </span>
+        </MfTooltip>
 
-        <!-- 数据源选择器 + 原型导航 -->
-        <MfSelect v-model="headerSource" class="w-36 shrink-0" size="sm"
-                  :options="sourceOptions" :placeholder="$t('source.common.name')"
-                  @update:model-value="onHeaderSourceChange"/>
+        <MfSelect v-model="currentDatabase" class="w-44 shrink-0" size="sm"
+                  :options="databaseOptions" :placeholder="$t('source.common.database')"/>
 
         <nav class="flex min-w-0 items-center gap-1">
           <router-link v-for="item in navItems" :key="item.path" :to="item.path"
@@ -231,22 +234,52 @@ const isNavActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
-const sourceOptions = ref<{ label: string; value: string }[]>([])
-const headerSource = ref<string>('')
 const searchIndex = ref<{ database: string; table: string }[]>([])
 const searchFocused = ref(false)
 let searchIndexSource = ''
 
-const onHeaderSourceChange = () => {
+// 工作台头部跟随当前路由的数据源上下文
+const routeSource = computed(() => String(route.params.source || ''))
+const sourceInfo = ref<any | null>(null)
+const sourceName = computed(() => String(sourceInfo.value?.name || routeSource.value || 'MetaForge'))
+const pluginLogo = computed(() => {
+  const type = String(sourceInfo.value?.type || '')
+  return type ? `/static/images/plugin/${ type.toLowerCase() }.svg` : ''
+})
+
+const databaseOptions = ref<{ label: string; value: string }[]>([])
+const currentDatabase = computed({
+  get: () => String(route.params.database || ''),
+  set: (value: string) => {
+    if (value && value !== route.params.database) {
+      router.push(`/source/${ routeSource.value }/d/${ value }`)
+    }
+  }
+})
+
+watch(routeSource, () => {
+  sourceInfo.value = null
   searchIndex.value = []
   searchIndexSource = ''
-  if (headerSource.value) {
-    localStorage.setItem('MetaForgeHeaderSource', headerSource.value)
-  }
-}
+  if (!routeSource.value) return
+  SourceService.getByCode(routeSource.value)
+               .then(response => {
+                 if (response.status) {
+                   sourceInfo.value = response.data
+                 }
+               })
+  MetadataService.getDatabaseBySource(routeSource.value)
+                 .then(response => {
+                   if (response.status) {
+                     databaseOptions.value = (response.data?.columns || [])
+                         .map((item: any) => ({ label: item.object_name || item.schema_name, value: item.object_name || item.schema_name }))
+                         .filter((item: any) => item.value)
+                   }
+                 })
+}, { immediate: true })
 
 const buildSearchIndex = () => {
-  const source = headerSource.value
+  const source = routeSource.value
   if (!source || searchIndexSource === source) return
   searchIndexSource = source
   MetadataService.getDatabaseBySource(source)
@@ -263,7 +296,7 @@ const buildSearchIndex = () => {
                            .catch(() => [] as { database: string; table: string }[])
                    ))
                        .then(groups => {
-                         if (headerSource.value === source) {
+                         if (routeSource.value === source) {
                            searchIndex.value = groups.flat()
                          }
                        })
@@ -278,6 +311,13 @@ const searchResults = computed(() => {
       .slice(0, 20)
 })
 
+// 切库后清空搜索索引，重新构建
+watch(currentDatabase, () => {
+  searchIndex.value = []
+  searchIndexSource = ''
+  if (routeSource.value) buildSearchIndex()
+})
+
 const onSearchBlur = () => {
   window.setTimeout(() => (searchFocused.value = false), 150)
 }
@@ -285,12 +325,9 @@ const onSearchBlur = () => {
 const onSearchPick = (item: { database: string; table: string }) => {
   searchFocused.value = false
   searchText.value = ''
-  router.push(`/source/${ headerSource.value }/d/${ item.database }/t/structure/${ item.table }`)
+  router.push(`/source/${ routeSource.value }/d/${ item.database }/t/structure/${ item.table }`)
 }
 
-watch(headerSource, value => {
-  if (value) buildSearchIndex()
-})
 const messages = ref<any[]>([])
 const pageIndex = ref<number>(1)
 const hasMoreData = ref(true)
@@ -336,17 +373,6 @@ onMounted(async () => {
   if (TokenUtils.getAuthUser()) {
     await Promise.all([userStore.fetchUserInfo(), userStore.fetchMenus()])
     await fetchMessages()
-    SourceService.getAll(new FilterModel())
-                 .then(response => {
-                   if (response.status) {
-                     sourceOptions.value = (response.data.content || [])
-                         .map((item: any) => ({ label: item.name, value: item.code }))
-                     const saved = localStorage.getItem('MetaForgeHeaderSource')
-                     headerSource.value = sourceOptions.value.some(option => option.value === saved)
-                         ? saved as string
-                         : sourceOptions.value[0]?.value || ''
-                   }
-                 })
   }
   window.addEventListener('keydown', onGlobalKeydown)
 })
