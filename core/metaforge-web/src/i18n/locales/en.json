@@ -720,6 +720,7 @@
   "function.import.urlFetched": "Document fetched, {count} characters",
   "function.import.urlTip": "The server fetches the document to avoid cross-origin restrictions",
   "function.import.valid": "Valid",
+  "function.info.subtitle": "Maintain SQL function syntax, examples, parameters and notes.",
   "function.placeholder.category": "String, aggregate, date...",
   "function.placeholder.name": "Enter the function name",
   "function.tip.deleteAlert1": "The function is removed from the completion list immediately and cannot be restored",

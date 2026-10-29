@@ -1,5 +1,17 @@
 <template>
-  <MfDrawer v-model:open="visible" :title="title" width="56%">
+  <MfModal v-model:open="visible" width="min(880px, 94vw)" body-class="px-5 py-4">
+    <template #title>
+      <span class="flex items-center gap-2.5">
+        <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-mf-lg bg-primary/10 text-primary">
+          <Database :size="18"/>
+        </span>
+        <span class="flex min-w-0 flex-col">
+          <span class="text-base font-semibold leading-6">{{ title }}</span>
+          <span class="text-xs font-normal text-content-tertiary">{{ $t('function.info.subtitle') }}</span>
+        </span>
+      </span>
+    </template>
+
     <div v-if="loading" class="flex items-center justify-center py-8">
       <MfSpinner size="lg"/>
     </div>
@@ -74,13 +86,14 @@
         {{ $t('common.save') }}
       </MfButton>
     </template>
-  </MfDrawer>
+  </MfModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
+import { Database } from '@lucide/vue'
 import { cloneDeep, omit } from 'lodash'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionModel, FunctionType } from '@/model/function'
