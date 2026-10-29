@@ -56,6 +56,7 @@ export interface FunctionImportRequest
     type: string
     entries: Record<string, string>[]
     duplicate: FunctionImportDuplicate
+    continueOnError?: boolean
 }
 
 /** System fields a plugin/type can map to; the wizard renders these dynamically. */

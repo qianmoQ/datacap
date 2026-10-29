@@ -5,8 +5,17 @@ import { FunctionSourceDocument } from '@/model/function'
  * Supported: JSON array of objects, CSV, TSV, Markdown table, plain lines
  * (one function name per line -> single implicit column).
  */
-export function parseFunctionDocument(text: string): FunctionSourceDocument
+export interface ParseOptions
 {
+  /** Treat the first delimited row as headers (default true). */
+  firstRowHeader?: boolean
+  /** Drop blank lines before parsing (default true). */
+  skipEmptyRows?: boolean
+}
+
+export function parseFunctionDocument(text: string, options: ParseOptions = {}): FunctionSourceDocument
+{
+  const { firstRowHeader = true, skipEmptyRows = true } = options
   const trimmed = (text || '').trim()
   if (!trimmed) {
     return { columns: [], rows: [] }
@@ -20,7 +29,7 @@ export function parseFunctionDocument(text: string): FunctionSourceDocument
     return { columns, rows }
   }
 
-  const lines = trimmed.split(/\r?\n/).filter(line => line.trim().length > 0)
+  const lines = trimmed.split(/\r?\n/).filter(line => skipEmptyRows || line.trim().length > 0)
   if (lines.length === 0) {
     return { columns: [], rows: [] }
   }
@@ -38,17 +47,20 @@ export function parseFunctionDocument(text: string): FunctionSourceDocument
 
   const delimiter = detectDelimiter(lines[0])
   if (delimiter) {
-    const columns = splitDelimited(lines[0], delimiter).map(cell => cell.trim())
-    const rows = lines.slice(1).map(line => splitDelimited(line, delimiter))
-    // A header row is expected; when only one line exists treat it as data.
-    if (lines.length > 1 && !columns.every(column => /^(name|函数名)$/i.test(column))) {
-      return { columns, rows }
+    const firstCells = splitDelimited(lines[0], delimiter).map(cell => cell.trim())
+    if (firstRowHeader && lines.length > 1) {
+      return { columns: firstCells, rows: lines.slice(1).map(line => splitDelimited(line, delimiter)) }
     }
-    if (lines.length > 1) {
-      return { columns, rows }
+    if (!firstRowHeader) {
+      const width = Math.max(...lines.map(line => splitDelimited(line, delimiter).length))
+      const columns = Array.from({ length: width }, (_, index) => `column_${ index + 1 }`)
+      return { columns, rows: lines.map(line => splitDelimited(line, delimiter)) }
     }
   }
 
+  if (!firstRowHeader) {
+    return { columns: ['name'], rows: lines.map(line => [line.trim()]), implicitColumn: true }
+  }
   return { columns: ['name'], rows: lines.map(line => [line.trim()]), implicitColumn: true }
 }
 

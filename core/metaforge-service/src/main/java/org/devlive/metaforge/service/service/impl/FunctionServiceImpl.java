@@ -121,6 +121,9 @@ public class FunctionServiceImpl
             imported++;
         }
 
+        if (!configure.isContinueOnError() && invalid > 0) {
+            return CommonResponse.failure(String.format("%d entries are invalid; import aborted", invalid));
+        }
         this.functionsRepository.saveAll(pending);
 
         Map<String, Object> result = new LinkedHashMap<>();

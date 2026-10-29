@@ -37,4 +37,7 @@ public class FunctionsImportBody
 
     /** skip (default) or overwrite when an entry name already exists. */
     private String duplicate = "skip";
+
+    /** false aborts the whole import when any entry is invalid; true (default) skips them. */
+    private boolean continueOnError = true;
 }
