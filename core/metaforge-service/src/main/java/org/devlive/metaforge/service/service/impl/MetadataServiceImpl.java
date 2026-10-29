@@ -254,6 +254,58 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> createIndex(String code, String database, String table, TableDefinition configure)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            configure.setDatabase(database);
+                            configure.setName(table);
+                            return CommonResponse.success(service.createIndex(entity.toConfigure(pluginManager, plugin), configure));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Response> dropIndex(String code, String database, String table, TableDefinition configure)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            configure.setDatabase(database);
+                            configure.setName(table);
+                            return CommonResponse.success(service.dropIndex(entity.toConfigure(pluginManager, plugin), configure));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Response> getIndexes(String code, String database, String table)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> CommonResponse.success(plugin.getService(PluginService.class)
+                                .metadataIndexes(entity.toConfigure(pluginManager, plugin), database, table)))
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Response> getForeignKeys(String code, String database, String table)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> CommonResponse.success(plugin.getService(PluginService.class)
+                                .metadataForeignKeys(entity.toConfigure(pluginManager, plugin), database, table)))
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
     public CommonResponse<Response> dropColumn(String code, String database, String table, TableDefinition configure)
     {
         return repository.findByCode(code)

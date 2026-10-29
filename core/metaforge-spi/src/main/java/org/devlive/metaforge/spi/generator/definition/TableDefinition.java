@@ -35,6 +35,7 @@ public class TableDefinition
     private String format;
     private long count;
     private Set<ColumnDefinition> columns = Sets.newHashSet();
+    private Set<IndexDefinition> indexes = Sets.newHashSet();
     private Set<ColumnDefinition> orders = Sets.newHashSet();
     private Set<ColumnDefinition> filters = Sets.newHashSet();
     private Pagination pagination;

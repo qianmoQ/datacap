@@ -18,6 +18,7 @@ import org.devlive.metaforge.spi.connection.JdbcConnection;
 import org.devlive.metaforge.spi.connection.JdbcUrlGuard;
 import org.devlive.metaforge.spi.generator.DataType;
 import org.devlive.metaforge.spi.generator.Filter;
+import org.devlive.metaforge.spi.generator.Index;
 import org.devlive.metaforge.spi.generator.OrderBy;
 import org.devlive.metaforge.spi.generator.column.CreateColumn;
 import org.devlive.metaforge.spi.generator.column.SelectColumn;
@@ -666,6 +667,120 @@ public interface PluginService
             destroy();
         }
         return response;
+    }
+
+    /**
+     * 数据表索引结构 | Table index structure
+     *
+     * @param configure 配置信息 | Configuration information
+     * @param database 数据库 | Database
+     * @param table 数据表 | Table
+     * @return 索引结构 | Index structure
+     */
+    default Response metadataIndexes(RuntimeConfigure configure, String database, String table)
+    {
+        Response response = new Response();
+        response.setHeaders(Lists.newArrayList(
+                "type_name",
+                "object_name",
+                "object_column",
+                "object_unique",
+                "object_definition"));
+        response.setTypes(Lists.newArrayList(
+                "String", "String", "String", "Boolean", "String"));
+        List<Object> rows = Lists.newArrayList();
+        try (ResultSet resultSet = openJdbcConnection(configure).getMetaData().getIndexInfo(null, database, table, false, false)) {
+            while (resultSet.next()) {
+                String indexName = resultSet.getString("INDEX_NAME");
+                if (indexName == null) {
+                    continue;
+                }
+                rows.add(Lists.newArrayList(
+                        "index",
+                        indexName,
+                        resultSet.getString("COLUMN_NAME"),
+                        !resultSet.getBoolean("NON_UNIQUE"),
+                        ""));
+            }
+        }
+        catch (Exception ignored) {
+            // drivers without index metadata simply report an empty list
+        }
+        response.setColumns(rows);
+        return response;
+    }
+
+    /**
+     * 数据表外键结构 | Table foreign key structure
+     *
+     * @param configure 配置信息 | Configuration information
+     * @param database 数据库 | Database
+     * @param table 数据表 | Table
+     * @return 外键结构 | Foreign key structure
+     */
+    default Response metadataForeignKeys(RuntimeConfigure configure, String database, String table)
+    {
+        Response response = new Response();
+        response.setHeaders(Lists.newArrayList(
+                "type_name",
+                "object_name",
+                "object_column",
+                "object_reference_table",
+                "object_reference_column"));
+        response.setTypes(Lists.newArrayList(
+                "String", "String", "String", "String", "String"));
+        List<Object> rows = Lists.newArrayList();
+        try (ResultSet resultSet = openJdbcConnection(configure).getMetaData().getImportedKeys(null, database, table)) {
+            while (resultSet.next()) {
+                rows.add(Lists.newArrayList(
+                        "foreignkey",
+                        resultSet.getString("FK_NAME"),
+                        resultSet.getString("FKCOLUMN_NAME"),
+                        resultSet.getString("PKTABLE_NAME"),
+                        resultSet.getString("PKCOLUMN_NAME")));
+            }
+        }
+        catch (Exception ignored) {
+            // drivers without foreign key metadata simply report an empty list
+        }
+        response.setColumns(rows);
+        return response;
+    }
+
+    /**
+     * 创建索引 | Create index
+     *
+     * @param configure 配置信息 | Configuration information
+     * @param definition 表配置定义 | Table configuration definition
+     * @return 执行结果 | Execution result
+     */
+    default Response createIndex(RuntimeConfigure configure, TableDefinition definition)
+    {
+        AlterTable tableDefinition = AlterTable.create(definition.getDatabase(), definition.getName());
+        definition.getIndexes()
+                .forEach(index -> {
+                    Index builder = Index.create(index.getName(), index.getColumns().toArray(new String[0]));
+                    if (index.isUnique()) {
+                        builder.unique();
+                    }
+                    tableDefinition.addIndex(builder);
+                });
+        return this.getResponse(tableDefinition.build(), configure, definition);
+    }
+
+    /**
+     * 删除索引 | Drop index
+     *
+     * @param configure 配置信息 | Configuration information
+     * @param definition 表配置定义 | Table configuration definition
+     * @return 执行结果 | Execution result
+     */
+    default Response dropIndex(RuntimeConfigure configure, TableDefinition definition)
+    {
+        AlterTable tableDefinition = AlterTable.create(definition.getDatabase(), definition.getName());
+        definition.getIndexes()
+                .forEach(index -> tableDefinition.dropIndex(index.getName()));
+        return this.getResponse(tableDefinition.build(), configure, definition);
     }
 
     default Response getPrimaryKeys(RuntimeConfigure configure, String database, String table)

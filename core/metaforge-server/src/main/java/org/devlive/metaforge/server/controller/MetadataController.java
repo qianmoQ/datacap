@@ -180,6 +180,48 @@ public class MetadataController
         return this.service.createColumn(code, database, table, configure);
     }
 
+    @GetMapping(value = "{code}/{database}/{table}/indexes")
+    public CommonResponse<Response> fetchIndexes(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table
+    )
+    {
+        return this.service.getIndexes(code, database, table);
+    }
+
+    @GetMapping(value = "{code}/{database}/{table}/foreign-keys")
+    public CommonResponse<Response> fetchForeignKeys(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table
+    )
+    {
+        return this.service.getForeignKeys(code, database, table);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/create-index")
+    public CommonResponse<Response> createIndex(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table,
+            @RequestBody TableDefinition configure
+    )
+    {
+        return this.service.createIndex(code, database, table, configure);
+    }
+
+    @DeleteMapping(value = "{code}/{database}/{table}/drop-index")
+    public CommonResponse<Response> dropIndex(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table,
+            @RequestBody TableDefinition configure
+    )
+    {
+        return this.service.dropIndex(code, database, table, configure);
+    }
+
     @DeleteMapping(value = "{code}/{database}/{table}/drop-column")
     public CommonResponse<Response> dropColumn(
             @PathVariable String code,

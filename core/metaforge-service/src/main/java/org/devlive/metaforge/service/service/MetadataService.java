@@ -38,6 +38,14 @@ public interface MetadataService
 
     CommonResponse<Response> createColumn(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> createIndex(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> dropIndex(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> getIndexes(String code, String database, String table);
+
+    CommonResponse<Response> getForeignKeys(String code, String database, String table);
+
     CommonResponse<Response> dropColumn(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure);
