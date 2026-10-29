@@ -163,7 +163,7 @@
           <div class="mb-1 text-sm font-medium text-content-secondary">{{ $t('function.import.targetPlugin') }} <span class="text-danger">*</span></div>
           <MfSelect v-model="plugin" multiple :options="plugins" :placeholder="$t('function.tip.selectPluginHolder')"/>
           <div class="mt-1 text-[11px] text-content-tertiary">
-            {{ $t('function.import.pluginHelp').replace('{plugin}', plugin[0] ?? $t('function.import.pluginNotSelected')) }}
+            {{ $t('function.import.pluginHelp', { plugin: plugin[0] ?? $t('function.import.pluginNotSelected') }) }}
           </div>
         </div>
         <div>
@@ -518,7 +518,7 @@ const stats = computed(() => [
   { label: t('function.import.statTotal'), value: String(entries.value.length), icon: FileText, tone: 'text-content-tertiary' },
   { label: t('function.import.statValid'), value: String(validEntries.value.length), icon: CircleCheck, tone: 'text-success' },
   { label: t('function.import.statInvalid'), value: String(invalidEntries.value.length), icon: CircleX, tone: 'text-danger' },
-  { label: t('function.import.statEstimate'), value: t('function.import.estimateSeconds').replace('{count}', String(estimate.value)), icon: Sheet, tone: 'text-content-tertiary' }
+  { label: t('function.import.statEstimate'), value: t('function.import.estimateSeconds', { count: estimate.value }), icon: Sheet, tone: 'text-content-tertiary' }
 ])
 
 const attributeLabel = (key: string) => {
@@ -574,7 +574,7 @@ const onFetchUrl = () => {
                .then(response => {
                  if (response.status) {
                    urlText.value = String(response.data ?? '')
-                   urlFetchedTip.value = t('function.import.urlFetched').replace('{count}', String(urlText.value.length))
+                   urlFetchedTip.value = t('function.import.urlFetched', { count: urlText.value.length })
                  }
                  else {
                    MfMessage.error(response.message)
@@ -676,10 +676,11 @@ const onImport = () => {
                .then((response) => {
                  if (response.status) {
                    const result = response.data || {}
-                   MfMessage.success(t('function.import.success')
-                     .replace('{imported}', String(result.imported ?? 0))
-                     .replace('{duplicated}', String(result.duplicated ?? 0))
-                     .replace('{invalid}', String(result.invalid ?? 0)))
+                   MfMessage.success(t('function.import.success', {
+                     imported: String(result.imported ?? 0),
+                     duplicated: String(result.duplicated ?? 0),
+                     invalid: String(result.invalid ?? 0)
+                   }))
                    visible.value = false
                  }
                  else {
