@@ -12,12 +12,22 @@
                @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
+      <template #actions>
+        <MfButton variant="primary" @click="visibleInfo(true, null)">
+          <Plus :size="16"/>
+          {{ $t('snippet.common.create') }}
+        </MfButton>
+      </template>
+
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
           <EllipsisCell :text="record.name"/>
         </template>
         <template v-else-if="column.key === 'description'">
           <EllipsisCell :text="record.description"/>
+        </template>
+        <template v-else-if="column.key === 'context'">
+          <EllipsisCell :text="record.context" class="font-mono text-xs"/>
         </template>
         <template v-else-if="column.key === 'username'">
           <MfAvatar size="sm" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
@@ -96,7 +106,7 @@ import SnippetService from '@/services/snippet'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import SnippetDelete from '@/views/pages/admin/snippet/SnippetDelete.vue'
-import { ChevronRight, FileCode2, Pencil, Settings, Trash2 } from '@lucide/vue'
+import { ChevronRight, FileCode2, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'SnippetHome' })
 
