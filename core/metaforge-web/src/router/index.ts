@@ -23,12 +23,18 @@ createDefaultRouter(router)
 // 首次导航时检查是否已完成首次安装：未安装跳转 /setup，已安装访问 /setup 回登录页。
 // 服务端不可达时状态未知：放行导航，交给全局网络错误处理（not_network 页面），
 // 不能把请求失败误判成"未安装"而跳去 /setup。
+// HttpUtils 在网络错误时不 reject，而是 resolve code=0 的失败响应，必须显式识别。
 let setupChecked: Promise<boolean | 'unknown'> | undefined
 
 function ensureSetupChecked(): Promise<boolean | 'unknown'> {
     if (!setupChecked) {
         setupChecked = SetupService.getStatus()
-            .then(response => (response?.status && response.data?.installed) ? true : false)
+            .then(response => {
+                if (!response || response.code === 0) {
+                    return 'unknown'
+                }
+                return (response.status && response.data?.installed) ? true : false
+            })
             .catch(() => 'unknown')
     }
     return setupChecked
