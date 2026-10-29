@@ -39,7 +39,8 @@ import java.util.UUID;
  * idempotent so a partially installed instance can safely re-run.
  *
  * The wizard can install into the datasource this instance already runs on,
- * or into a chosen target (embedded H2 file store or an external MySQL);
+ * or into a chosen target (embedded H2 file store, or external MySQL, PostgreSQL,
+ * SQL Server or Oracle); the schema comes from the Liquibase changelog and
  * the chosen datasource is persisted to ./config/application.properties
  * which Spring Boot picks up on the next boot without extra launch flags.
  */
@@ -49,10 +50,6 @@ import java.util.UUID;
 public class SetupService
 {
     private static final String CONFIG_OVERRIDE = "config/application.properties";
-    private static final String MYSQL_URL_TEMPLATE =
-            "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=UTF-8"
-                    + "&zeroDateTimeBehavior=convertToNull&useMultiQueries=true"
-                    + "&useSSL=false&allowPublicKeyRetrieval=true";
 
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
@@ -254,15 +251,13 @@ public class SetupService
                     new File(dir, "metaforge").getAbsolutePath().replace('\\', '/'));
             return new TargetDatabase(url, "sa", "", true);
         }
-        if ("mysql".equalsIgnoreCase(configure.getType())) {
-            if (StringUtils.isAnyBlank(configure.getHost(), configure.getDatabase(), configure.getUsername())) {
-                throw new IllegalArgumentException("Host, database and username are required for MySQL");
-            }
-            int port = configure.getPort() == null ? 3306 : configure.getPort();
-            String url = String.format(MYSQL_URL_TEMPLATE, configure.getHost(), port, configure.getDatabase());
-            return new TargetDatabase(url, configure.getUsername(), configure.getPassword() == null ? "" : configure.getPassword(), false);
+        ExternalDatabase external = ExternalDatabase.of(configure.getType())
+                .orElseThrow(() -> new IllegalArgumentException("Unknown database type: " + configure.getType()));
+        if (StringUtils.isAnyBlank(configure.getHost(), configure.getDatabase(), configure.getUsername())) {
+            throw new IllegalArgumentException(String.format("Host, database and username are required for %s", external.getLabel()));
         }
-        throw new IllegalArgumentException("Unknown database type: " + configure.getType());
+        String url = external.url(configure.getHost(), configure.getPort(), configure.getDatabase());
+        return new TargetDatabase(url, configure.getUsername(), configure.getPassword() == null ? "" : configure.getPassword(), false);
     }
 
     private Connection openTarget(TargetDatabase target)
