@@ -42,25 +42,25 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :size="2">
             <MfTooltip :content="$t('user.common.assignRole')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeRole(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeRole(true, record)">
                 <ArrowUp :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('user.common.resetPassword')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangePassword(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangePassword(true, record)">
                 <KeyRound :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('common.editData')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeInfo(true, record)">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('user.common.delete')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" :disabled="record.system || record.id === currentUserId" @click="handlerChangeDelete(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" :disabled="record.system || record.id === currentUserId" @click="handlerChangeDelete(true, record)">
                 <Trash2 :size="15" />
               </MfButton>
             </MfTooltip>

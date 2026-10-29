@@ -35,13 +35,13 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :size="2">
             <MfTooltip :content="$t('snippet.common.modify').replace('$VALUE', record.name)">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="visibleInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="visibleInfo(true, record)">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click">
-              <MfButton variant="ghost" size="sm" class="rounded-full!">
+              <MfButton variant="ghost" size="sm" shape="circle">
                 <Settings :size="15" />
               </MfButton>
 

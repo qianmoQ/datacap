@@ -34,19 +34,19 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :size="2">
             <MfTooltip :content="$t('common.editData')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeInfo(true, record)">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('role.common.assignMenu').replace('$NAME', record?.name)">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerAssignMenu(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerAssignMenu(true, record)">
                 <Menu :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('role.common.delete')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" :disabled="record.code === 'ADMIN'" @click="handlerChangeDelete(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" :disabled="record.code === 'ADMIN'" @click="handlerChangeDelete(true, record)">
                 <Trash2 :size="15" />
               </MfButton>
             </MfTooltip>

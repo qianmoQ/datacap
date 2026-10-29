@@ -70,7 +70,7 @@
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
-              <MfButton variant="ghost" size="sm" class="rounded-full!">
+              <MfButton variant="ghost" size="sm" shape="circle">
                 <EllipsisVertical :size="15" />
               </MfButton>
 

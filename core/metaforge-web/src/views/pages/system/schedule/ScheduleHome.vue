@@ -44,18 +44,18 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('schedule.common.trigger')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerTrigger(record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerTrigger(record)">
                 <MfSpinner v-if="triggeringId === record.id" size="sm"/>
                 <CirclePlay :size="15" v-else />
               </MfButton>
             </MfTooltip>
             <MfTooltip :content="$t('schedule.common.upcoming')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerUpcoming(record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerUpcoming(record)">
                 <Clock :size="15" />
               </MfButton>
             </MfTooltip>
             <MfTooltip :content="$t('schedule.common.history')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeInfo(true, record)">
                 <History :size="15" />
               </MfButton>
             </MfTooltip>

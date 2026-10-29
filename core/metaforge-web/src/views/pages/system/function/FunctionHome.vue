@@ -31,7 +31,10 @@
           <EllipsisCell :text="record.description"/>
         </template>
         <template v-else-if="column.key === 'type'">
-          <MfTag>{{ $t('function.common.' + record.type.toLowerCase()) }}</MfTag>
+          <MfTag>{{ $t('function.common.' + String(record.type).toLowerCase()) }}</MfTag>
+        </template>
+        <template v-else-if="column.key === 'syntax'">
+          <EllipsisCell :text="record.syntax" class="font-mono text-xs"/>
         </template>
         <template v-else-if="column.key === 'plugin'">
           <div class="flex items-center -space-x-2">
@@ -44,13 +47,13 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :size="2">
             <MfTooltip :content="$t('common.editData')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerInfo(true, record)">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('function.common.delete')">
-              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerDelete(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerDelete(true, record)">
                 <Trash2 :size="15" />
               </MfButton>
             </MfTooltip>
