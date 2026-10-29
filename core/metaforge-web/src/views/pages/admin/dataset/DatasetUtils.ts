@@ -18,7 +18,7 @@ export function useDatasetHeaders()
         { title: t('dataset.prototype.fieldCount'), dataIndex: 'columnCount', key: 'columnCount', width: '80px' },
         { title: t('dataset.common.totalRows'), dataIndex: 'totalRows', key: 'totalRows', width: '90px' },
         { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime', width: '180px' },
-        { title: t('common.action'), key: 'action', width: '200px' }
+        { title: t('common.action'), key: 'action' }
     ])
 
     // MfTable 列格式（bodyCell 契约）；progress/state/action 走 #bodyCell

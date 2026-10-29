@@ -44,7 +44,7 @@
           <CirclePlay :size="20" v-else="" class="text-green-500" />
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace size="xs">
+          <MfSpace :size="2">
             <MfTooltip :content="$t('source.common.modify').replace('$NAME', record.name)">
               <MfButton variant="ghost" size="sm" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)">
                 <Pencil :size="15" />

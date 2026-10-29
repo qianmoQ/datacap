@@ -42,7 +42,7 @@
         </template>
 
         <template v-else-if="column.key === 'action'">
-          <MfSpace :wrap="false" size="xs">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('schedule.common.trigger')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerTrigger(record)">
                 <MfSpinner v-if="triggeringId === record.id" size="sm"/>

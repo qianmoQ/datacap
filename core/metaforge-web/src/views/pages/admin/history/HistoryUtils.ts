@@ -19,7 +19,7 @@ export function useHeaders()
         { title: t('common.format'), key: 'format', width: 70 },
         { title: t('common.state'), key: 'state', width: 90 },
         { title: t('history.common.user'), key: 'user', width: 120 },
-        { title: t('common.action'), key: 'action', width: 110 }
+        { title: t('common.action'), key: 'action' }
     ])
 
     return {

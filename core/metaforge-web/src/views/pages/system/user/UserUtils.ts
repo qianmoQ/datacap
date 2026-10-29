@@ -16,7 +16,7 @@ export function useHeaders()
             { title: t('user.common.lastLoginIp'), dataIndex: 'lastLoginIp', key: 'lastLoginIp' },
             { title: t('common.createTime'), dataIndex: 'createTime', key: 'createTime' },
             { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime' },
-            { title: t('common.action'), key: 'action', width: 160 }
+            { title: t('common.action'), key: 'action' }
         ]
     )
 

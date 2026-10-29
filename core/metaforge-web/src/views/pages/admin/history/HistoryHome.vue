@@ -58,7 +58,7 @@
           <span v-else class="text-content-tertiary">-</span>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace size="xs">
+          <MfSpace :size="2">
             <MfTooltip :content="$t('common.error')">
               <MfButton variant="ghost"
                         size="sm"

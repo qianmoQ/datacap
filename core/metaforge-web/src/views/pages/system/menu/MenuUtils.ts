@@ -18,7 +18,7 @@ export function useHeaders()
             { title: t('common.active'), key: 'active', width: 90 },
             { title: t('common.createTime'), dataIndex: 'createTime', key: 'createTime' },
             { title: t('common.updateTime'), dataIndex: 'updateTime', key: 'updateTime' },
-            { title: t('common.action'), key: 'action', width: 120 }
+            { title: t('common.action'), key: 'action' }
         ]
     )
 

@@ -42,7 +42,7 @@
           </div>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace size="xs">
+          <MfSpace :size="2">
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
                 <Pencil :size="15" />
