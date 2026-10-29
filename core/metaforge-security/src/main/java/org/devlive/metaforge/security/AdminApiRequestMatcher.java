@@ -20,7 +20,7 @@ public final class AdminApiRequestMatcher
             matchers.add(new AntPathRequestMatcher(path));
         }
         add("POST", "/api/v1/user", "/api/v1/user/list", "/api/v1/function", "/api/v1/function/list");
-        add("PUT", "/api/v1/user", "/api/v1/user/allocationRole", "/api/v1/function", "/api/v1/function/import");
+        add("PUT", "/api/v1/user", "/api/v1/user/allocationRole", "/api/v1/user/*/active", "/api/v1/user/*/resetPassword", "/api/v1/function", "/api/v1/function/import");
         add("DELETE", "/api/v1/user", "/api/v1/user/**", "/api/v1/function", "/api/v1/function/**");
         add("GET", "/api/v1/user/info/**");
     }
