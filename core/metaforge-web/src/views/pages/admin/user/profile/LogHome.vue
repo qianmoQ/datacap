@@ -16,10 +16,13 @@
         <template v-if="column.key === 'ua'">
           <EllipsisCell :text="record.ua"/>
         </template>
+        <template v-else-if="column.key === 'message'">
+          <EllipsisCell :text="record.message"/>
+        </template>
         <template v-else-if="column.key === 'state'">
           <span class="inline-flex items-center gap-2">
             <MfBadge :variant="record.state === 'SUCCESS' ? 'success' : 'danger'" dot/>
-            {{ record.state }}
+            {{ record.state === 'SUCCESS' ? $t('common.success') : $t('common.failure') }}
           </span>
         </template>
       </template>
