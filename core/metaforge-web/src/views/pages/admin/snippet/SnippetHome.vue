@@ -33,7 +33,7 @@
           <MfAvatar size="sm" :src="record.user.avatarConfigure?.path" :alt="record.user.username"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('snippet.common.modify').replace('$VALUE', record.name)">
               <MfButton variant="ghost" size="sm" shape="circle" @click="visibleInfo(true, record)">
                 <Pencil :size="15" />

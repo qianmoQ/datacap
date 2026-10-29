@@ -44,15 +44,15 @@
           <CirclePlay :size="20" v-else="" class="text-green-500" />
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('source.common.modify').replace('$NAME', record.name)">
-              <MfButton variant="ghost" size="sm" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)">
+              <MfButton variant="ghost" size="sm" :disabled="loginUserCode !== record.user.code" @click="visibleInfo(true, record)" shape="circle">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
-              <MfButton variant="ghost" size="sm">
+              <MfButton variant="ghost" size="sm" shape="circle">
                 <Settings :size="15" />
               </MfButton>
 

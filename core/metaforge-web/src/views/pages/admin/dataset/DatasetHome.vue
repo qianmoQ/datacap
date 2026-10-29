@@ -50,22 +50,22 @@
           </MfPopover>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
-            <MfTooltip :content="$t('dataset.common.info')"><router-link :to="`/dataset/detail/${record.code}`"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.info')"><Eye :size="15"/></MfButton></router-link></MfTooltip>
-            <MfTooltip :content="$t('dataset.common.modify')"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.modify')" @click="openWizard(record.code)"><Pencil :size="15"/></MfButton></MfTooltip>
+          <MfSpace :wrap="false" :size="2">
+            <MfTooltip :content="$t('dataset.common.info')"><router-link :to="`/dataset/detail/${record.code}`"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.info')" shape="circle"><Eye :size="15"/></MfButton></router-link></MfTooltip>
+            <MfTooltip :content="$t('dataset.common.modify')"><MfButton variant="ghost" size="sm" :aria-label="$t('dataset.common.modify')" @click="openWizard(record.code)" shape="circle"><Pencil :size="15"/></MfButton></MfTooltip>
             <MfTooltip :content="$t('dataset.common.adhoc')">
               <router-link v-if="isSuccess(record?.state)" :to="`/dataset/adhoc/${ record?.code }`" target="_blank">
-                <MfButton variant="ghost" size="sm">
+                <MfButton variant="ghost" size="sm" shape="circle">
                   <ChartColumn :size="15" />
                 </MfButton>
               </router-link>
-              <MfButton v-else variant="ghost" size="sm" disabled>
+              <MfButton v-else variant="ghost" size="sm" disabled shape="circle">
                 <ChartColumn :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
-              <MfButton variant="ghost" size="sm">
+              <MfButton variant="ghost" size="sm" shape="circle">
                 <Settings :size="15" />
               </MfButton>
 

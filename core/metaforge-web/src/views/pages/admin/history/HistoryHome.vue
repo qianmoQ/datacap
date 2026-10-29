@@ -58,11 +58,11 @@
           <span v-else class="text-content-tertiary">-</span>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('common.error')">
               <MfButton variant="ghost"
                         size="sm"
-                        class="rounded-full! text-danger!"
+                        shape="circle" class="text-danger!"
                         :disabled="record.state === 'SUCCESS'"
                         @click="handlerShowContent(true, record?.message)">
                 <TriangleAlert :size="15" />

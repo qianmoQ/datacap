@@ -39,19 +39,19 @@
         </template>
 
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('common.error')">
               <MfButton variant="ghost"
                         size="sm"
                         class="text-danger"
                         :disabled="record.state !== 'FAILURE' && !(record.state == 'STOPPED' && record.message)"
-                        @click="visibleShowMessage(true, record)">
+                        @click="visibleShowMessage(true, record)" shape="circle">
                 <TriangleAlert :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfDropdown trigger="click" placement="bottomRight">
-              <MfButton variant="ghost" size="sm">
+              <MfButton variant="ghost" size="sm" shape="circle">
                 <Settings :size="15" />
               </MfButton>
 

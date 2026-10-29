@@ -40,7 +40,7 @@
                     @update:model-value="(value: boolean) => onChangeActive(record, value)"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('user.common.assignRole')">
               <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeRole(true, record)">
                 <ArrowUp :size="15" />

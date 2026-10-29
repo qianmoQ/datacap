@@ -28,7 +28,7 @@
           </MfTooltip>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('report.common.view').replace('$VALUE', record.name)">
               <MfButton variant="ghost" size="sm" shape="circle" @click="visibleView(true, record)">
                 <Eye :size="15" />

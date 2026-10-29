@@ -32,7 +32,7 @@
                     @update:model-value="(value: boolean) => onChangeActive(record, value)"/>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfSpace :size="2">
+          <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeInfo(true, record)">
                 <Pencil :size="15" />
