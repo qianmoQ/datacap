@@ -196,17 +196,18 @@ watch(open, value => {
             >
             <span
                 v-else
-                class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-left"
+                class="flex min-w-0 flex-1 flex-wrap items-center gap-1 overflow-y-auto text-left"
                 :class="selectedOptions.length === 0 && 'text-content-placeholder'"
+                :style="isMultiple && selectedOptions.length > 0 ? { maxHeight: '96px' } : {}"
             >
                 <template v-if="selectedOptions.length === 0">{{ placeholder }}</template>
                 <template v-else-if="isMultiple">
                     <span
                         v-for="option in selectedOptions"
                         :key="String(option.value)"
-                        class="inline-flex items-center gap-1 rounded-mf-sm bg-surface-active px-1.5 py-0.5 text-xs text-content"
+                        class="inline-flex max-w-40 items-center gap-1 rounded-mf-sm bg-surface-active px-1.5 py-0.5 text-xs text-content"
                     >
-                        {{ option.label }}
+                        <span class="truncate">{{ option.label }}</span>
                     </span>
                 </template>
                 <template v-else>
