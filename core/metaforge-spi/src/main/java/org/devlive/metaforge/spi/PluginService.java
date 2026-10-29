@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.devlive.metaforge.plugin.Service;
 import org.devlive.metaforge.spi.adapter.Adapter;
 import org.devlive.metaforge.spi.adapter.BatchWriter;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -604,9 +606,11 @@ public interface PluginService
                 "object_default_value",
                 "object_comment",
                 "object_position",
-                "object_definition"));
+                "object_definition",
+                "object_length",
+                "object_autoincrement"));
         response.setTypes(Lists.newArrayList(
-                "String", "String", "String", "String", "String", "String", "Integer", "String"));
+                "String", "String", "String", "String", "String", "String", "Integer", "String", "Integer", "String"));
         List<Object> rows = Lists.newArrayList();
         response.setColumns(rows);
         try {
@@ -615,6 +619,13 @@ public interface PluginService
                 while (resultSet.next()) {
                     String defaultValue = resultSet.getString("COLUMN_DEF");
                     String comment = resultSet.getString("REMARKS");
+                    int columnSize;
+                    try {
+                        columnSize = resultSet.getInt("COLUMN_SIZE");
+                    }
+                    catch (SQLException ignored) {
+                        columnSize = 0;
+                    }
                     rows.add(Lists.newArrayList(
                             "column",
                             resultSet.getString("COLUMN_NAME"),
@@ -623,7 +634,9 @@ public interface PluginService
                             defaultValue == null ? "" : defaultValue,
                             comment == null ? "" : comment,
                             resultSet.getInt("ORDINAL_POSITION"),
-                            ""));
+                            "",
+                            columnSize,
+                            resultSet.getString("IS_AUTOINCREMENT")));
                 }
             }
             try (ResultSet resultSet = metaData.getPrimaryKeys(null, database, table)) {
@@ -1490,11 +1503,28 @@ public interface PluginService
                 .length(col.getLength())
                 .defaultValue(col.getDefaultValue());
 
+        if (StringUtils.isNotEmpty(col.getCharset())) {
+            column.charset(col.getCharset());
+        }
+
+        if (StringUtils.isNotEmpty(col.getCollate())) {
+            column.collate(col.getCollate());
+        }
+
+        if (StringUtils.isNotEmpty(col.getAfter())) {
+            column.after(col.getAfter());
+        }
+
+        if (col.isFirst()) {
+            column.first();
+        }
+
         if (col.isAutoIncrement()) {
             column.autoIncrement();
         }
 
-        if (col.isNullable()) {
+        // nullable=true keeps the column nullable; only explicit false adds NOT NULL
+        if (!col.isNullable()) {
             column.notNull();
         }
 
