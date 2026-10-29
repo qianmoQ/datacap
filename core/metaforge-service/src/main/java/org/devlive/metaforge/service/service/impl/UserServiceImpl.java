@@ -199,7 +199,8 @@ public class UserServiceImpl
     @Override
     public CommonResponse<UserEntity> saveOrUpdate(BaseRepository<UserEntity, Long> repository, UserEntity configure)
     {
-        if (configure.getId() != null) {
+        // edits without a new password keep the stored hash; the one-arg overload copies it back
+        if (configure.getId() != null && StringUtils.isNotEmpty(configure.getPassword())) {
             configure.setPassword(encoder.encode(configure.getPassword()));
         }
         return this.saveOrUpdate(configure);
