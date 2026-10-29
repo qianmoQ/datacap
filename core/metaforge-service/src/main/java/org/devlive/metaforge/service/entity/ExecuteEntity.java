@@ -13,6 +13,8 @@ import java.util.Map;
 public class ExecuteEntity
 {
     private String name;
+    // Optional editor tab label carried into the query history for display.
+    private String label;
     private String content;
     private Map<String, Object> env;
     private String format = "JsonConvert";

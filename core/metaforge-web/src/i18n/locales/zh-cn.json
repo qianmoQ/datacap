@@ -752,6 +752,7 @@
   "query.side.searchHistory": "搜索历史",
   "query.side.searchTemplate": "搜索模板",
   "query.side.structureTip": "在左侧选择表后查看字段",
+  "query.side.untitledHistory": "未命名查询",
   "query.tip.copySuccess": "复制成功",
   "query.tip.editorSettings": "编辑器设置",
   "query.tip.exitFocus": "退出专注模式",

@@ -752,6 +752,7 @@
   "query.side.searchHistory": "Search history",
   "query.side.searchTemplate": "Search templates",
   "query.side.structureTip": "Select a table on the left to view its columns",
+  "query.side.untitledHistory": "Untitled query",
   "query.tip.copySuccess": "Copied to clipboard",
   "query.tip.editorSettings": "Editor settings",
   "query.tip.exitFocus": "Exit focus mode",

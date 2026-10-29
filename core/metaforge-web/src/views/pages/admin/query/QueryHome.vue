@@ -583,6 +583,7 @@ const runContent = (sql: string, syncEditorFromResponse: boolean) => {
   queryConfigure.cancelToken = axios.CancelToken.source()
   queryConfigure.configure!.name = selectSource.code as string
   queryConfigure.configure!.content = sql
+  queryConfigure.configure!.label = executedEditor?.title
 
   loading.running = true
   ExecuteService.execute(queryConfigure.configure!, queryConfigure.cancelToken.token)
@@ -628,6 +629,7 @@ const onRunPlan = () => {
   queryConfigure.configure!.name = selectSource.code as string
   const editor = editors.value[activeEditor.value as string]
   queryConfigure.configure!.content = editor.content
+  queryConfigure.configure!.label = editor?.title
 
   const plannedSql = editor.content
   // The editor keeps the user SQL; the plan rows render in the result grid.
