@@ -13,13 +13,16 @@
       <MfFormItem name="plugin"
                   :label="$t('common.plugin')"
                   :rules="[{ required: true, message: $t('common.plugin') }]">
-        <MfSelect v-model="formState.plugin" multiple :options="plugins"/>
+        <MfSelect v-model="formState.plugin"
+                  multiple
+                  :placeholder="$t('function.tip.selectPluginHolder')"
+                  :options="plugins"/>
       </MfFormItem>
 
       <MfFormItem name="content"
                   :label="$t('common.content')"
                   :rules="[{ required: true, message: $t('common.content') }]">
-        <MfTextarea v-model="formState.content"/>
+        <AceEditor :value="formState.content" @update:value="formState.content = $event"/>
       </MfFormItem>
 
       <MfFormItem name="description"
@@ -58,6 +61,7 @@ import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionModel } from '@/model/function'
 import FunctionService from '@/services/function'
 import PluginService from '@/services/plugin'
+import AceEditor from '@/views/components/editor/AceEditor.vue'
 
 defineOptions({ name: 'FunctionInfo' })
 

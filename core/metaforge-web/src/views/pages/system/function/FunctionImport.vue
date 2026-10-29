@@ -4,28 +4,23 @@
       <MfTabs v-model:active-key="formState.mode">
         <MfTabPane :item-key="FunctionMode.txt" :tab="$t('common.content')">
           <MfFormItem name="content" :label="$t('common.content')">
-            <MfTextarea v-model="formState.content" :placeholder="$t('common.content')"/>
+            <AceEditor :value="formState.content" @update:value="formState.content = $event"/>
           </MfFormItem>
         </MfTabPane>
 
         <MfTabPane :item-key="FunctionMode.url" :tab="$t('function.common.importFromUrl')">
-          <MfSpace direction="vertical" fill :style="{ width: '100%' }">
-            <MfAlert variant="warning"
-                     :title="$t('function.common.keyword')">
-              (http|https)://metaforge.devlive.org/resources/functions/plugin/keywords.txt
-            </MfAlert>
-            <MfAlert variant="warning"
-                     :title="$t('function.common.operator')">
-              (http|https)://metaforge.devlive.org/resources/functions/plugin/operators.txt
-            </MfAlert>
-            <MfAlert variant="warning"
-                     :title="$t('function.common.function')">
-              (http|https)://metaforge.devlive.org/resources/functions/plugin/functions.txt
-            </MfAlert>
-          </MfSpace>
+          <div class="rounded-mf-md border border-line bg-surface px-3 py-2.5">
+            <p class="mb-2 text-xs text-content-tertiary">{{ $t('function.tip.urlExample') }}</p>
+            <div class="flex flex-col gap-1.5">
+              <div v-for="item in urlExamples" :key="item.url" class="flex items-center gap-2">
+                <MfTag>{{ item.label }}</MfTag>
+                <code class="min-w-0 flex-1 truncate font-mono text-xs text-content-secondary">{{ item.url }}</code>
+              </div>
+            </div>
+          </div>
 
-          <MfFormItem name="url" :label="$t('common.url')" class="mt-2">
-            <MfInput v-model="formState.content"/>
+          <MfFormItem name="url" :label="$t('common.url')" class="mt-3">
+            <MfInput v-model="formState.content" :placeholder="$t('function.tip.urlExample')"/>
           </MfFormItem>
         </MfTabPane>
       </MfTabs>
@@ -33,7 +28,10 @@
       <MfFormItem name="plugin"
                   :label="$t('common.plugin')"
                   :rules="[{ required: true, message: $t('common.plugin') }]">
-        <MfSelect v-model="formState.plugin" multiple :options="plugins"/>
+        <MfSelect v-model="formState.plugin"
+                  multiple
+                  :placeholder="$t('function.tip.selectPluginHolder')"
+                  :options="plugins"/>
       </MfFormItem>
 
       <MfFormItem name="type"
@@ -60,11 +58,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import { useHeaders } from '@/views/pages/system/function/FunctionUtils'
 import { FunctionImportModel, FunctionMode } from '@/model/function'
 import FunctionService from '@/services/function'
 import SourceService from '@/services/source'
+import AceEditor from '@/views/components/editor/AceEditor.vue'
 
 defineOptions({ name: 'FunctionImport' })
 
@@ -73,7 +73,15 @@ const props = withDefaults(defineProps<{ isVisible?: boolean }>(), {
 })
 const emit = defineEmits<{ (e: 'close', value: boolean): void }>()
 
+const { t } = useI18n()
+
 const { typeHeaders: types } = useHeaders()
+
+const urlExamples = [
+  { label: t('function.common.keyword'), url: 'https://metaforge.devlive.org/resources/functions/plugin/keywords.txt' },
+  { label: t('function.common.operator'), url: 'https://metaforge.devlive.org/resources/functions/plugin/operators.txt' },
+  { label: t('function.common.function'), url: 'https://metaforge.devlive.org/resources/functions/plugin/functions.txt' }
+]
 
 const visible = computed({
   get: () => props.isVisible,

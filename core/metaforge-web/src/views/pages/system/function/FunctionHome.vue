@@ -42,14 +42,27 @@
           </div>
         </template>
         <template v-else-if="column.key === 'action'">
-          <MfTooltip :content="$t('common.editData')">
-            <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
-              <Pencil :size="15" />
-            </MfButton>
-          </MfTooltip>
+          <MfSpace size="xs">
+            <MfTooltip :content="$t('common.editData')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerInfo(true, record)">
+                <Pencil :size="15" />
+              </MfButton>
+            </MfTooltip>
+
+            <MfTooltip :content="$t('function.common.delete')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerDelete(true, record)">
+                <Trash2 :size="15" />
+              </MfButton>
+            </MfTooltip>
+          </MfSpace>
         </template>
       </template>
     </DataTable>
+
+  <FunctionDelete v-if="dataDeleteVisible"
+                  :is-visible="dataDeleteVisible"
+                  :info="dataInfo"
+                  @close="handlerDelete(false, null)"/>
 
   <FunctionInfo v-if="dataInfoVisible"
                 :is-visible="dataInfoVisible"
@@ -70,7 +83,8 @@ import { useTableFilters } from '@/views/components/table/tableFilters'
 import FunctionService from '@/services/function'
 import FunctionInfo from '@/views/pages/system/function/FunctionInfo.vue'
 import FunctionImport from '@/views/pages/system/function/FunctionImport.vue'
-import { Import, Pencil, Plus } from '@lucide/vue'
+import FunctionDelete from '@/views/pages/system/function/FunctionDelete.vue'
+import { Import, Pencil, Plus, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'FunctionHome' })
 
@@ -81,6 +95,7 @@ const { headers } = useHeaders()
 const loading = ref(false)
 const dataInfoVisible = ref(false)
 const dataImportVisible = ref(false)
+const dataDeleteVisible = ref(false)
 const data = ref<any[]>([])
 const pageIndex = ref(1)
 const pageSize = ref(10)
@@ -132,6 +147,14 @@ const extractItem = (plugins: string[]) => {
 
 const handlerInfo = (opened: boolean, value: FunctionModel | null) => {
   dataInfoVisible.value = opened
+  dataInfo.value = value
+  if (!opened) {
+    handlerInitialize()
+  }
+}
+
+const handlerDelete = (opened: boolean, value: FunctionModel | null) => {
+  dataDeleteVisible.value = opened
   dataInfo.value = value
   if (!opened) {
     handlerInitialize()

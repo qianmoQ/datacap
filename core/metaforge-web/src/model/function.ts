@@ -1,6 +1,7 @@
 export interface FunctionModel
 {
     id?: number
+    code?: string
     name?: string | undefined
     content?: string
     description?: string
