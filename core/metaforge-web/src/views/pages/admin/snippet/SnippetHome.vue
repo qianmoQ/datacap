@@ -7,7 +7,7 @@
                :page-index="pageIndex"
                :page-size="pageSize"
                :total="dataCount"
-               @refresh="handleInitialize"
+               @refresh="initialize"
                @search="onSearch"
                @reset="onSearch"
                @page-change="onPageChange"
@@ -95,13 +95,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { MfMessage } from 'metaforge-ui'
-import { FilterModel, type TableFilters } from '@/model/filter.ts'
 import { useHeaders } from '@/views/pages/admin/snippet/SnippetUtils'
 import { SnippetModel } from '@/model/snippet'
 import DataTable from '@/views/components/table/DataTable.vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
+import { usePagedList } from '@/composables/usePagedList'
 import SnippetService from '@/services/snippet'
 import SnippetInfo from '@/views/pages/admin/snippet/SnippetInfo.vue'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
@@ -111,64 +110,31 @@ import { ChevronRight, FileCode2, Pencil, Plus, Settings, Trash2 } from '@lucide
 defineOptions({ name: 'SnippetHome' })
 
 const tableFilters = useTableFilters('snippet')
-const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 
-const loading = ref(false)
-const data = ref<any[]>([])
-const pageIndex = ref(1)
-const pageSize = ref(10)
-const dataCount = ref(0)
 const dataInfoVisible = ref(false)
 const dataInfo = ref<SnippetModel | null>(null)
 const contentVisible = ref(false)
 const content = ref<string | null>(null)
 const dataDeleteVisible = ref(false)
 
-const onSearch = (values: TableFilters) => {
-  Object.assign(filter, values, { page: 1 })
-  pageIndex.value = 1
-  handleInitialize()
-}
-
-let latestRequest = 0
-const handleInitialize = () => {
-  const request = ++latestRequest
-  loading.value = true
-  SnippetService.getAll({ ...filter })
-                .then(response => {
-                 if (request !== latestRequest) return
-                  if (response.status) {
-                    data.value = response.data.content
-                    dataCount.value = response.data.total
-                    pageSize.value = response.data.size
-                    pageIndex.value = response.data.page
-                  }
-                  else {
-                    MfMessage.error(response.message)
-                  }
-                })
-                .finally(() => { if (request === latestRequest) loading.value = false })
-}
-
-const fetchData = (value: number) => {
-  filter.page = value
-  filter.size = pageSize.value
-  handleInitialize()
-}
-
-const onPageChange = (value: number) => fetchData(value)
-
-const onSizeChange = (_current: number, size: number) => {
-  pageSize.value = size
-  fetchData(pageIndex.value)
-}
+const {
+    loading,
+    data,
+    pageIndex,
+    pageSize,
+    dataCount,
+    initialize,
+    onSearch,
+    onPageChange,
+    onSizeChange
+  } = usePagedList<any>(filter => SnippetService.getAll(filter))
 
 const visibleInfo = (opened: boolean, value: SnippetModel | null) => {
   dataInfoVisible.value = opened
   dataInfo.value = value
   if (!opened) {
-    handleInitialize()
+    initialize()
   }
 }
 
@@ -181,9 +147,9 @@ const visibleDelete = (opened: boolean, value: SnippetModel | null) => {
   dataDeleteVisible.value = opened
   dataInfo.value = value
   if (!opened) {
-    handleInitialize()
+    initialize()
   }
 }
 
-onMounted(() => handleInitialize())
+onMounted(() => initialize())
 </script>

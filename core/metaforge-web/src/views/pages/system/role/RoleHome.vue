@@ -7,7 +7,7 @@
                :page-index="pageIndex"
                :page-size="pageSize"
                :total="dataCount"
-               @refresh="handlerInitialize"
+               @refresh="initialize"
                @search="onSearch"
                @reset="onSearch"
                @page-change="onPageChange"
@@ -72,12 +72,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { FilterModel, type TableFilters } from '@/model/filter'
 import { useHeaders } from '@/views/pages/system/role/RoleUtils'
 import { RoleModel } from '@/model/role'
 import DataTable from '@/views/components/table/DataTable.vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
+import { usePagedList } from '@/composables/usePagedList'
 import RoleInfo from '@/views/pages/system/role/RoleInfo.vue'
 import RoleMenu from '@/views/pages/system/role/RoleMenu.vue'
 import RoleDelete from '@/views/pages/system/role/RoleDelete.vue'
@@ -88,54 +88,24 @@ import { Menu, Pencil, Plus, Trash2 } from '@lucide/vue'
 defineOptions({ name: 'RoleHome' })
 
 const tableFilters = useTableFilters('role')
-const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 
-const loading = ref(false)
 const dataInfoVisible = ref(false)
 const dataAllocationVisible = ref(false)
 const dataDeleteVisible = ref(false)
-const data = ref<any[]>([])
-const pageIndex = ref(1)
-const pageSize = ref(10)
-const dataCount = ref(0)
 const dataInfo = ref<RoleModel | null>(null)
 
-const onSearch = (values: TableFilters) => {
-  Object.assign(filter, values, { page: 1 })
-  pageIndex.value = 1
-  handlerInitialize()
-}
-
-let latestRequest = 0
-const handlerInitialize = () => {
-  const request = ++latestRequest
-  loading.value = true
-  RoleService.getAll({ ...filter })
-             .then((response) => {
-                 if (request !== latestRequest) return
-               if (response.status) {
-                 data.value = response.data.content
-                 dataCount.value = response.data.total
-                 pageSize.value = response.data.size
-                 pageIndex.value = response.data.page
-               }
-             })
-             .finally(() => { if (request === latestRequest) loading.value = false })
-}
-
-const fetchData = (value: number) => {
-  filter.page = value
-  filter.size = pageSize.value
-  handlerInitialize()
-}
-
-const onPageChange = (value: number) => fetchData(value)
-
-const onSizeChange = (_current: number, size: number) => {
-  pageSize.value = size
-  fetchData(pageIndex.value)
-}
+const {
+    loading,
+    data,
+    pageIndex,
+    pageSize,
+    dataCount,
+    initialize,
+    onSearch,
+    onPageChange,
+    onSizeChange
+  } = usePagedList<any>(filter => RoleService.getAll(filter))
 
 const onChangeActive = (record: any, value: boolean) => {
   RoleService.changeActive(record.code, value)
@@ -153,7 +123,7 @@ const handlerChangeDelete = (isOpen: boolean, info: RoleModel | null) => {
   dataDeleteVisible.value = isOpen
   dataInfo.value = info
   if (!isOpen) {
-    handlerInitialize()
+    initialize()
   }
 }
 
@@ -161,7 +131,7 @@ const handlerChangeInfo = (isOpen: boolean, info: RoleModel | null) => {
   dataInfoVisible.value = isOpen
   dataInfo.value = info
   if (!isOpen) {
-    handlerInitialize()
+    initialize()
   }
 }
 
@@ -170,5 +140,5 @@ const handlerAssignMenu = (opened: boolean, info: RoleModel | null) => {
   dataInfo.value = info
 }
 
-onMounted(() => handlerInitialize())
+onMounted(() => initialize())
 </script>

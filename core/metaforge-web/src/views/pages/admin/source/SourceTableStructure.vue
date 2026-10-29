@@ -296,6 +296,7 @@ import {
 } from '@lucide/vue'
 import MetadataService from '@/services/metadata'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
+import { useRowSelection } from '@/composables/useRowSelection'
 
 defineOptions({ name: 'SourceTableStructure' })
 
@@ -311,8 +312,12 @@ const loading = ref(false)
 const tableName = ref(String(route.params.table || ''))
 const columns = ref<any[]>([])
 const primaryNames = ref<Set<string>>(new Set())
-const selectedNames = ref<Set<string>>(new Set())
 const detailName = ref<string | null>(null)
+
+const { selected: selectedNames, allSelected, partialSelected, toggleAll, toggle: toggleSelect, select: selectNames, prune: pruneSelection } = useRowSelection(
+    () => columns.value,
+    (column: any) => column.name
+)
 
 const panelVisible = ref(false)
 const panelMode = ref<'add' | 'edit' | 'insert'>('add')
@@ -370,8 +375,6 @@ const indexTypeOptions = computed(() => [
   { label: t('source.index.unique'), value: 'unique' }
 ])
 
-const allSelected = computed(() => columns.value.length > 0 && columns.value.every(item => selectedNames.value.has(item.name)))
-const partialSelected = computed(() => selectedNames.value.size > 0 && !allSelected.value)
 const detailColumn = computed(() => columns.value.find(item => item.name === detailName.value) || null)
 
 const fieldHeaders = computed(() => [
@@ -423,24 +426,13 @@ const handleInitialize = () => {
           if (!columns.value.some(item => item.name === detailName.value)) {
             detailName.value = columns.value[0]?.name || null
           }
-          selectedNames.value = new Set([...selectedNames.value].filter(name => columns.value.some(item => item.name === name)))
+          pruneSelection()
         }
         else {
           MfMessage.error(columnResponse.message)
         }
       })
       .finally(() => (loading.value = false))
-}
-
-const toggleAll = (checked: boolean) => {
-  selectedNames.value = checked ? new Set(columns.value.map(item => item.name)) : new Set()
-}
-
-const toggleSelect = (name: string, checked: boolean) => {
-  const next = new Set(selectedNames.value)
-  if (checked) next.add(name)
-  else next.delete(name)
-  selectedNames.value = next
 }
 
 const openPanel = (mode: 'add' | 'edit' | 'insert', row: any) => {
@@ -552,7 +544,7 @@ const onSubmitPanel = () => {
 }
 
 const confirmDrop = (names: string[]) => {
-  selectedNames.value = new Set(names)
+  selectNames(names)
   dropVisible.value = true
 }
 
@@ -570,7 +562,6 @@ const onDropFields = () => {
                    if (response.status) {
                      MfMessage.success(t('source.structure.dropSuccess'))
                      dropVisible.value = false
-                     selectedNames.value = new Set()
                      handleInitialize()
                    }
                    else {

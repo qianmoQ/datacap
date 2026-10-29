@@ -7,7 +7,7 @@
                :page-index="pageIndex"
                :page-size="pageSize"
                :total="dataCount"
-               @refresh="handlerInitialize"
+               @refresh="initialize"
                @search="onSearch"
                @reset="onSearch"
                @page-change="onPageChange"
@@ -114,11 +114,11 @@
 import { onMounted, ref } from 'vue'
 import Common from '@/utils/common'
 import { useHeaders } from '@/views/pages/admin/source/SourceUtils'
-import { FilterModel, type TableFilters } from '@/model/filter'
 import { SourceModel } from '@/model/source'
 import DataTable from '@/views/components/table/DataTable.vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
+import { usePagedList } from '@/composables/usePagedList'
 import SourceService from '@/services/source'
 import SourceInfo from '@/views/pages/admin/source/SourceInfo.vue'
 import SourceHistory from '@/views/pages/admin/source/SourceHistory.vue'
@@ -129,62 +129,32 @@ import { CirclePlay, CircleX, Pencil, Plus, Settings, Trash2 } from '@lucide/vue
 defineOptions({ name: 'SourceHome' })
 
 const tableFilters = useTableFilters('source')
-const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 const loginUserCode = Common.getCurrentUserCode()
 
-const loading = ref(false)
-const data = ref<any[]>([])
-const pageIndex = ref(1)
-const pageSize = ref(10)
-const dataCount = ref(0)
 const dataInfoVisible = ref(false)
 const dataInfo = ref<SourceModel | null>(null)
 const dataDeleteVisible = ref(false)
 const dataSyncMetadataVisible = ref(false)
 const dataHistoryVisible = ref(false)
 
-const onSearch = (values: TableFilters) => {
-  Object.assign(filter, values, { page: 1 })
-  pageIndex.value = 1
-  handlerInitialize()
-}
-
-let latestRequest = 0
-const handlerInitialize = () => {
-  const request = ++latestRequest
-  loading.value = true
-  SourceService.getAll({ ...filter })
-               .then((response) => {
-                 if (request !== latestRequest) return
-                 if (response.status) {
-                   data.value = response.data.content
-                   dataCount.value = response.data.total
-                   pageSize.value = response.data.size
-                   pageIndex.value = response.data.page
-                 }
-               })
-               .finally(() => { if (request === latestRequest) loading.value = false })
-}
-
-const fetchData = (value: number) => {
-  filter.page = value
-  filter.size = pageSize.value
-  handlerInitialize()
-}
-
-const onPageChange = (value: number) => fetchData(value)
-
-const onSizeChange = (_current: number, size: number) => {
-  pageSize.value = size
-  fetchData(pageIndex.value)
-}
+const {
+    loading,
+    data,
+    pageIndex,
+    pageSize,
+    dataCount,
+    initialize,
+    onSearch,
+    onPageChange,
+    onSizeChange
+  } = usePagedList<any>(filter => SourceService.getAll(filter))
 
 const visibleInfo = (opened: boolean, value: SourceModel | null) => {
   dataInfoVisible.value = opened
   dataInfo.value = value
   if (!opened) {
-    handlerInitialize()
+    initialize()
   }
 }
 
@@ -192,7 +162,7 @@ const visibleDelete = (opened: boolean, value: SourceModel | null) => {
   dataDeleteVisible.value = opened
   dataInfo.value = value
   if (!opened) {
-    handlerInitialize()
+    initialize()
   }
 }
 
@@ -218,5 +188,5 @@ const formatVersionText = (version: string, maxLength = 20) => {
   return `${ version.substring(0, frontLength) }...${ version.substring(version.length - backLength) }`
 }
 
-onMounted(() => handlerInitialize())
+onMounted(() => initialize())
 </script>

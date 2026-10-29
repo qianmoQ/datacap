@@ -7,13 +7,13 @@
                :page-index="pageIndex"
                :page-size="pageSize"
                :total="dataCount"
-               @refresh="handlerInitialize"
+               @refresh="initialize"
                @search="onSearch"
                @reset="onSearch"
                @page-change="onPageChange"
                @size-change="onSizeChange">
       <template #actions>
-        <MfButton variant="primary" @click="handlerChangeInfo(true, null)">
+        <MfButton variant="primary" @click="infoPanel.open(null)">
           <Plus :size="16" />
           {{ $t('user.common.create') }}
         </MfButton>
@@ -42,25 +42,25 @@
         <template v-else-if="column.key === 'action'">
           <MfSpace :wrap="false" :size="2">
             <MfTooltip :content="$t('user.common.assignRole')">
-              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeRole(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="rolePanel.open(record)">
                 <ArrowUp :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('user.common.resetPassword')">
-              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangePassword(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="passwordPanel.open(record)">
                 <KeyRound :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('common.editData')">
-              <MfButton variant="ghost" size="sm" shape="circle" @click="handlerChangeInfo(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" @click="infoPanel.open(record)">
                 <Pencil :size="15" />
               </MfButton>
             </MfTooltip>
 
             <MfTooltip :content="$t('user.common.delete')">
-              <MfButton variant="ghost" size="sm" shape="circle" :disabled="record.system || record.id === currentUserId" @click="handlerChangeDelete(true, record)">
+              <MfButton variant="ghost" size="sm" shape="circle" :disabled="record.system || record.id === currentUserId" @click="deletePanel.open(record)">
                 <Trash2 :size="15" />
               </MfButton>
             </MfTooltip>
@@ -69,34 +69,35 @@
       </template>
     </DataTable>
 
-  <UserRole v-if="dataRoleVisible"
-            :is-visible="dataRoleVisible"
-            :info="dataInfo"
-            @close="handlerChangeRole(false, null)"/>
+  <UserRole v-if="rolePanel.visible.value"
+            :is-visible="rolePanel.visible.value"
+            :info="rolePanel.target.value"
+            @close="rolePanel.close()"/>
 
-  <UserPassword v-if="dataPasswordVisible"
-                :is-visible="dataPasswordVisible"
-                :info="dataInfo"
-                @close="handlerChangePassword(false, null)"/>
+  <UserPassword v-if="passwordPanel.visible.value"
+                :is-visible="passwordPanel.visible.value"
+                :info="passwordPanel.target.value"
+                @close="passwordPanel.close()"/>
 
-  <UserDelete v-if="dataDeleteVisible"
-              :is-visible="dataDeleteVisible"
-              :info="dataInfo"
-              @close="handlerChangeDelete(false, null)"/>
+  <UserDelete v-if="deletePanel.visible.value"
+              :is-visible="deletePanel.visible.value"
+              :info="deletePanel.target.value"
+              @close="deletePanel.close()"/>
 
-  <UserInfo v-if="dataInfoVisible"
-            :is-visible="dataInfoVisible"
-            :info="dataInfo"
-            @close="handlerChangeInfo(false, null)"/>
+  <UserInfo v-if="infoPanel.visible.value"
+            :is-visible="infoPanel.visible.value"
+            :info="infoPanel.target.value"
+            @close="infoPanel.close()"/>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { FilterModel, type TableFilters } from '@/model/filter'
+import { onMounted } from 'vue'
 import { useHeaders } from './UserUtils'
 import { UserModel } from '@/model/user'
 import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
+import { usePagedList } from '@/composables/usePagedList'
+import { usePanelState } from '@/composables/usePanelState'
 import UserInfo from '@/views/pages/system/user/UserInfo.vue'
 import UserDelete from '@/views/pages/system/user/UserDelete.vue'
 import UserRole from '@/views/pages/system/user/components/UserRole.vue'
@@ -109,60 +110,30 @@ import { ArrowUp, KeyRound, Pencil, Plus, Trash2 } from '@lucide/vue'
 defineOptions({ name: 'UserHome' })
 
 const tableFilters = useTableFilters('user')
-const filter: FilterModel = new FilterModel()
 const { headers } = useHeaders()
 const { userInfo } = useUserStore()
 
-const loading = ref(false)
-const dataRoleVisible = ref(false)
-const dataPasswordVisible = ref(false)
-const dataDeleteVisible = ref(false)
-const data = ref<any[]>([])
-const pageIndex = ref(1)
-const pageSize = ref(10)
-const dataCount = ref(0)
-const dataInfo = ref<UserModel | null>(null)
-const dataInfoVisible = ref(false)
 
 const currentUserId = userInfo?.id
 
+const rolePanel = usePanelState<UserModel>(() => initialize())
+const passwordPanel = usePanelState<UserModel>(() => initialize())
+const deletePanel = usePanelState<UserModel>(() => initialize())
+const infoPanel = usePanelState<UserModel>(() => initialize())
+
 const accountLabel = (record: any) => (record.name ? `${ record.name }: ${ record.username }` : String(record.username))
 
-const onSearch = (values: TableFilters) => {
-  Object.assign(filter, values, { page: 1 })
-  pageIndex.value = 1
-  handlerInitialize()
-}
-
-let latestRequest = 0
-const handlerInitialize = () => {
-  const request = ++latestRequest
-  loading.value = true
-  UserService.getAll({ ...filter })
-             .then((response) => {
-                 if (request !== latestRequest) return
-               if (response.status) {
-                 data.value = response.data.content
-                 dataCount.value = response.data.total
-                 pageSize.value = response.data.size
-                 pageIndex.value = response.data.page
-               }
-             })
-             .finally(() => { if (request === latestRequest) loading.value = false })
-}
-
-const fetchData = (value: number) => {
-  filter.page = value
-  filter.size = pageSize.value
-  handlerInitialize()
-}
-
-const onPageChange = (value: number) => fetchData(value)
-
-const onSizeChange = (_current: number, size: number) => {
-  pageSize.value = size
-  fetchData(pageIndex.value)
-}
+const {
+    loading,
+    data,
+    pageIndex,
+    pageSize,
+    dataCount,
+    initialize,
+    onSearch,
+    onPageChange,
+    onSizeChange
+  } = usePagedList<any>(filter => UserService.getAll(filter))
 
 const onChangeActive = (record: any, value: boolean) => {
   UserService.changeActive(record.code, value)
@@ -176,37 +147,5 @@ const onChangeActive = (record: any, value: boolean) => {
              })
 }
 
-const handlerChangeRole = (isOpen: boolean, info: UserModel | null) => {
-  dataRoleVisible.value = isOpen
-  dataInfo.value = info
-  if (!isOpen) {
-    handlerInitialize()
-  }
-}
-
-const handlerChangePassword = (isOpen: boolean, info: UserModel | null) => {
-  dataPasswordVisible.value = isOpen
-  dataInfo.value = info
-  if (!isOpen) {
-    handlerInitialize()
-  }
-}
-
-const handlerChangeDelete = (isOpen: boolean, info: UserModel | null) => {
-  dataDeleteVisible.value = isOpen
-  dataInfo.value = info
-  if (!isOpen) {
-    handlerInitialize()
-  }
-}
-
-const handlerChangeInfo = (opened: boolean, info: UserModel | null) => {
-  dataInfoVisible.value = opened
-  dataInfo.value = info
-  if (!opened) {
-    handlerInitialize()
-  }
-}
-
-onMounted(() => handlerInitialize())
+onMounted(() => initialize())
 </script>
