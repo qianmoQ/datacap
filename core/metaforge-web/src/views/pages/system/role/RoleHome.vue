@@ -20,7 +20,12 @@
       </template>
 
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'action'">
+        <template v-if="column.key === 'active'">
+          <MfSwitch :model-value="record.active"
+                    :disabled="record.code === 'ADMIN'"
+                    @update:model-value="(value: boolean) => onChangeActive(record, value)"/>
+        </template>
+        <template v-else-if="column.key === 'action'">
           <MfSpace size="xs">
             <MfTooltip :content="$t('common.editData')">
               <MfButton variant="ghost" size="sm" class="rounded-full!" @click="handlerChangeInfo(true, record)">
@@ -33,6 +38,12 @@
                 <Menu :size="15" />
               </MfButton>
             </MfTooltip>
+
+            <MfTooltip :content="$t('role.common.delete')">
+              <MfButton variant="ghost" size="sm" class="rounded-full!" :disabled="record.code === 'ADMIN'" @click="handlerChangeDelete(true, record)">
+                <Trash2 :size="15" />
+              </MfButton>
+            </MfTooltip>
           </MfSpace>
         </template>
       </template>
@@ -42,6 +53,11 @@
             :is-visible="dataInfoVisible"
             :info="dataInfo"
             @close="handlerChangeInfo(false, null)"/>
+  <RoleDelete v-if="dataDeleteVisible"
+              :is-visible="dataDeleteVisible"
+              :info="dataInfo"
+              @close="handlerChangeDelete(false, null)"/>
+
   <RoleMenu v-if="dataAllocationVisible"
             :is-visible="dataAllocationVisible"
             :info="dataInfo"
@@ -57,8 +73,10 @@ import DataTable from '@/views/components/table/DataTable.vue'
 import { useTableFilters } from '@/views/components/table/tableFilters'
 import RoleInfo from '@/views/pages/system/role/RoleInfo.vue'
 import RoleMenu from '@/views/pages/system/role/RoleMenu.vue'
+import RoleDelete from '@/views/pages/system/role/RoleDelete.vue'
 import RoleService from '@/services/role'
-import { Menu, Pencil, Plus } from '@lucide/vue'
+import { MfMessage } from 'metaforge-ui'
+import { Menu, Pencil, Plus, Trash2 } from '@lucide/vue'
 
 defineOptions({ name: 'RoleHome' })
 
@@ -69,6 +87,7 @@ const { headers } = useHeaders()
 const loading = ref(false)
 const dataInfoVisible = ref(false)
 const dataAllocationVisible = ref(false)
+const dataDeleteVisible = ref(false)
 const data = ref<any[]>([])
 const pageIndex = ref(1)
 const pageSize = ref(10)
@@ -109,6 +128,26 @@ const onPageChange = (value: number) => fetchData(value)
 const onSizeChange = (_current: number, size: number) => {
   pageSize.value = size
   fetchData(pageIndex.value)
+}
+
+const onChangeActive = (record: any, value: boolean) => {
+  RoleService.changeActive(record.code, value)
+             .then((response) => {
+               if (response.status) {
+                 record.active = value
+               }
+               else {
+                 MfMessage.error(response.message)
+               }
+             })
+}
+
+const handlerChangeDelete = (isOpen: boolean, info: RoleModel | null) => {
+  dataDeleteVisible.value = isOpen
+  dataInfo.value = info
+  if (!isOpen) {
+    handlerInitialize()
+  }
 }
 
 const handlerChangeInfo = (isOpen: boolean, info: RoleModel | null) => {
