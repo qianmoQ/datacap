@@ -150,6 +150,24 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/index-details`)
     }
 
+    /** Options and statistics of one table: engine, row format, charset, collation, sizes, counts and comment. */
+    getTableProperties(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/table-properties`)
+    }
+
+    /** Every character set with its collations. */
+    getCharacterSets(code: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/character-sets`)
+    }
+
+    /** Changes the given table options in one ALTER TABLE. */
+    alterTableOptions(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/alter-table-options`, configure)
+    }
+
     /** Triggers of the table with timing, event, body, definer, creation time, SQL mode and charset. */
     getTriggerDetails(code: string, database: string, table: string): Promise<ResponseModel>
     {

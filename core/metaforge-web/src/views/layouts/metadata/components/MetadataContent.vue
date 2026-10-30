@@ -16,6 +16,7 @@
           <span v-else class="text-sm font-medium text-content-secondary">{{ $t('source.manage.kind.' + (profile?.kind || 'unknown')) }}</span>
           <div class="flex shrink-0 items-center gap-2">
             <MfButton size="sm" @click="onRefresh"><RefreshCw :size="14"/>{{ $t('common.refresh') }}</MfButton>
+            <MfButton v-if="can('table:alter') && can('tab:info')" size="sm" :disabled="!originalTable" @click="onEditProperties"><Pencil :size="14"/>{{ $t('source.props.edit') }}</MfButton>
             <MfButton v-if="can('column:read')" size="sm" :disabled="!originalTable" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}</MfButton>
             <MfDropdown v-if="can('table:create') || can('table:export') || can('table:drop') || can('table:truncate') || can('tab:er-diagram')" trigger="click" placement="bottomRight">
               <MfButton size="sm">{{ $t('source.common.moreActions') }}<ChevronDown :size="12"/></MfButton>
@@ -64,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpToLine, ChevronDown, ChevronRight, Copy, Database, Eraser, GitBranch, GitCompare, Layers, LayoutGrid, RefreshCw, Settings, SquarePlay, Table, Table2, Trash2, Zap, Code, KeyRound, FolderOpen } from '@lucide/vue'
+import { ArrowUpToLine, ChevronDown, Pencil, ChevronRight, Copy, Database, Eraser, GitBranch, GitCompare, Layers, LayoutGrid, RefreshCw, Settings, SquarePlay, Table, Table2, Trash2, Zap, Code, KeyRound, FolderOpen } from '@lucide/vue'
 import TableCreate from '@/views/pages/admin/source/components/TableCreate.vue'
 import TableExport from '@/views/pages/admin/source/components/TableExport.vue'
 import TableTruncate from '@/views/pages/admin/source/components/TableTruncate.vue'
@@ -74,7 +75,7 @@ import { useMetadataContent } from '@/composables/useMetadataContent'
 defineOptions({ name: 'MetadataContent' })
 const tabIcons: Record<string, unknown> = { keys: KeyRound, objects: FolderOpen, structure: LayoutGrid, data: Table2, sql: SquarePlay, indexes: Layers, foreignkeys: GitBranch, triggers: Zap, info: Settings, statement: Code }
 const { can, profile, capabilityLoading, capabilityError, paneComponent, paneKey, databaseLocation, tableInfo, tableName, selectTab, tabs, metadataError,
-  originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName,
+  originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties,
   tableCreateVisible, tableExportVisible, tableTruncateVisible, tableDropVisible } = useMetadataContent()
 </script>
 

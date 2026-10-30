@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, provide, ref, watch } from 'vue'
+import { computed, onScopeDispose, provide, reactive, ref, watch } from 'vue'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import MetadataService from '@/services/metadata'
 import { useSourceWorkspaceLayout } from './useSourceWorkspaceLayout'
@@ -38,6 +38,8 @@ export function useMetadataWorkspace() {
   provide('metadataFieldPanelHost', fieldPanelHost)
   provide('metadataFieldPanelWidth', layout.rightWidth)
   provide('metadataWorkspaceLayout', layout)
+  // The header's "edit table properties" asks the properties tab to open its editor.
+  provide('metadataTablePropertiesEdit', reactive({ request: 0, handled: 0 }))
 
   async function load() {
     const request = ++revision

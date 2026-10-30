@@ -46,6 +46,12 @@ export function useMetadataContent() {
     { key: 'info', label: t('source.tab.tableOptions') },
     { key: 'statement', label: t('source.tab.ddl') },
   ].filter(tab => can('tab:' + tab.key)))
+  const propertiesEdit = inject<{ request: number; handled: number }>('metadataTablePropertiesEdit', { request: 0, handled: 0 })
+  /** Opens the properties tab with its editor. */
+  const onEditProperties = () => {
+    onChange('info')
+    propertiesEdit.request++
+  }
   const onChange = (tab: string | number) => {
     if (can(sourceTabCapability(String(tab)))) router.push(sourceManageLocation({ source: originalSource.value, database: originalDatabase.value, table: originalTable.value, tab: String(tab) }, route.query))
   }
@@ -80,6 +86,6 @@ export function useMetadataContent() {
     }
   }
   return { can, profile, capabilityLoading, capabilityError, paneComponent, paneKey, databaseLocation, tableInfo, tableName, selectTab, tabs, fieldPanelOpen, fieldPanelHost, metadataError, ...layout,
-    originalSource, originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName,
+    originalSource, originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties,
     tableCreateVisible, tableExportVisible, tableTruncateVisible, tableDropVisible }
 }
