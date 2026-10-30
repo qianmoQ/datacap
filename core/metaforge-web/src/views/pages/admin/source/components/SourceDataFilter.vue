@@ -12,9 +12,9 @@
         </MfDropdown>
       </div>
     </header>
-    <!-- About five rows fit; more conditions scroll inside the panel instead of pushing the table away. -->
-    <div class="flex max-h-56 flex-col gap-3 overflow-y-auto pr-1">
-      <div v-for="condition in conditions" :key="condition.id" class="flex items-center gap-3">
+    <!-- Three 36px rows and two 12px gaps fit; more conditions scroll here instead of pushing the table away. -->
+    <div class="flex max-h-[8.25rem] flex-col gap-3 overflow-y-auto pr-1">
+      <div v-for="condition in conditions" :key="condition.id" class="flex min-h-9 shrink-0 items-center gap-3">
         <div class="w-56 shrink-0">
           <MfSelect :model-value="condition.column" size="sm" searchable :options="columnOptions" :placeholder="$t('source.data.selectField')"
                     @update:model-value="value => emit('changeColumn', condition, String(value))">
@@ -22,7 +22,7 @@
           </MfSelect>
         </div>
         <template v-if="kindOf(condition.column) === 'date'">
-          <div class="data-range flex w-[30rem] min-w-0 items-center rounded-mf-md border border-line bg-surface pr-2.5">
+          <div class="data-range flex h-9 w-[30rem] min-w-0 items-center rounded-mf-md border border-line bg-surface pr-2.5">
             <MfDatePicker v-model="condition.value[0]" class="min-w-0 flex-1" :locale="locale" :label="$t('source.data.startDate')" :placeholder="$t('source.data.startDate')" :max="condition.value[1] || undefined"/>
             <span class="px-1 text-content-tertiary">~</span>
             <MfDatePicker v-model="condition.value[1]" class="min-w-0 flex-1" :locale="locale" :label="$t('source.data.endDate')" :placeholder="$t('source.data.endDate')" :min="condition.value[0] || undefined"/>
@@ -81,5 +81,6 @@ function placeholder(condition: DataCondition) {
 </script>
 
 <style scoped>
-.data-range :deep(button) { border-color: transparent; box-shadow: none; }
+/* The pickers sit borderless inside the range box, sized to its inner height. */
+.data-range :deep(button) { height: 34px; border-color: transparent; box-shadow: none; }
 </style>

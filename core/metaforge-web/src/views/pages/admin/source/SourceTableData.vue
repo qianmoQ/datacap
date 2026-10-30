@@ -1,5 +1,5 @@
 <template>
-  <div class="source-data flex h-full min-h-0 flex-col gap-3 overflow-y-auto">
+  <div class="source-data flex h-full min-h-0 flex-col gap-3 overflow-hidden">
     <SourceDataFilter :conditions="conditions" :columns="columnNames" :type-of="typeOf" :loading="loading"
                       @add="addCondition()" @clear="clearConditions" @remove="removeCondition" @search="onSearch" @reset="onReset"
                       @change-column="changeColumn" @change-operator="changeOperator"/>
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="flex min-h-60 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
       <MfTable fill :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
         <template #cell-__check__="{ record }"><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => toggle(record.__key, !!value)"/></template>
