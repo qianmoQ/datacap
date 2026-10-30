@@ -868,6 +868,7 @@
   "query.result.initial": "等待执行查询",
   "query.result.initialTip": "选择数据源并执行 SQL，查询结果将显示在这里。",
   "query.result.messages": "消息",
+  "query.result.noMatch": "没有匹配的结果",
   "query.result.perPage": "每页",
   "query.result.results": "查询结果",
   "query.result.rowsUnit": "条",

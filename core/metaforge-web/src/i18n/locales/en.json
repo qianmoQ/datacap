@@ -868,6 +868,7 @@
   "query.result.initial": "Ready to query",
   "query.result.initialTip": "Choose a data source and run SQL to see results here.",
   "query.result.messages": "Messages",
+  "query.result.noMatch": "No matching rows",
   "query.result.perPage": "Per page",
   "query.result.results": "Results",
   "query.result.rowsUnit": "rows",
