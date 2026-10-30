@@ -114,6 +114,10 @@ function select(option: MfSelectOption): void {
     }
 }
 
+function remove(value: string | number): void {
+    commit(selectedValues.value.filter(item => item !== value))
+}
+
 function clear(): void {
     commit(isMultiple.value ? [] : '')
     query.value = ''
@@ -185,6 +189,7 @@ watch(open, value => {
 <template>
     <div ref="root" class="relative inline-flex w-full">
         <div :class="triggerClass" @click="toggle">
+            <span v-if="$slots.prefix" class="inline-flex shrink-0 items-center text-content-secondary"><slot name="prefix" /></span>
             <input
                 v-if="searchActive"
                 ref="searchInput"
@@ -208,6 +213,15 @@ watch(open, value => {
                         class="inline-flex max-w-40 items-center gap-1 rounded-mf-sm bg-surface-active px-1.5 py-0.5 text-xs text-content"
                     >
                         <span class="truncate">{{ option.label }}</span>
+                        <button
+                            v-if="!disabled"
+                            type="button"
+                            class="inline-flex size-3.5 shrink-0 items-center justify-center rounded-mf-full text-content-tertiary hover:text-content"
+                            :aria-label="`remove ${option.label}`"
+                            @click.stop="remove(option.value)"
+                        >
+                            <svg class="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                        </button>
                     </span>
                 </template>
                 <template v-else>
