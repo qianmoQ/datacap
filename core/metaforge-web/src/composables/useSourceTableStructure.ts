@@ -7,6 +7,7 @@ import { mapSourceColumns, planColumnMoves, sourceColumnForm, sourceColumnPayloa
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 import { useExecutedSql } from './useExecutedSql'
+import { mapDependencies, type ColumnDependency } from '@/model/column-dependency'
 import { DROP_ROW_CLASS, useDragSort } from './useDragSort'
 
 export function useSourceTableStructure() {
@@ -30,6 +31,9 @@ export function useSourceTableStructure() {
   const moreOptionsOpen = ref(false)
   const reorderVisible = ref(false)
   const dropVisible = ref(false)
+  const dropChecking = ref(false)
+  const dropNames = ref<string[]>([])
+  const dropDependencies = ref<ColumnDependency[]>([])
   const dataTypes = ref<string[]>([])
   const typesLoading = ref(false)
   const editor = usePanelState<SourceColumn>()
@@ -224,21 +228,40 @@ export function useSourceTableStructure() {
       } else panelIssues.value = { name: errorMessage(error) }
     } finally { saving.value = false }
   }
-  function confirmDrop(names: string[]) {
-    if (names.length === 0 || saving.value) return
-    selectNames(names)
-    dropVisible.value = true
+  /**
+   * Looks up what depends on the fields before opening the confirmation, so the dialog opens with
+   * its final content: a plain confirmation, or the dependencies and a forced-drop option.
+   */
+  async function confirmDrop(names: string[]) {
+    if (names.length === 0 || saving.value || dropChecking.value || !can('column:drop')) return
+    const key = identity()
+    dropChecking.value = true
+    try {
+      const response = await MetadataService.getColumnDependencies(String(route.params.source), String(route.params.database), String(route.params.table), {
+        name: String(route.params.table), columns: names.map(name => ({ name })),
+      })
+      assertSuccess(response)
+      if (!alive || identity() !== key) return
+      dropDependencies.value = mapDependencies(response.data?.columns || [])
+      dropNames.value = names
+      selectNames(names)
+      dropVisible.value = true
+    } catch (error) {
+      if (alive && identity() === key) MfMessage.error(errorMessage(error))
+    } finally {
+      dropChecking.value = false
+    }
   }
   const onRequestDrop = () => confirmDrop(selectedNames.value.size ? [...selectedNames.value] : detailColumn.value ? [detailColumn.value.name] : [])
-  async function onDropFields() {
-    if (!selectedNames.value.size || saving.value || !can('column:drop')) return
+  async function onDropFields(force = false) {
+    if (!dropNames.value.length || saving.value || !can('column:drop')) return
     const key = identity()
-    const names = [...selectedNames.value]
+    const names = [...dropNames.value]
     const recorder = executedSql.record({ operation: t('source.executed.dropField'), table: String(route.params.table), target: { label: t('source.executed.fields'), value: names.join(', ') } })
     saving.value = true
     try {
       const response = await recorder.run(MetadataService.dropColumn(String(route.params.source), String(route.params.database), String(route.params.table), {
-        name: String(route.params.table), columns: names.map(name => ({ name })),
+        name: String(route.params.table), columns: names.map(name => ({ name })), force,
       }))
       assertSuccess(response)
       if (!alive || identity() !== key) return
@@ -346,7 +369,7 @@ export function useSourceTableStructure() {
   else { onMounted(handleInitialize); if (refreshKey) watch(refreshKey, handleInitialize) }
   onScopeDispose(() => { alive = false; revision++; typeRevision++; fieldPanelOpen.value = false })
   return { can, loading, columns, primaryNames, detailName, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
-    panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,
+    panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, dropChecking, dropNames, dropDependencies, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,
     reorderVisible, nameSort, sortedColumns, toggleNameSort, typeOptions, dataTypes, typesLoading, defaultModeOptions,
     charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs, detailIndexes,
     detailForeignKeys, detailUnique, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor, displayDefault, openPanel, closePanel, onInsertField,

@@ -103,6 +103,12 @@ class MetadataService
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/query-table`, configure)
     }
 
+    /** Indexes, foreign keys, triggers, views and generated columns that use the given columns. */
+    getColumnDependencies(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/column-dependencies`, configure)
+    }
+
     deleteData(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/delete-data`, configure)

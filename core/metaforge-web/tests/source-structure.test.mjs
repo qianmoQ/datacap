@@ -8,7 +8,7 @@ const moduleUrl = source => `data:text/javascript;base64,${Buffer.from(source).t
 const compile = source => ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext } }).outputText
 const vueUrl = import.meta.resolve('vue')
 const routerUrl = moduleUrl(`import {reactive} from ${JSON.stringify(vueUrl)}; export const route=reactive({params:{source:'demo',database:'db',table:'orders'}});export const useRoute=()=>route;export const useSourceManageRoute=()=>route`)
-const serviceUrl = moduleUrl(`export const state={calls:[],responses:{}};const request=(name,args)=>{state.calls.push({name,args});return state.responses[name]?.(...args)||Promise.resolve({status:true,data:{isSuccessful:true,columns:['DECIMAL','VARCHAR','BIGINT']}})};export default Object.fromEntries(['getDataTypes','createColumn','changeColumn','createIndex','dropColumn'].map(name=>[name,(...args)=>request(name,args)]))`)
+const serviceUrl = moduleUrl(`export const state={calls:[],responses:{}};const request=(name,args)=>{state.calls.push({name,args});return state.responses[name]?.(...args)||Promise.resolve({status:true,data:{isSuccessful:true,columns:['DECIMAL','VARCHAR','BIGINT']}})};export default Object.fromEntries(['getDataTypes','createColumn','changeColumn','createIndex','dropColumn','getColumnDependencies'].map(name=>[name,(...args)=>request(name,args)]))`)
 const uiUrl = moduleUrl('export const notices=[];export const MfMessage=Object.fromEntries(["success","warning","error"].map(name=>[name,message=>notices.push({name,message})]))')
 async function local(path, imports = {}) {
   let code = compile(await readFile(new URL('../src/'+path, import.meta.url), 'utf8'))
@@ -18,7 +18,7 @@ async function local(path, imports = {}) {
 const sourceUrl = await local('model/source-column.ts')
 const hookUrl = await local('composables/useSourceTableStructure.ts', {
   'vue-router':routerUrl,'@/composables/useSourceManageRoute':routerUrl,'vue-i18n':moduleUrl('export const useI18n=()=>({t:key=>key})'),'metaforge-ui':uiUrl,
-  '@/services/metadata':serviceUrl,'@/model/source-column':sourceUrl,
+  '@/services/metadata':serviceUrl,'@/model/source-column':sourceUrl,'@/model/column-dependency':await local('model/column-dependency.ts'),
   './useRowSelection':await local('composables/useRowSelection.ts'),'./useDragSort':await local('composables/useDragSort.ts'),'./useExecutedSql':await local('composables/useExecutedSql.ts',{'@/model/executed-sql':await local('model/executed-sql.ts')}),'./usePanelState':await local('composables/usePanelState.ts'),
 })
 const {useSourceTableStructure} = await import(hookUrl)
@@ -104,5 +104,22 @@ test('unsupported operations never open an editor or send DDL requests',async()=
     await hook.onMove(1)
     hook.confirmDrop(['amount']);await hook.onDropFields()
     assert.equal(state.calls.length,0)
+  }finally{host.unmount()}
+})
+
+test('dropping looks up dependencies first and forces the drop only when asked',async()=>{
+  const {host,hook}=mount()
+  try{
+    await settle()
+    state.responses.getColumnDependencies=()=>Promise.resolve({status:true,data:{isSuccessful:true,columns:[{object_type:'index',object_name:'idx_amount',object_kind:'NORMAL',object_columns:'amount',object_schema:'db',object_table:'orders'},{object_type:'unknown',object_name:'x'}]}})
+    await hook.confirmDrop(['amount'])
+    assert.equal(hook.dropVisible.value,true)
+    assert.deepEqual(hook.dropNames.value,['amount'])
+    assert.deepEqual(hook.dropDependencies.value.map(item=>item.name),['idx_amount'])
+    assert.equal(state.calls.some(call=>call.name==='dropColumn'),false)
+    await hook.onDropFields(true)
+    const drop=state.calls.find(call=>call.name==='dropColumn').args[3]
+    assert.deepEqual({columns:drop.columns,force:drop.force},{columns:[{name:'amount'}],force:true})
+    assert.equal(hook.dropVisible.value,false)
   }finally{host.unmount()}
 })

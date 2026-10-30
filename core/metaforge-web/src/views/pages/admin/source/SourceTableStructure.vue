@@ -6,7 +6,7 @@
         <div v-if="can('column:create') || can('column:modify') || can('column:drop')" class="flex shrink-0 flex-wrap items-center gap-2 px-2.5 py-2.5">
           <MfButton v-if="can('column:create')" size="sm" variant="primary" :disabled="saving" @click="openPanel('add')"><Plus :size="14"/>{{ $t('source.structure.addField') }}</MfButton>
           <MfButton v-if="can('column:create')" size="sm" :disabled="saving || !detailColumn" @click="onInsertField"><ListPlus :size="14"/>{{ $t('source.structure.insertField') }}</MfButton>
-          <MfButton v-if="can('column:drop')" size="sm" :disabled="saving || (!selectedNames.size && !detailColumn)" @click="onRequestDrop"><Trash2 :size="14"/>{{ $t('source.structure.dropTitle') }}</MfButton>
+          <MfButton v-if="can('column:drop')" size="sm" :disabled="saving || (!selectedNames.size && !detailColumn)" :loading="dropChecking" @click="onRequestDrop"><Trash2 :size="14"/>{{ $t('source.structure.dropTitle') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position <= 1" @click="onMove(-1)"><ArrowUp :size="14"/>{{ $t('source.structure.moveUp') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position >= columns.length" @click="onMove(1)"><ArrowDown :size="14"/>{{ $t('source.structure.moveDown') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !columns.length" @click="reorderVisible = true"><ArrowUpDown :size="14"/>{{ $t('source.structure.reorder') }}</MfButton>
@@ -56,11 +56,7 @@
     <SourceColumnEditor v-if="panelVisible" v-model="panelForm" v-model:more="moreOptionsOpen" :open="panelVisible" :can-create-index="can('index:create')" :width="fieldPanelWidth" :mode="panelMode" :anchor="panelAnchor" :saving="saving" :index-only="indexOnly" :container="fieldPanelHost" :issues="panelIssues" :columns="columns" :supported-types="dataTypes" :types-loading="typesLoading" :type-options="typeOptions" :default-mode-options="defaultModeOptions" :charset-options="charsetOptions" :collate-options="collateOptions" :index-type-options="indexTypeOptions" :composite-column-options="compositeColumnOptions" @close="closePanel()" @save="onSubmitPanel"/>
     <ExecutedSqlDialog v-model:open="executedVisible" :executed="executed"/>
     <SourceColumnReorder v-model:open="reorderVisible" :columns="columns" :saving="saving" :type-tone="typeTone" :type-color="typeColor" @apply="onApplyOrder"/>
-    <MfModal v-model:open="dropVisible" :title="$t('source.structure.dropTitle')" width="440px">
-      <MfAlert variant="danger" :title="$t('source.structure.dropAlert1')"/>
-      <p class="mt-3 break-words text-sm text-content-secondary">{{ $t('source.common.dropColumnInfo').replace('$VALUE', [...selectedNames].join(', ')) }}</p>
-      <template #footer><MfButton :disabled="saving" @click="dropVisible = false">{{ $t('common.cancel') }}</MfButton><MfButton variant="danger" :loading="saving" @click="onDropFields">{{ $t('common.delete') }}</MfButton></template>
-    </MfModal>
+    <SourceColumnDrop :open="dropVisible" :names="dropNames" :dependencies="dropDependencies" :saving="saving" @close="dropVisible = false" @confirm="onDropFields"/>
   </div>
 </template>
 
@@ -70,10 +66,11 @@ import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SourceColumnEditor from './components/SourceColumnEditor.vue'
 import SourceColumnReorder from './components/SourceColumnReorder.vue'
 import ExecutedSqlDialog from '@/views/components/sql/ExecutedSqlDialog.vue'
+import SourceColumnDrop from './components/SourceColumnDrop.vue'
 import { useSourceTableStructure } from '@/composables/useSourceTableStructure'
 defineOptions({ name: 'SourceTableStructure' })
 const { can, loading, columns, primaryNames, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
-  panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,
+  panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, dropChecking, dropNames, dropDependencies, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,
   reorderVisible, nameSort, sortedColumns, toggleNameSort, typeOptions, dataTypes, typesLoading, defaultModeOptions,
   charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs,
   detailIndexes, detailForeignKeys, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor,
