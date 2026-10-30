@@ -32,8 +32,8 @@
       </MfTable>
     </div>
 
-    <section v-if="detail" class="max-h-[48%] shrink-0 overflow-y-auto rounded-mf-md border border-line">
-      <header class="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-3">
+    <section v-if="detail" class="flex max-h-[48%] shrink-0 flex-col overflow-hidden rounded-mf-md border border-line">
+      <header class="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-3">
         <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-2">
             <h3 class="m-0 truncate text-lg font-semibold text-content">{{ detail.name }}</h3>
@@ -48,7 +48,7 @@
           <MfButton v-if="can('index:drop')" size="sm" variant="danger" :disabled="saving || detail.primary" @click="requestDrop([detail])"><Trash2 :size="14"/>{{ $t('common.delete') }}</MfButton>
         </div>
       </header>
-      <div class="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div class="grid min-h-0 flex-1 grid-cols-1 gap-0 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
         <div class="border-line p-4 lg:border-r">
           <h4 class="m-0 mb-3 text-sm font-semibold text-content">{{ $t('source.idx.basic') }}</h4>
           <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 text-sm">
