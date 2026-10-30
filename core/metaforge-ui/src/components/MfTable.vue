@@ -64,8 +64,13 @@ const alignClass = (align?: string) =>
 
 const colKey = (column: MfTableColumn) => column.key ?? column.dataIndex
 
-const widthStyle = (column: MfTableColumn) =>
-    column.width === undefined ? {} : { width: typeof column.width === 'number' ? `${column.width}px` : column.width }
+// A declared width is also the column's minimum: truncating cells would otherwise let a full-width
+// table squeeze every column to fit instead of scrolling sideways.
+const widthStyle = (column: MfTableColumn) => {
+    if (column.width === undefined) return {}
+    const width = typeof column.width === 'number' ? `${column.width}px` : column.width
+    return { width, minWidth: width }
+}
 
 // Sticky cells need an opaque background; striped rows blend surface-hover over
 // surface, so the striped sticky cell uses the pre-mixed solid color.
