@@ -12,8 +12,10 @@
       <!-- 表单区 -->
       <div class="lg:col-span-2">
         <div class="dc-rename__card">
-          <MfSkeleton :loading="defaultLoading">
-            <MfForm v-if="formState" layout="vertical" class="dc-rename__form">
+          <div v-if="defaultLoading" class="flex items-center justify-center py-10">
+            <MfSpinner/>
+          </div>
+          <MfForm v-else-if="!defaultLoading && formState" layout="vertical" class="dc-rename__form">
               <MfFormItem name="oldUsername" :label="$t('user.common.currentUsername')">
                 <MfInput :model-value="formState.oldUsername" disabled/>
               </MfFormItem>
@@ -46,7 +48,7 @@
                 {{ $t('common.cancel') }}
               </MfButton>
             </div>
-          </MfSkeleton>
+          
         </div>
       </div>
 

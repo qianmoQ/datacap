@@ -246,6 +246,11 @@ class MetadataService
         return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/drop-index`, configure)
     }
 
+    previewCreateTable(code: string, configure: any, kind: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/preview-create-table?kind=${ kind }`, configure)
+    }
+
     getColumn(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/get-column`, configure)

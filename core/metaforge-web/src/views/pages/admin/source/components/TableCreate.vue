@@ -1,121 +1,299 @@
 <template>
-  <MfDrawer v-model:open="visible" width="40%" :title="$t('source.common.menuNewTable')">
-    <MfSkeleton v-if="loading"/>
+  <MfDrawer v-model:open="visible" width="min(1280px, 94vw)" :title="$t('source.common.menuNewTable')">
+    <MfSpinner v-if="loading"/>
 
-    <MfForm v-else-if="!loading && formState"
-            id="table-create-form"
-            :model="formModel"
-            layout="vertical"
-            @finish="onSubmit">
-      <div class="grid grid-cols-2 gap-4">
-        <MfFormItem name="name"
-                    :label="$t('source.common.tableName')"
-                    :rules="[
-                        { required: true, message: $t('source.validator.tableName.required') },
-                        { pattern: /^[A-Za-z][A-Za-z0-9_-]*$/, message: $t('source.validator.tableName.pattern') }
-                    ]">
-          <MfInput v-model="formState.name" :placeholder="$t('source.placeholder.tableName')"/>
-        </MfFormItem>
-
-        <MfFormItem name="engine"
-                    :label="$t('source.common.engine')"
-                    :rules="[{ required: true, message: $t('source.validator.tableEngine.required') }]">
-          <MfSelect v-model="formState.engine" :options="engineOptions" :placeholder="$t('source.placeholder.tableEngine')"/>
-        </MfFormItem>
+    <div v-else class="flex flex-col gap-4">
+      <!-- 步骤条 -->
+      <div class="flex items-center gap-3 rounded-mf-lg border border-line bg-surface px-5 py-4">
+        <template v-for="(step, index) in steps" :key="step.titleKey">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-mf-full text-sm font-semibold"
+                  :class="currentStep > index + 1 || currentStep === index + 1 ? 'bg-primary text-on-primary' : 'border border-line bg-surface text-content-tertiary'">
+              <Check v-if="currentStep > index + 1" :size="15"/>
+              <template v-else>{{ index + 1 }}</template>
+            </span>
+            <div class="leading-tight">
+              <div class="text-sm font-semibold" :class="currentStep >= index + 1 ? 'text-content' : 'text-content-tertiary'">{{ $t(step.titleKey) }}</div>
+              <div class="mt-0.5 text-xs text-content-tertiary">{{ $t(step.descKey) }}</div>
+            </div>
+          </div>
+          <span v-if="index < steps.length - 1" class="h-px flex-1 bg-line"/>
+        </template>
       </div>
 
-      <MfFormItem name="comment" :label="$t('source.common.comment')">
-        <MfTextarea v-model="formState.comment" :placeholder="$t('source.placeholder.tableComment')"/>
-      </MfFormItem>
+      <div class="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-4">
+        <!-- 左列 -->
+        <div class="flex min-w-0 flex-col gap-4">
+          <!-- 基本信息 -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.basicInfo') }}</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.common.tableName') }} <span class="text-danger">*</span></label>
+                <MfInput v-model="formState.name" placeholder="user"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.create.sourceDb') }}</label>
+                <MfInput :model-value="databaseName" disabled/>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.common.comment') }}</label>
+              <MfTextarea v-model="formState.comment" :rows="2" :maxlength="500"/>
+              <div class="mt-1 text-right text-[11px] text-content-tertiary">
+                {{ $t('source.structure.commentCounter', { count: (formState.comment || '').length }) }}
+              </div>
+            </div>
+          </section>
 
-      <div class="mb-2">
-        <MfButton variant="ghost" size="sm" @click="onAdd">
-          <Plus :size="15" />
-        </MfButton>
+          <!-- 字段定义 -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <div class="mb-3 flex items-center justify-between gap-2">
+              <h3 class="m-0 text-base font-semibold text-content">{{ $t('source.create.fieldDefine') }}</h3>
+              <div class="flex items-center gap-2">
+                <MfButton size="sm" @click="onAdd"><Plus :size="13"/>{{ $t('source.structure.addField') }}</MfButton>
+                <MfButton size="sm" :disabled="selectedRows.size === 0" @click="onMoveSelected(-1)"><ArrowUp :size="13"/>{{ $t('source.structure.moveUp') }}</MfButton>
+                <MfButton size="sm" :disabled="selectedRows.size === 0" @click="onMoveSelected(1)"><ArrowDown :size="13"/>{{ $t('source.structure.moveDown') }}</MfButton>
+                <MfButton size="sm" variant="danger" :disabled="selectedRows.size === 0" @click="onBatchDelete"><Trash2 :size="13"/>{{ $t('source.create.batchDelete') }}</MfButton>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-mf-md border border-line">
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr class="bg-surface-hover text-xs text-content-secondary">
+                    <th class="w-10 px-2 py-2 text-left font-medium">{{ $t('common.id') }}</th>
+                    <th class="px-2 py-2 text-left font-medium">{{ $t('source.structure.fieldName') }} <span class="text-danger">*</span></th>
+                    <th class="px-2 py-2 text-left font-medium">{{ $t('source.structure.type') }} <span class="text-danger">*</span></th>
+                    <th class="w-24 px-2 py-2 text-left font-medium">{{ $t('source.create.lengthValue') }}</th>
+                    <th class="w-36 px-2 py-2 text-left font-medium">{{ $t('source.common.defaultValue') }}</th>
+                    <th class="w-14 px-2 py-2 text-center font-medium">{{ $t('source.structure.nullable') }}</th>
+                    <th class="w-14 px-2 py-2 text-center font-medium">{{ $t('source.create.primary') }}</th>
+                    <th class="w-14 px-2 py-2 text-center font-medium">{{ $t('source.create.autoIncCol') }}</th>
+                    <th class="w-14 px-2 py-2 text-center font-medium">{{ $t('source.create.uniqueCol') }}</th>
+                    <th class="min-w-[140px] px-2 py-2 text-left font-medium">{{ $t('source.structure.comment') }}</th>
+                    <th class="w-32 px-2 py-2 text-left font-medium">{{ $t('common.action') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(column, index) in formState.columns" :key="index"
+                      class="border-t border-line transition-colors"
+                      :class="selectedRows.has(index) ? 'bg-primary/5' : 'hover:bg-surface-hover/60'">
+                    <td class="cursor-pointer px-2 py-1.5 text-xs text-content-tertiary" @click="toggleRow(index)">{{ index + 1 }}</td>
+                    <td class="px-1.5 py-1.5"><MfInput v-model="column.name" size="sm"/></td>
+                    <td class="px-1.5 py-1.5"><MfSelect v-model="column.type" size="sm" :options="dataTypeOptions"/></td>
+                    <td class="px-1.5 py-1.5"><MfInput v-model="column.length" size="sm"/></td>
+                    <td class="px-1.5 py-1.5"><MfInput v-model="column.defaultValue" size="sm"/></td>
+                    <td class="px-1.5 py-1.5 text-center"><MfCheckbox v-model="column.nullable"/></td>
+                    <td class="px-1.5 py-1.5 text-center"><MfCheckbox v-model="column.primaryKey"/></td>
+                    <td class="px-1.5 py-1.5 text-center"><MfCheckbox v-model="column.autoIncrement"/></td>
+                    <td class="px-1.5 py-1.5 text-center"><MfCheckbox v-model="column.unique"/></td>
+                    <td class="px-1.5 py-1.5"><MfInput v-model="column.comment" size="sm"/></td>
+                    <td class="px-1.5 py-1.5">
+                      <div class="flex items-center gap-2 text-xs">
+                        <button type="button" class="text-primary hover:underline" :disabled="index === 0" @click="onMoveColumn(index, -1)">{{ $t('source.structure.moveUp') }}</button>
+                        <button type="button" class="text-primary hover:underline" :disabled="index === formState.columns.length - 1" @click="onMoveColumn(index, 1)">{{ $t('source.structure.moveDown') }}</button>
+                        <button type="button" class="text-danger hover:underline" @click="onRemove(index)">{{ $t('common.delete') }}</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 索引与约束 -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <div class="mb-3 flex items-center justify-between gap-2">
+              <h3 class="m-0 text-base font-semibold text-content">{{ $t('source.create.indexCard') }}</h3>
+              <MfButton size="sm" :disabled="!canAddIndex" @click="onAddIndex">
+                <Plus :size="13"/>{{ $t('source.create.addIndexConstraint') }}
+              </MfButton>
+            </div>
+
+            <div class="flex items-center gap-1 border-b border-line">
+              <button v-for="tab in indexTabs" :key="tab.key" type="button"
+                      class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors"
+                      :class="indexTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-content-secondary hover:text-content'"
+                      @click="indexTab = tab.key">
+                {{ $t(tab.labelKey) }} ({{ indexCounts[tab.key] }})
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr class="text-xs text-content-secondary">
+                    <th class="w-10 px-2 py-2 text-left font-medium">{{ $t('common.id') }}</th>
+                    <th class="px-2 py-2 text-left font-medium">{{ $t('common.name') }}</th>
+                    <th class="w-28 px-2 py-2 text-left font-medium">{{ $t('source.index.indexType') }}</th>
+                    <th class="px-2 py-2 text-left font-medium">{{ $t('source.create.indexColumns') }}</th>
+                    <th class="w-32 px-2 py-2 text-left font-medium">{{ $t('source.create.indexMethod') }}</th>
+                    <th class="px-2 py-2 text-left font-medium">{{ $t('source.structure.comment') }}</th>
+                    <th class="w-28 px-2 py-2 text-left font-medium">{{ $t('common.action') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIndex) in visibleIndexRows" :key="row.__key" class="border-t border-line">
+                    <td class="px-2 py-1.5 text-xs text-content-tertiary">{{ rowIndex + 1 }}</td>
+                    <td class="px-1.5 py-1.5">
+                      <MfInput v-if="row.editing" v-model="row.name" size="sm"/>
+                      <span v-else class="font-mono text-xs text-content">{{ row.name }}</span>
+                    </td>
+                    <td class="px-1.5 py-1.5">
+                      <MfTag size="sm" :variant="row.kind === 'primary' ? 'success' : row.kind === 'unique' ? 'info' : 'default'">
+                        {{ $t(row.kind === 'primary' ? 'source.create.tabPrimary' : row.kind === 'unique' ? 'source.create.tabUnique' : 'source.create.tabNormal') }}
+                      </MfTag>
+                    </td>
+                    <td class="px-1.5 py-1.5">
+                      <MfInput v-if="row.editing" v-model="row.columnsText" size="sm"/>
+                      <span v-else class="font-mono text-xs text-content">{{ row.columnsText }}</span>
+                    </td>
+                    <td class="px-1.5 py-1.5">
+                      <MfSelect v-model="row.method" size="sm" :options="methodOptions" :disabled="!row.editing"/>
+                    </td>
+                    <td class="px-1.5 py-1.5">
+                      <MfInput v-if="row.editing" v-model="row.comment" size="sm"/>
+                      <span v-else class="text-xs text-content-secondary">{{ row.comment || '-' }}</span>
+                    </td>
+                    <td class="px-1.5 py-1.5">
+                      <div class="flex items-center gap-2 text-xs">
+                        <template v-if="row.editing">
+                          <button type="button" class="text-primary hover:underline" @click="onSaveIndexRow(row)">{{ $t('common.confirm') }}</button>
+                          <button type="button" class="text-content-tertiary hover:underline" @click="onCancelIndexRow(row, rowIndex)">{{ $t('common.cancel') }}</button>
+                        </template>
+                        <template v-else-if="row.kind !== 'primary'">
+                          <button type="button" class="text-primary hover:underline" @click="row.editing = true">{{ $t('common.edit') }}</button>
+                          <button type="button" class="text-danger hover:underline" @click="onDeleteIndexRow(rowIndex)">{{ $t('common.delete') }}</button>
+                        </template>
+                        <template v-else>
+                          <span class="text-content-tertiary">-</span>
+                        </template>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="visibleIndexRows.length === 0">
+                    <td colspan="7" class="px-2 py-4 text-center text-xs text-content-tertiary">{{ $t('common.noData') }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 高级选项 -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.advanced') }}</h3>
+            <div class="flex flex-wrap items-center gap-6">
+              <MfCheckbox v-model="advanced.addComment">{{ $t('source.create.optAddComment') }}</MfCheckbox>
+              <MfCheckbox v-model="advanced.viewStructure">{{ $t('source.create.optViewStructure') }}</MfCheckbox>
+              <MfCheckbox v-model="advanced.continueIndex">{{ $t('source.create.optContinueIndex') }}</MfCheckbox>
+            </div>
+          </section>
+        </div>
+
+        <!-- 右列 -->
+        <div class="flex flex-col gap-4">
+          <!-- 生成的 SQL -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.sqlCard') }}</h3>
+            <div class="mb-3 flex items-center gap-1 border-b border-line">
+              <button v-for="tab in sqlTabs" :key="tab.kind" type="button"
+                      class="whitespace-nowrap border-b-2 px-2.5 py-1.5 text-xs font-medium transition-colors"
+                      :class="sqlTab === tab.kind ? 'border-primary text-primary' : 'border-transparent text-content-secondary hover:text-content'"
+                      @click="sqlTab = tab.kind">
+                {{ $t(tab.labelKey) }}
+              </button>
+            </div>
+            <div v-if="sqlLoading" class="flex h-56 items-center justify-center rounded-mf-md border border-line"><MfSpinner size="sm"/></div>
+            <SqlCodeBlock v-else :code="sqlContent" :copyable="true" :placeholder="$t('common.noData')" max-height="max-h-80"/>
+            <div class="mt-3 flex items-center justify-center gap-2">
+              <MfButton size="sm" :disabled="!sqlContent" @click="onCopySql"><Copy :size="13"/>{{ $t('source.executed.copy') }} SQL</MfButton>
+              <MfButton size="sm" :loading="formatting" :disabled="!sqlContent" @click="onFormatSql"><Scan :size="13"/>{{ $t('source.ddl.format') }}</MfButton>
+              <MfButton size="sm" :disabled="!sqlContent" @click="onDownloadSql"><Download :size="13"/>{{ $t('source.common.downloadFile') }}</MfButton>
+            </div>
+          </section>
+
+          <!-- 表选项 -->
+          <section class="rounded-mf-lg border border-line bg-surface p-4">
+            <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.optionsCard') }}</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.create.engine') }}</label>
+                <MfSelect v-model="formState.engine" size="sm" :options="engineOptions"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.structure.charset') }}</label>
+                <MfSelect v-model="options.charset" size="sm" :options="charsetOptions"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.common.collation') }}</label>
+                <MfSelect v-model="options.collate" size="sm" :options="collateOptions"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.create.rowFormat') }}</label>
+                <MfSelect v-model="options.rowFormat" size="sm" :options="rowFormatOptions"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.create.autoIncStart') }}</label>
+                <MfInput v-model="options.autoIncrement" size="sm" placeholder="1"/>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.create.dataDirectory') }}</label>
+                <MfInput v-model="options.dataDirectory" size="sm"/>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.common.comment') }}</label>
+              <MfTextarea v-model="formState.comment" :rows="3" :maxlength="500"/>
+              <div class="mt-1 text-right text-[11px] text-content-tertiary">
+                {{ $t('source.structure.commentCounter', { count: (formState.comment || '').length }) }}
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <div v-for="(item, index) in formState.columns" :key="index">
-        <MfDivider>{{ item.name }}</MfDivider>
-
-        <div class="mb-2">
-          <MfButton variant="ghost" size="sm" class="text-danger" :disabled="item.removed" @click="onRemove(index)">
-            <Minus :size="15" />
-          </MfButton>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <MfFormItem :name="`columns.${index}.name`"
-                      :label="`${$t('source.common.columnName')} ${index + 1}`"
-                      :rules="[
-                          { required: true, message: $t('source.validator.columnName.required') },
-                          { pattern: /^[A-Za-z][A-Za-z0-9_-]*$/, message: $t('source.validator.columnName.pattern') }
-                      ]">
-            <MfInput v-model="formState.columns[index].name" :placeholder="$t('source.placeholder.columnName')"/>
-          </MfFormItem>
-
-          <MfFormItem :name="`columns.${index}.type`"
-                      :label="$t('source.common.columnType')"
-                      :rules="[{ required: true, message: $t('source.validator.columnType.required') }]">
-            <MfSelect v-model="formState.columns[index].type"
-                      :options="dataTypeOptions"
-                      :placeholder="$t('source.placeholder.columnType')"/>
-          </MfFormItem>
-
-          <MfFormItem :name="`columns.${index}.length`"
-                      :label="$t('source.common.columnLength')"
-                      :rules="[
-                          { required: true, message: $t('source.validator.columnLength.required') },
-                          { min: 1, message: $t('source.validator.columnLength.min') }
-                      ]">
-            <MfInputNumber v-model="formState.columns[index].length"
-                           :placeholder="$t('source.placeholder.columnLength')"
-                           :style="{ width: '100%' }"
-                           :min="1"/>
-          </MfFormItem>
-
-          <MfFormItem :name="`columns.${index}.defaultValue`" :label="$t('source.common.columnDefaultValue')">
-            <MfInput v-model="formState.columns[index].defaultValue" :placeholder="$t('source.placeholder.columnDefaultValue')"/>
-          </MfFormItem>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-          <MfFormItem :name="`columns.${index}.primaryKey`" :label="$t('source.common.columnPrimaryKey')">
-            <MfSwitch v-model="formState.columns[index].primaryKey"/>
-          </MfFormItem>
-
-          <MfFormItem :name="`columns.${index}.autoIncrement`" :label="$t('source.common.columnAutoIncrement')">
-            <MfSwitch v-model="formState.columns[index].autoIncrement"/>
-          </MfFormItem>
-
-          <MfFormItem :name="`columns.${index}.isNullable`" :label="$t('source.common.columnIsNullable')">
-            <MfSwitch v-model="formState.columns[index].isNullable"/>
-          </MfFormItem>
-        </div>
-
-        <MfFormItem :name="`columns.${index}.comment`" :label="$t('source.common.columnComment')">
-          <MfTextarea v-model="formState.columns[index].comment" :placeholder="$t('source.placeholder.columnComment')"/>
-        </MfFormItem>
-      </div>
-    </MfForm>
+    </div>
 
     <template #footer>
-      <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
-
-      <MfButton variant="primary" type="submit" form="table-create-form" :loading="saving" :disabled="saving">
-        {{ $t('common.save') }}
-      </MfButton>
+      <div class="flex w-full items-center justify-end gap-2">
+        <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="primary" :disabled="loading" @click="onNext">
+          {{ $t('source.create.nextPreview') }}
+          <ArrowRight :size="14"/>
+        </MfButton>
+      </div>
     </template>
+
+    <!-- 预览确认（第三步） -->
+    <MfModal v-model:open="previewVisible" :title="$t('source.create.step3')" width="720px">
+      <p class="m-0 mb-3 text-sm text-content-secondary">{{ $t('source.create.step3Desc') }}</p>
+      <SqlCodeBlock :code="sqlContent" :copyable="true" :placeholder="$t('common.noData')" max-height="max-h-96"/>
+      <div class="mt-4 flex justify-end gap-2">
+        <MfButton @click="previewVisible = false">{{ $t('common.cancel') }}</MfButton>
+        <MfButton variant="primary" :loading="saving" :disabled="!sqlContent" @click="onSubmit">
+          <Check :size="14"/>
+          {{ $t('source.create.confirmCreate') }}
+        </MfButton>
+      </div>
+    </MfModal>
   </MfDrawer>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
-import MetadataService from '@/services/metadata'
+import MetadataService, { } from '@/services/metadata'
+import FormatService from '@/services/format'
 import HttpUtils from '@/utils/http'
-import { Minus, Plus } from '@lucide/vue'
+import { ObjectUtils } from '@/utils/object'
+import {
+  ArrowDown, ArrowRight, ArrowUp, Check, Copy, Download, Plus, Scan, Trash2
+} from '@lucide/vue'
+import SqlCodeBlock from '@/views/components/sql/SqlCodeBlock.vue'
+import { debounce } from 'lodash'
 
 defineOptions({ name: 'TableCreate' })
 
@@ -123,6 +301,7 @@ const props = withDefaults(defineProps<{ isVisible?: boolean }>(), { isVisible: 
 const emit = defineEmits<{ (e: 'close', value: boolean): void }>()
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 
 const visible = computed({
@@ -130,35 +309,295 @@ const visible = computed({
   set: (value: boolean) => emit('close', value)
 })
 
+const databaseName = String(route.params.database || '')
 const loading = ref(false)
 const saving = ref(false)
 const engines = ref<any[]>([])
 const dataTypes = ref<any[]>([])
-const formState = ref<any>({ columns: [] })
+const enginesFallback = ['InnoDB', 'MyISAM', 'MEMORY', 'ARCHIVE']
 
-// MfFormItem 仅支持单层 name，用代理把 `columns.0.name` 等嵌套路径解析到 formState 上，保持原 a-form 嵌套校验
-const formModel = new Proxy(formState.value, {
-  get(target, prop: string) {
-    return prop.split('.').reduce((obj: any, key) => (obj ? obj[key] : undefined), target)
-  }
+const formState = ref<any>({
+  name: '',
+  engine: 'InnoDB',
+  comment: '',
+  columns: []
 })
 
-const engineOptions = computed(() => engines.value.map((engine: any) => ({ label: engine, value: engine })))
+const options = ref({
+  charset: 'utf8mb4',
+  collate: 'utf8mb4_0900_ai_ci',
+  rowFormat: 'DYNAMIC',
+  autoIncrement: '',
+  dataDirectory: ''
+})
 
+const advanced = ref({ addComment: true, viewStructure: true, continueIndex: false })
+
+const steps = [
+  { titleKey: 'source.create.step1', descKey: 'source.create.step1Desc' },
+  { titleKey: 'source.create.step2', descKey: 'source.create.step2Desc' },
+  { titleKey: 'source.create.step3', descKey: 'source.create.step3Desc' }
+]
+const currentStep = computed(() => (previewVisible.value ? 3 : 1))
+const previewVisible = ref(false)
+
+const selectedRows = ref<Set<number>>(new Set())
+
+interface IndexRow { __key: string; kind: 'primary' | 'normal' | 'unique'; name: string; columnsText: string; method: string; comment: string; editing: boolean }
+const indexRows = ref<IndexRow[]>([])
+const indexTab = ref<'primary' | 'normal' | 'unique' | 'foreign' | 'check'>('primary')
+let indexSeq = 0
+
+const indexTabs = [
+  { key: 'primary', labelKey: 'source.create.tabPrimary' },
+  { key: 'normal', labelKey: 'source.create.tabNormal' },
+  { key: 'unique', labelKey: 'source.create.tabUnique' },
+  { key: 'foreign', labelKey: 'source.create.tabForeign' },
+  { key: 'check', labelKey: 'source.create.tabCheck' }
+] as const
+
+const primaryRows = computed<IndexRow[]>(() => {
+  const keys = formState.value.columns.filter((column: any) => column.primaryKey && column.name?.trim())
+  if (keys.length === 0) return []
+  return [{
+    __key: '__primary__', kind: 'primary',
+    name: 'PRIMARY', columnsText: keys.map((column: any) => column.name.trim()).join(', '),
+    method: 'BTREE', comment: '', editing: false
+  }]
+})
+
+const manualRows = computed(() => indexRows.value.filter((row: any) => row.kind === indexTab.value && (indexTab.value !== 'unique' || !row.__auto)))
+const autoUniqueRows = computed<IndexRow[]>(() => formState.value.columns
+    .filter((column: any) => column.unique && column.name?.trim())
+    .map((column: any) => ({
+      __key: `__auto_${ column.name.trim() }`, kind: 'unique',
+      name: `uk_${ column.name.trim() }`, columnsText: column.name.trim(),
+      method: 'BTREE', comment: '', editing: false, __auto: true
+    })))
+
+const indexCounts = computed(() => ({
+  primary: primaryRows.value.length,
+  normal: indexRows.value.filter(row => row.kind === 'normal').length,
+  unique: indexRows.value.filter(row => row.kind === 'unique').length + autoUniqueRows.value.length,
+  foreign: 0,
+  check: 0
+}))
+
+const visibleIndexRows = computed(() => {
+  if (indexTab.value === 'primary') return [...primaryRows.value, ...indexRows.value.filter(row => row.kind === 'primary')]
+  if (indexTab.value === 'unique') return [...autoUniqueRows.value, ...manualRows.value]
+  if (indexTab.value === 'normal') return manualRows.value
+  return []
+})
+
+const canAddIndex = computed(() => indexTab.value === 'normal' || indexTab.value === 'unique')
+
+const engineOptions = computed(() => {
+  const list = engines.value.length ? engines.value : enginesFallback
+  return list.map((engine: any) => ({ label: typeof engine === 'string' ? engine : engine.name || String(engine), value: typeof engine === 'string' ? engine : engine.name || String(engine) }))
+})
 const dataTypeOptions = computed(() => dataTypes.value.map((dataType: any) => ({ label: dataType, value: dataType })))
 
-const onAdd = () => {
-  const newColumn = { removed: false }
-  if (formState.value.columns.length === 0) {
-    newColumn.removed = true
+const CHARSETS = ['utf8mb4', 'utf8', 'latin1', 'gbk']
+const COLLATES = ['utf8mb4_0900_ai_ci', 'utf8mb4_general_ci', 'utf8mb4_bin', 'utf8_general_ci', 'latin1_swedish_ci', 'gbk_chinese_ci']
+const ROW_FORMATS = ['DYNAMIC', 'COMPACT', 'REDUNDANT', 'COMPRESSED']
+const charsetOptions = CHARSETS.map(value => ({ label: value, value }))
+const collateOptions = COLLATES.map(value => ({ label: value, value }))
+const rowFormatOptions = ROW_FORMATS.map(value => ({ label: value, value }))
+const methodOptions = ['BTREE', 'HASH'].map(value => ({ label: value, value }))
+
+const sqlTabs = [
+  { kind: 'full', labelKey: 'source.create.tabFullSql' },
+  { kind: 'columns', labelKey: 'source.create.tabColumnsOnly' },
+  { kind: 'indexes', labelKey: 'source.create.tabIndexesOnly' },
+  { kind: 'options', labelKey: 'source.create.tabOptionsOnly' }
+] as const
+const sqlTab = ref<'full' | 'columns' | 'indexes' | 'options'>('full')
+const sqlContent = ref('')
+const sqlLoading = ref(false)
+const formatting = ref(false)
+
+const buildDefinition = () => ({
+  name: formState.value.name?.trim(),
+  comment: advanced.value.addComment ? (formState.value.comment || undefined) : undefined,
+  engine: formState.value.engine,
+  charset: options.value.charset,
+  collate: options.value.collate,
+  format: options.value.rowFormat,
+  autoIncrement: Number(options.value.autoIncrement) || 0,
+  dataDirectory: options.value.dataDirectory || undefined,
+  columns: formState.value.columns
+      .filter((column: any) => column.name?.trim())
+      .map((column: any) => ({
+        name: column.name.trim(),
+        type: column.type,
+        length: Number(column.length) > 0 ? Number(column.length) : undefined,
+        defaultValue: column.defaultValue || undefined,
+        nullable: !!column.nullable,
+        primaryKey: !!column.primaryKey,
+        autoIncrement: !!column.autoIncrement,
+        comment: column.comment || undefined
+      })),
+  indexes: [
+    ...indexRows.value
+        .filter(row => (row.kind === 'normal' || row.kind === 'unique') && row.name?.trim() && !row.editing)
+        .map(row => ({ name: row.name.trim(), columns: row.columnsText.split(',').map(value => value.trim()).filter(Boolean), unique: row.kind === 'unique', comment: row.comment || undefined })),
+    ...formState.value.columns
+        .filter((column: any) => column.unique && column.name?.trim())
+        .map((column: any) => ({ name: `uk_${ column.name.trim() }`, columns: [column.name.trim()], unique: true }))
+  ]
+})
+
+const sourceCode = route.params.source as string
+const code = sourceCode
+
+const refreshPreview = async () => {
+  const definition = buildDefinition()
+  if (!definition.name || !sourceCode) {
+    sqlContent.value = ''
+    return
   }
-  formState.value.columns.push(newColumn)
+  sqlLoading.value = true
+  try {
+    const response = await MetadataService.previewCreateTable(sourceCode, { ...definition, database: databaseName }, sqlTab.value)
+    if (response.status && response.data?.isSuccessful !== false) {
+      sqlContent.value = String(response.data?.content || '')
+    }
+    else {
+      sqlContent.value = ''
+      MfMessage.error(response.data?.message || response.message)
+    }
+  }
+  catch {
+    sqlContent.value = ''
+  }
+  finally {
+    sqlLoading.value = false
+  }
+}
+
+const schedulePreview = debounce(refreshPreview, 500)
+watch([formState, options, advanced, sqlTab], () => schedulePreview(), { deep: true })
+watch(sqlTab, () => refreshPreview())
+
+const onAdd = () => {
+  formState.value.columns.push({
+    name: '', type: dataTypes.value[0] || 'VARCHAR', length: '', defaultValue: '',
+    nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: ''
+  })
 }
 
 const onRemove = (index: number) => {
-  if (formState.value.columns) {
-    formState.value.columns.splice(index, 1)
+  formState.value.columns.splice(index, 1)
+  const next = new Set<number>()
+  selectedRows.value.forEach(value => { if (value !== index) next.add(value > index ? value - 1 : value) })
+  selectedRows.value = next
+}
+
+const toggleRow = (index: number) => {
+  const next = new Set(selectedRows.value)
+  if (next.has(index)) next.delete(index)
+  else next.add(index)
+  selectedRows.value = next
+}
+
+const onMoveColumn = (index: number, direction: -1 | 1) => {
+  const target = index + direction
+  const list = formState.value.columns
+  if (target < 0 || target >= list.length) return
+  ;[list[index], list[target]] = [list[target], list[index]]
+}
+
+const onMoveSelected = (direction: -1 | 1) => {
+  const indexes = [...selectedRows.value].sort((a, b) => a - b)
+  if (!indexes.length) return
+  const ordered = direction === -1 ? indexes : [...indexes].reverse()
+  ordered.forEach(index => onMoveColumn(index, direction))
+}
+
+const onBatchDelete = () => {
+  if (selectedRows.value.size === 0) {
+    MfMessage.warning(t('source.create.selectRows'))
+    return
   }
+  formState.value.columns = formState.value.columns.filter((_column, index) => !selectedRows.value.has(index))
+  selectedRows.value = new Set()
+}
+
+const onAddIndex = () => {
+  indexSeq += 1
+  indexRows.value.push({
+    __key: `idx_${ indexSeq }`, kind: indexTab.value === 'unique' ? 'unique' : 'normal',
+    name: indexTab.value === 'unique' ? `uk_${ formState.value.name || 'table' }_${ indexSeq }` : `idx_${ formState.value.name || 'table' }_${ indexSeq }`,
+    columnsText: '', method: 'BTREE', comment: '', editing: true
+  })
+}
+
+const onSaveIndexRow = (row: IndexRow) => {
+  if (!row.name.trim()) { MfMessage.error(t('source.create.indexNameRequired')); return }
+  if (!row.columnsText.trim()) { MfMessage.error(t('source.create.indexColumnsRequired')); return }
+  row.editing = false
+  MfMessage.success(t('source.create.indexSaved'))
+}
+
+const onCancelIndexRow = (row: IndexRow, rowIndex: number) => {
+  if (row.__key.startsWith('idx_')) {
+    indexRows.value.splice(indexRows.value.indexOf(row) >= 0 ? indexRows.value.indexOf(row) : rowIndex, 1)
+  }
+  else {
+    row.editing = false
+  }
+}
+
+const onDeleteIndexRow = (rowIndex: number) => {
+  const row = visibleIndexRows.value[rowIndex]
+  indexRows.value = indexRows.value.filter(item => item !== row && item.__key !== row.__key)
+  MfMessage.success(t('source.create.indexRemoved'))
+}
+
+const onCopySql = () => {
+  ObjectUtils.copy(sqlContent.value)
+  MfMessage.success(t('query.tip.copySuccess'))
+}
+
+const onFormatSql = () => {
+  formatting.value = true
+  FormatService.formatSql({ sql: sqlContent.value })
+                 .then(response => {
+                   if (response.status && typeof response.data === 'string') {
+                     sqlContent.value = response.data
+                   }
+                   else {
+                     MfMessage.error(response.message)
+                   }
+                 })
+                 .finally(() => (formatting.value = false))
+}
+
+const onDownloadSql = () => {
+  const blob = new Blob([sqlContent.value], { type: 'text/sql;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = `${ formState.value.name || 'table' }.sql`
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+}
+
+const onNext = () => {
+  if (!formState.value.name?.trim()) {
+    MfMessage.error(t('source.validator.tableName.required'))
+    return
+  }
+  const invalidColumn = formState.value.columns.find(column => !column.name?.trim() || !column.type)
+  if (invalidColumn) {
+    MfMessage.error(t('source.validator.columnName.required'))
+    return
+  }
+  refreshPreview()
+  previewVisible.value = true
 }
 
 const onCancel = () => {
@@ -167,24 +606,30 @@ const onCancel = () => {
 
 const onSubmit = () => {
   saving.value = true
-
   const code = route.params.source as string
   const database = route.params.database as string
+  const definition = buildDefinition()
 
-  MetadataService.createTable(code, database, formState.value)
-                 .then((response) => {
+  MetadataService.createTable(code, database, definition)
+                 .then(response => {
                    if (response.status && response.data && response.data.isSuccessful) {
-                     MfMessage.success(t('source.tip.createTableSuccess').replace('$VALUE', String(formState.value.name)))
-                     onCancel()
+                     MfMessage.success(t('source.tip.createTableSuccess').replace('$VALUE', String(definition.name)))
+                     previewVisible.value = false
+                     visible.value = false
+                     if (advanced.value.continueIndex) {
+                       router.push(`/source/${ code }/d/${ database }/t/indexes/${ definition.name }`)
+                     }
+                     else if (advanced.value.viewStructure) {
+                       router.push(`/source/${ code }/d/${ database }/t/structure/${ definition.name }`)
+                     }
                    }
                    else {
-                     MfMessage.error(response.data.message)
+                     MfMessage.error(response.data?.message || response.message)
                    }
                  })
                  .finally(() => (saving.value = false))
 }
 
-const code = route.params.source as string
 loading.value = true
 HttpUtils.all([MetadataService.getEngines(code), MetadataService.getDataTypes(code)])
          .then(HttpUtils.spread((...responses: any[]) => {

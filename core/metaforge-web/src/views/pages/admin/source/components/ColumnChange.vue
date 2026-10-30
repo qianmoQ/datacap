@@ -1,6 +1,6 @@
 <template>
   <MfModal v-model:open="visible" width="40%" :title="$t('source.common.newColumn')">
-    <MfSkeleton v-if="loading"/>
+    <MfSpinner v-if="loading"/>
 
     <MfForm v-else-if="formState" :model="formModel" layout="vertical" @finish="onSubmit">
       <div v-for="(_item, index) in formState.columns" :key="index">

@@ -1,7 +1,7 @@
 <template>
   <MfModal v-model:open="visible" width="40%" :title="title">
     <div class="px-4 py-4">
-      <MfSkeleton v-if="loading"/>
+      <MfSpinner v-if="loading"/>
 
       <MfForm v-else-if="!loading && formState" :model="formState" layout="vertical" @finish="onSubmit">
         <MfFormItem name="format" :label="$t('source.common.exportDataFormat')">

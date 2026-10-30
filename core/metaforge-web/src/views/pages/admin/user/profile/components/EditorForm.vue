@@ -1,7 +1,9 @@
 <template>
   <div class="relative">
-    <MfSkeleton :loading="defaultLoading">
-      <MfForm v-if="formState" :model="formState" layout="vertical" @finish="onSubmit">
+    <div v-if="defaultLoading" class="flex items-center justify-center py-10">
+      <MfSpinner/>
+    </div>
+    <MfForm v-else-if="!defaultLoading && formState" :model="formState" layout="vertical" @finish="onSubmit">
         <MfFormItem name="fontSize"
                      class="w-[40%]"
                      :label="$t('user.common.fontSize')"
@@ -14,7 +16,6 @@
           {{ $t('common.save') }}
         </MfButton>
       </MfForm>
-    </MfSkeleton>
   </div>
 </template>
 
