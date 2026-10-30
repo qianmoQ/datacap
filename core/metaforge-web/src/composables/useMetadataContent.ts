@@ -17,8 +17,6 @@ export function useMetadataContent() {
   const router = useRouter()
   const { t } = useI18n()
   const tableInfo = inject<Ref<any | null>>('metadataTableInfo', ref(null))
-  const stats = inject<{ indexes: Ref<any[]>; foreignKeys: Ref<any[]> }>('metadataTableStats', { indexes: ref([]), foreignKeys: ref([]) })
-  const columnRows = inject<Ref<any[]>>('metadataColumnRows', ref([]))
   const refreshKey = inject<Ref<number>>('metadataRefreshKey', ref(0))
   const fieldPanelOpen = inject<Ref<boolean>>('metadataFieldPanelOpen', ref(false))
   const fieldPanelHost = inject<Ref<HTMLElement | null>>('metadataFieldPanelHost', ref(null))
@@ -28,9 +26,6 @@ export function useMetadataContent() {
   const originalTable = computed(() => String(route.params.table || ''))
   const tableName = computed(() => String(tableInfo.value?.object_name || originalTable.value))
   const selectTab = computed(() => String(route.meta.type || 'structure'))
-  const indexCount = computed(() => new Set(stats.indexes.value.map(row => row.object_name)).size)
-  const foreignKeyCount = computed(() => new Set(stats.foreignKeys.value.map(row => row.object_name || row.object_column)).size)
-  const triggerCount = computed(() => columnRows.value.filter(row => row.type_name === 'trigger').length)
   const tableCreate = usePanelState()
   const tableExport = usePanelState()
   const tableTruncate = usePanelState()
@@ -45,9 +40,9 @@ export function useMetadataContent() {
     { key: 'structure', label: t('source.tab.structure') },
     { key: 'data', label: t('source.tab.dataPreview') },
     { key: 'sql', label: t('source.tab.sqlQuery') },
-    { key: 'indexes', label: t('source.tab.indexes') + ' (' + indexCount.value + ')' },
-    { key: 'foreignkeys', label: t('source.tab.foreignKeys') + ' (' + foreignKeyCount.value + ')' },
-    { key: 'triggers', label: t('source.tab.triggers') + ' (' + triggerCount.value + ')' },
+    { key: 'indexes', label: t('source.tab.indexes') },
+    { key: 'foreignkeys', label: t('source.tab.foreignKeys') },
+    { key: 'triggers', label: t('source.tab.triggers') },
     { key: 'info', label: t('source.tab.tableOptions') },
     { key: 'statement', label: t('source.tab.ddl') },
   ].filter(tab => can('tab:' + tab.key)))
