@@ -1207,7 +1207,6 @@
   "source.ddl.cardHint.indexes": "One ALTER TABLE ... ADD for each primary key, unique key and index.",
   "source.ddl.cardHint.sample-data": "INSERT statements for the first 10 rows of the table, generated columns left out.",
   "source.ddl.cardHint.structure": "A CREATE TABLE statement with column definitions only.",
-  "source.ddl.dialect": "SQL dialect",
   "source.ddl.download": "Download",
   "source.ddl.empty.alter": "The table has no columns",
   "source.ddl.empty.alter-table": "The table has no columns",

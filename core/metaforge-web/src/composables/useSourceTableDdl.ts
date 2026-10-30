@@ -3,7 +3,6 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
-import SourceService from '@/services/source'
 import FormatService from '@/services/format'
 import { ObjectUtils } from '@/utils/object'
 import { DDL_CARDS, DEFAULT_DDL_CARDS, ddlFileName, joinDdl, mapDdlHistory,
@@ -34,7 +33,6 @@ export function useSourceTableDdl() {
 
   const cards = ref<DdlCard[]>([])
   const active = ref<CardAction>('create')
-  const dialect = ref('')
   const recent = ref<DdlHistoryEntry[]>([])
   const recentLoading = ref(false)
   const historyPanel = usePanelState()
@@ -93,12 +91,6 @@ export function useSourceTableDdl() {
     } finally {
       if (request === revision && alive) recentLoading.value = false
     }
-  }
-  async function loadDialect() {
-    const scope = identity()
-    dialect.value = ''
-    const response = await SourceService.getByCode(location()[0])
-    if (alive && identity() === scope && response.status) dialect.value = String(response.data?.type || '')
   }
   function initialize() {
     cards.value = DEFAULT_DDL_CARDS.map(newCard)
@@ -174,12 +166,12 @@ export function useSourceTableDdl() {
 
   // The quick menu lives in the workspace's right panel for as long as this tab is shown.
   onMounted(() => { fieldPanelOpen.value = true })
-  watch(identity, () => { loadDialect(); initialize() }, { immediate: true })
+  watch(identity, initialize, { immediate: true })
   if (refreshKey) watch(refreshKey, initialize)
   onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
 
   return {
-    can, cards, active, dialect, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
+    can, cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
     copy, download, format, cardSql, history, historyVisible: historyPanel.visible, historyDetail, openHistory, toggleHistoryDetail,
   }
 }

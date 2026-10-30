@@ -1207,7 +1207,6 @@
   "source.ddl.cardHint.indexes": "为主键、唯一键和普通索引各生成一条 ALTER TABLE ... ADD 语句。",
   "source.ddl.cardHint.sample-data": "读取表中前 10 行数据，生成 INSERT 语句（不含生成列）。",
   "source.ddl.cardHint.structure": "生成只包含字段定义的 CREATE TABLE 语句。",
-  "source.ddl.dialect": "SQL 方言",
   "source.ddl.download": "下载",
   "source.ddl.empty.alter": "该表没有字段",
   "source.ddl.empty.alter-table": "该表没有字段",

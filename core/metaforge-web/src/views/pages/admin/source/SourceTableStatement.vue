@@ -7,10 +7,6 @@
           <p class="m-0 mt-1 text-sm text-content-tertiary">{{ $t(`source.ddl.cardHint.${card.action}`) }}</p>
         </div>
         <div class="flex shrink-0 flex-wrap items-center gap-2">
-          <!-- Statements are built for the current source only, so its dialect is the one choice. -->
-          <MfSelect v-if="card.action === 'create' && dialect" :model-value="dialect" size="sm" class="w-36" :options="[{ label: dialect, value: dialect }]" :aria-label="$t('source.ddl.dialect')">
-            <template #prefix><Database :size="14"/></template>
-          </MfSelect>
           <MfButton size="sm" :disabled="!cardSql(card)" @click="copy(card)"><Copy :size="14"/>{{ $t('source.executed.copy') }}</MfButton>
           <MfButton size="sm" :loading="card.formatting" :disabled="!cardSql(card)" @click="format(card)"><Scan :size="14"/>{{ $t('source.ddl.format') }}</MfButton>
           <MfButton size="sm" :disabled="!cardSql(card)" @click="download(card)"><Download :size="14"/>{{ $t('source.ddl.download') }}</MfButton>
@@ -34,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { Copy, Database, Download, Scan } from '@lucide/vue'
+import { Copy, Download, Scan } from '@lucide/vue'
 import SqlCodeBlock from '@/views/components/sql/SqlCodeBlock.vue'
 import SourceDdlPanel from './components/SourceDdlPanel.vue'
 import SourceDdlHistory from './components/SourceDdlHistory.vue'
@@ -42,7 +38,7 @@ import { useSourceTableDdl } from '@/composables/useSourceTableDdl'
 
 defineOptions({ name: 'SourceTableStatement' })
 const {
-  cards, active, dialect, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
+  cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
   copy, download, format, cardSql, history, historyVisible, historyDetail, openHistory, toggleHistoryDetail,
 } = useSourceTableDdl()
 </script>
