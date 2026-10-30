@@ -100,6 +100,14 @@ public class MetadataController
         return this.service.getTableStatement(code, database, table);
     }
 
+    /** One kind of DDL for the table: create, structure, indexes, constraints, alter, alter-table or sample-data. */
+    @GetMapping(value = "{code}/{database}/{table}/ddl")
+    public CommonResponse<Response> fetchTableDdl(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestParam(value = "kind", defaultValue = "create") String kind)
+    {
+        return this.service.getTableDdl(code, database, table, kind);
+    }
+
     @PutMapping(value = "{code}/{database}/{table}/auto-increment")
     public CommonResponse<Response> updateAutoIncrement(
             @PathVariable String code,

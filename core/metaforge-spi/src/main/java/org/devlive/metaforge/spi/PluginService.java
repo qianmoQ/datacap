@@ -1,5 +1,7 @@
 package org.devlive.metaforge.spi;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -45,6 +47,7 @@ import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Pagination;
 import org.devlive.metaforge.spi.model.Response;
 import org.devlive.metaforge.spi.model.RuntimeConfigure;
+import org.devlive.metaforge.spi.sql.TableDdl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1546,6 +1549,91 @@ public interface PluginService
                 configure,
                 definition
         );
+    }
+
+    /**
+     * 生成表 DDL | Builds one kind of DDL for the table from SHOW CREATE TABLE: create (as printed),
+     * structure (columns and options only), indexes, constraints, alter (one MODIFY per column),
+     * alter-table (one statement restating every column and option) or sample-data (INSERT
+     * statements for the first rows). Nothing is changed; the content holds the generated SQL.
+     */
+    default Response getTableDdl(RuntimeConfigure configure, String database, String table, String kind)
+    {
+        String target = sqlIdentifier(database) + "." + sqlIdentifier(table);
+        Response shown = this.execute(configure, "SHOW CREATE TABLE " + target);
+        if (shown == null || !Boolean.TRUE.equals(shown.getIsSuccessful())) {
+            return shown;
+        }
+        String create = shown.getColumns() == null || shown.getColumns().isEmpty() || !(shown.getColumns().get(0) instanceof ObjectNode)
+                ? null : ((ObjectNode) shown.getColumns().get(0)).path("Create Table").asText(null);
+        if (create == null) {
+            throw new IllegalArgumentException("Only tables have a DDL statement");
+        }
+        TableDdl ddl = TableDdl.parse(create);
+        String sql;
+        switch (kind == null ? "" : kind) {
+            case "create":
+                sql = ddl.create();
+                break;
+            case "structure":
+                sql = ddl.structure();
+                break;
+            case "indexes":
+                sql = ddl.indexes(target);
+                break;
+            case "constraints":
+                sql = ddl.constraints(target);
+                break;
+            case "alter":
+                sql = ddl.alterColumns(target);
+                break;
+            case "alter-table":
+                sql = ddl.alterTable(target);
+                break;
+            case "sample-data":
+                return this.sampleInserts(configure, target, ddl.insertableColumns());
+            default:
+                throw new IllegalArgumentException("Unknown DDL kind: " + kind);
+        }
+        return Response.builder().isSuccessful(true).isConnected(true).headers(Lists.newArrayList()).columns(Lists.newArrayList())
+                .types(Lists.newArrayList()).content(sql).build();
+    }
+
+    /** One multi-row INSERT for the first ten rows of the table; empty when the table has none. */
+    default Response sampleInserts(RuntimeConfigure configure, String target, List<String> columns)
+    {
+        if (columns.isEmpty()) {
+            throw new IllegalArgumentException("The table has no insertable columns");
+        }
+        String select = "SELECT " + columns.stream().map(this::sqlIdentifier).collect(Collectors.joining(", ")) + " FROM " + target + " LIMIT 10";
+        Response rows = this.execute(configure, select);
+        if (rows == null || !Boolean.TRUE.equals(rows.getIsSuccessful())) {
+            return rows;
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> values = Lists.newArrayList();
+        for (Object row : rows.getColumns() == null ? Lists.newArrayList() : rows.getColumns()) {
+            JsonNode node = row instanceof JsonNode ? (JsonNode) row : mapper.valueToTree(row);
+            values.add("(" + columns.stream().map(column -> this.sqlValue(node.get(column))).collect(Collectors.joining(", ")) + ")");
+        }
+        String sql = values.isEmpty() ? "" : "INSERT INTO " + target + " (" + columns.stream().map(this::sqlIdentifier).collect(Collectors.joining(", ")) + ") VALUES\n  "
+                + String.join(",\n  ", values) + ";";
+        return Response.builder().isSuccessful(true).isConnected(true).headers(Lists.newArrayList()).columns(Lists.newArrayList())
+                .types(Lists.newArrayList()).content(sql).build();
+    }
+
+    default String sqlValue(JsonNode value)
+    {
+        if (value == null || value.isNull() || value.isMissingNode()) {
+            return "NULL";
+        }
+        if (value.isNumber()) {
+            return value.asText();
+        }
+        if (value.isBoolean()) {
+            return value.asBoolean() ? "1" : "0";
+        }
+        return sqlLiteral(value.isValueNode() ? value.asText() : value.toString());
     }
 
     default Response getSuggests(RuntimeConfigure configure, String keyword)

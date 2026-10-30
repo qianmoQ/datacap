@@ -226,6 +226,19 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getTableDdl(String code, String database, String table, String kind)
+    {
+        // Sample data reads rows; every other kind only reads the table definition.
+        List<String> capabilities = "sample-data".equals(kind) ? List.of("table:statement", "table:read") : List.of("table:statement");
+        try {
+            return withPlugin(code, capabilities, (service, configure) -> service.getTableDdl(configure, database, table, kind));
+        }
+        catch (IllegalArgumentException error) {
+            return CommonResponse.failure(error.getMessage());
+        }
+    }
+
+    @Override
     public CommonResponse<Response> updateAutoIncrement(String code, TableDefinition configure, String database, String table)
     {
         return repository.findByCode(code)
