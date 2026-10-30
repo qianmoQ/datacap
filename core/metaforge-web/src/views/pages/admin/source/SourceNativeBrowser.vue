@@ -11,7 +11,7 @@
     </MfForm>
     <div v-if="storage" class="flex shrink-0 items-center gap-2 text-xs text-content-secondary">
       <MfButton size="sm" :disabled="!prefix" @click="up"><ArrowUp :size="13"/>{{ $t('source.native.parentDirectory') }}</MfButton>
-      <FolderOpen :size="14" class="shrink-0 text-primary"/><span class="shrink-0 font-medium">{{ namespace }}</span><span class="text-content-tertiary">/</span><EllipsisCell :text="prefix || '/'"/>
+      <FolderOpen :size="14" class="shrink-0 text-primary"/><span class="shrink-0 font-medium">{{ namespace }}</span><span class="text-content-tertiary">/</span><EllipsisCell v-if="prefix" :text="prefix"/>
     </div>
     <MfAlert v-if="error" variant="danger" :title="error" class="shrink-0"/>
     <MfEmpty v-if="!namespace" class="flex-1" variant="initial" :title="$t(storage ? 'source.native.selectBucket' : 'source.native.selectDatabase')"/>
@@ -45,8 +45,8 @@
         <template v-if="detail.content != null"><pre class="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-mf-md border border-line bg-surface-hover/40 p-3 font-mono text-xs">{{ detail.content === '' ? $t('source.native.emptyString') : detail.content }}</pre></template>
         <template v-else-if="!storage && detail.entry.attributes?.previewSupported === 'true'">
           <MfTable :columns="detailHeaders" :data-source="detailRows" row-key="rowId" density="compact" :empty-text="$t('common.noData')">
-            <template #cell-position="{ record }"><EllipsisCell :text="record.position"/></template>
-            <template #cell-value="{ record }"><div class="flex min-w-0 items-center gap-1"><EllipsisCell :text="record.value"/><MfTag v-if="record.encoding === 'base64'" size="sm">Base64</MfTag><span v-if="record.truncated === 'true'" class="text-content-tertiary">…</span></div></template>
+            <template #cell-position="{ record }"><EllipsisCell :text="record.position === '' ? $t('source.native.emptyField') : record.position"/></template>
+            <template #cell-value="{ record }"><div class="flex min-w-0 items-center gap-1"><EllipsisCell :text="record.value === '' ? $t('source.native.emptyString') : record.value"/><MfTag v-if="record.encoding === 'base64'" size="sm">Base64</MfTag><span v-if="record.truncated === 'true'" class="text-content-tertiary">…</span></div></template>
           </MfTable>
           <div class="mt-2 flex justify-end gap-2"><MfButton size="sm" :disabled="!previousDetailCursors.length" @click="previousDetail">{{ $t('source.native.previousBatch') }}</MfButton><MfButton size="sm" :disabled="!detail.hasMore" @click="nextDetail">{{ $t('source.native.nextBatch') }}</MfButton></div>
         </template>

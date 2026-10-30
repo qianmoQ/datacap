@@ -29,7 +29,7 @@
     </section>
 
     <SourceDdlPanel :open="panelOpen" :container="fieldPanelHost" :width="fieldPanelWidth" :active="active" :recent="recent" :recent-loading="recentLoading"
-                    :enabled="actionEnabled" @action="runAction" @history="openHistory"/>
+                    :enabled="actionEnabled" @action="runAction" @history="openHistory" @close="closePanel"/>
     <SourceDdlHistory :open="historyVisible" :table="table" :entries="history.data.value" :loading="history.loading.value" :page="history.pageIndex.value"
                       :page-size="history.pageSize.value" :total="history.dataCount.value" :detail="historyDetail"
                       @close="historyVisible = false" @page="history.onPageChange" @detail="toggleHistoryDetail"/>
@@ -47,6 +47,6 @@ defineOptions({ name: 'SourceTableStatement' })
 const {
   cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
   copy, download, format, cardSql, history, historyVisible, historyDetail, openHistory, toggleHistoryDetail,
-  panelOpen, togglePanel,
+  panelOpen, togglePanel, closePanel,
 } = useSourceTableDdl()
 </script>

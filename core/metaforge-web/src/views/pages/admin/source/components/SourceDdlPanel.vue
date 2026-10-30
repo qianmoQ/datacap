@@ -1,5 +1,6 @@
 <template>
-  <MfDrawer :open="open" inline :container="container || undefined" :width="width + 'px'" :closable="false" :title="$t('source.ddl.panel.title')">
+  <MfDrawer :open="open" inline :container="container || undefined" :width="width + 'px'" :title="$t('source.ddl.panel.title')"
+            @update:open="value => !value && emit('close')">
     <template #title>
       <span class="flex flex-col">
         <span class="text-base font-semibold text-content">{{ $t('source.ddl.panel.title') }}</span>
@@ -57,7 +58,7 @@ defineProps<{
   open: boolean; container: HTMLElement | null; width: number; active: DdlAction; recent: DdlHistoryEntry[]; recentLoading: boolean
   enabled: (action: DdlAction) => boolean
 }>()
-const emit = defineEmits<{ action: [action: DdlAction]; history: [] }>()
+const emit = defineEmits<{ action: [action: DdlAction]; history: []; close: [] }>()
 const ACTION_ICONS: Record<DdlAction, unknown> = {
   create: Table, structure: Columns3, indexes: Link, constraints: ShieldCheck, 'sample-data': FileInput, alter: PencilRuler, compare: GitCompare,
 }

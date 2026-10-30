@@ -170,6 +170,10 @@ export function useSourceTableDdl() {
     panelOpen.value = !panelOpen.value
     fieldPanelOpen.value = panelOpen.value
   }
+  function closePanel() {
+    panelOpen.value = false
+    fieldPanelOpen.value = false
+  }
   watch(panelOpen, value => { fieldPanelOpen.value = value })
 
   watch(identity, initialize, { immediate: true })
@@ -184,6 +188,6 @@ export function useSourceTableDdl() {
   return {
     can, cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
     copy, download, format, cardSql, history, historyVisible: historyPanel.visible, historyDetail, openHistory, toggleHistoryDetail,
-    panelOpen, togglePanel,
+    panelOpen, togglePanel, closePanel,
   }
 }
