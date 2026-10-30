@@ -455,6 +455,41 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getIndexDetails(String code, String database, String table)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            if (!service.managementCapabilities().supports("index:read")) {
+                                return CommonResponse.<Response>failure("Source does not support index:read");
+                            }
+                            return CommonResponse.success(service.getIndexDetails(entity.toConfigure(pluginManager, plugin), database, table));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Response> alterIndex(String code, String database, String table, TableDefinition configure)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            // Editing or rebuilding drops the index and creates it again.
+                            if (!service.managementCapabilities().supports("index:create") || !service.managementCapabilities().supports("index:drop")) {
+                                return CommonResponse.<Response>failure("Source does not support index:create and index:drop");
+                            }
+                            configure.setDatabase(database);
+                            configure.setName(table);
+                            return CommonResponse.success(service.alterIndex(entity.toConfigure(pluginManager, plugin), configure));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
     public CommonResponse<Response> getColumnDependencies(String code, String database, String table, TableDefinition configure)
     {
         return repository.findByCode(code)

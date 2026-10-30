@@ -18,12 +18,12 @@ import org.devlive.metaforge.spi.connection.JdbcConnection;
 import org.devlive.metaforge.spi.connection.JdbcUrlGuard;
 import org.devlive.metaforge.spi.generator.DataType;
 import org.devlive.metaforge.spi.generator.Filter;
-import org.devlive.metaforge.spi.generator.Index;
 import org.devlive.metaforge.spi.generator.OrderBy;
 import org.devlive.metaforge.spi.generator.column.CreateColumn;
 import org.devlive.metaforge.spi.generator.column.SelectColumn;
 import org.devlive.metaforge.spi.generator.definition.BaseDefinition;
 import org.devlive.metaforge.spi.generator.definition.ColumnDefinition;
+import org.devlive.metaforge.spi.generator.definition.IndexDefinition;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
 import org.devlive.metaforge.spi.generator.table.AbstractTable;
 import org.devlive.metaforge.spi.generator.table.AlterTable;
@@ -803,16 +803,20 @@ public interface PluginService
      */
     default Response createIndex(RuntimeConfigure configure, TableDefinition definition)
     {
-        AlterTable tableDefinition = AlterTable.create(definition.getDatabase(), definition.getName());
-        definition.getIndexes()
-                .forEach(index -> {
-                    Index builder = Index.create(index.getName(), index.getColumns().toArray(new String[0]));
-                    if (index.isUnique()) {
-                        builder.unique();
-                    }
-                    tableDefinition.addIndex(builder);
-                });
-        return this.getResponse(tableDefinition.build(), configure, definition);
+        return this.executeStatements(definition.getIndexes().stream()
+                .map(index -> this.createIndexStatement(definition.getDatabase(), definition.getName(), index))
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    /**
+     * 修改或重建索引 | Change or rebuild an index: drops the original and adds the new definition in
+     * one ALTER, so the table never goes without it in between.
+     */
+    default Response alterIndex(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(definition.getIndexes().stream()
+                .map(index -> this.alterIndexStatement(definition.getDatabase(), definition.getName(), index))
+                .collect(Collectors.toList()), configure, definition);
     }
 
     /**
@@ -824,10 +828,151 @@ public interface PluginService
      */
     default Response dropIndex(RuntimeConfigure configure, TableDefinition definition)
     {
-        AlterTable tableDefinition = AlterTable.create(definition.getDatabase(), definition.getName());
-        definition.getIndexes()
-                .forEach(index -> tableDefinition.dropIndex(index.getName()));
-        return this.getResponse(tableDefinition.build(), configure, definition);
+        String table = sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(definition.getName());
+        return this.executeStatements(definition.getIndexes().stream()
+                .map(index -> isPrimaryIndex(index.getName())
+                        ? "ALTER TABLE " + table + " DROP PRIMARY KEY"
+                        : "DROP INDEX " + sqlIdentifier(index.getName()) + " ON " + table)
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    default boolean isPrimaryIndex(String name)
+    {
+        return "PRIMARY".equalsIgnoreCase(name);
+    }
+
+    /** FULLTEXT and SPATIAL are index kinds of their own; BTREE and HASH are access methods. */
+    default String indexKind(IndexDefinition index)
+    {
+        String type = index.getType() == null ? "" : index.getType().trim().toUpperCase(java.util.Locale.ROOT);
+        return "FULLTEXT".equals(type) || "SPATIAL".equals(type) ? type : "";
+    }
+
+    default String indexMethod(IndexDefinition index)
+    {
+        String type = index.getType() == null ? "" : index.getType().trim().toUpperCase(java.util.Locale.ROOT);
+        return "BTREE".equals(type) || "HASH".equals(type) ? " USING " + type : "";
+    }
+
+    /** `col`(length) ASC, ... ; FULLTEXT and SPATIAL columns take no direction. */
+    default String indexColumns(IndexDefinition index)
+    {
+        boolean ordered = indexKind(index).isEmpty();
+        List<String> parts = Lists.newArrayList();
+        for (int position = 0; position < index.getColumns().size(); position++) {
+            StringBuilder part = new StringBuilder(sqlIdentifier(index.getColumns().get(position)));
+            Integer length = position < index.getLengths().size() ? index.getLengths().get(position) : null;
+            if (length != null && length > 0) {
+                part.append("(").append(length).append(")");
+            }
+            String order = position < index.getOrders().size() ? index.getOrders().get(position) : null;
+            if (ordered && order != null && ("ASC".equalsIgnoreCase(order) || "DESC".equalsIgnoreCase(order))) {
+                part.append(" ").append(order.toUpperCase(java.util.Locale.ROOT));
+            }
+            parts.add(part.toString());
+        }
+        return "(" + String.join(", ", parts) + ")";
+    }
+
+    default String indexComment(IndexDefinition index)
+    {
+        return index.getComment() == null || index.getComment().isEmpty() ? "" : " COMMENT " + sqlLiteral(index.getComment());
+    }
+
+    default String indexAlgorithm(IndexDefinition index, String separator)
+    {
+        String algorithm = index.getAlgorithm() == null ? "" : index.getAlgorithm().trim().toUpperCase(java.util.Locale.ROOT);
+        return "INPLACE".equals(algorithm) || "COPY".equals(algorithm) ? separator + "ALGORITHM = " + algorithm : "";
+    }
+
+    /** The ADD clause of an index inside ALTER TABLE. */
+    default String addIndexClause(IndexDefinition index)
+    {
+        if (isPrimaryIndex(index.getName())) {
+            return "ADD PRIMARY KEY" + indexMethod(index) + " " + indexColumns(index) + indexComment(index);
+        }
+        String kind = indexKind(index);
+        String prefix = !kind.isEmpty() ? kind + " " : index.isUnique() ? "UNIQUE " : "";
+        return "ADD " + prefix + "INDEX " + sqlIdentifier(index.getName()) + (kind.isEmpty() ? indexMethod(index) : "") + " " + indexColumns(index) + indexComment(index);
+    }
+
+    default String createIndexStatement(String database, String table, IndexDefinition index)
+    {
+        String target = sqlIdentifier(database) + "." + sqlIdentifier(table);
+        if (isPrimaryIndex(index.getName())) {
+            return "ALTER TABLE " + target + "\n    " + addIndexClause(index) + indexAlgorithm(index, ",\n    ");
+        }
+        String kind = indexKind(index);
+        String prefix = !kind.isEmpty() ? kind + " " : index.isUnique() ? "UNIQUE " : "";
+        return "CREATE " + prefix + "INDEX " + sqlIdentifier(index.getName()) + (kind.isEmpty() ? indexMethod(index) : "")
+                + "\n    ON " + target + " " + indexColumns(index) + indexComment(index) + indexAlgorithm(index, "\n    ");
+    }
+
+    default String alterIndexStatement(String database, String table, IndexDefinition index)
+    {
+        String original = index.getOriginalName() == null || index.getOriginalName().isEmpty() ? index.getName() : index.getOriginalName();
+        String drop = isPrimaryIndex(original) ? "DROP PRIMARY KEY" : "DROP INDEX " + sqlIdentifier(original);
+        return "ALTER TABLE " + sqlIdentifier(database) + "." + sqlIdentifier(table)
+                + "\n    " + drop + ",\n    " + addIndexClause(index) + indexAlgorithm(index, ",\n    ");
+    }
+
+    /**
+     * 索引明细 | One row per index column with what the index page shows: kind, uniqueness, order,
+     * prefix, cardinality, comment, an estimated key length (as EXPLAIN reports key_len) and, when
+     * performance_schema is readable, how often the index was used.
+     * Rows: index_name, non_unique, seq_in_index, column_name, collation, cardinality, sub_part,
+     * index_type, index_comment, nullable, key_length, usage_count, usage_rows.
+     */
+    default Response getIndexDetails(RuntimeConfigure configure, String database, String table)
+    {
+        String schema = sqlLiteral(database);
+        String name = sqlLiteral(table);
+        // Bytes per character for the column's character set, from its declared length.
+        String charBytes = "IFNULL(c.CHARACTER_OCTET_LENGTH / NULLIF(c.CHARACTER_MAXIMUM_LENGTH, 0), 1)";
+        String keyLength = "CASE\n"
+                + "        WHEN c.DATA_TYPE IN ('tinyint') THEN 1 WHEN c.DATA_TYPE = 'smallint' THEN 2 WHEN c.DATA_TYPE = 'mediumint' THEN 3\n"
+                + "        WHEN c.DATA_TYPE IN ('int', 'integer', 'float', 'timestamp') THEN 4 WHEN c.DATA_TYPE IN ('bigint', 'double') THEN 8\n"
+                + "        WHEN c.DATA_TYPE = 'date' THEN 3 WHEN c.DATA_TYPE = 'datetime' THEN 5 WHEN c.DATA_TYPE = 'time' THEN 3 WHEN c.DATA_TYPE = 'year' THEN 1\n"
+                + "        WHEN c.DATA_TYPE = 'decimal' THEN CEIL(c.NUMERIC_PRECISION / 2)\n"
+                + "        WHEN c.DATA_TYPE IN ('char', 'varchar', 'binary', 'varbinary', 'tinytext', 'text', 'mediumtext', 'longtext', 'tinyblob', 'blob', 'mediumblob', 'longblob')\n"
+                + "            THEN IFNULL(s.SUB_PART * " + charBytes + ", c.CHARACTER_OCTET_LENGTH) + IF(c.DATA_TYPE IN ('char', 'binary'), 0, 2)\n"
+                + "        ELSE NULL END + IF(c.IS_NULLABLE = 'YES', 1, 0)";
+        String sql = "SELECT s.INDEX_NAME AS index_name, s.NON_UNIQUE AS non_unique, s.SEQ_IN_INDEX AS seq_in_index, s.COLUMN_NAME AS column_name,\n"
+                + "    s.COLLATION AS collation, s.CARDINALITY AS cardinality, s.SUB_PART AS sub_part, s.INDEX_TYPE AS index_type,\n"
+                + "    s.INDEX_COMMENT AS index_comment, s.NULLABLE AS nullable,\n"
+                // Key length only applies to BTREE-style indexes; FULLTEXT and SPATIAL report none.
+                + "    IF(s.INDEX_TYPE IN ('FULLTEXT', 'SPATIAL'), NULL, CAST(ROUND(" + keyLength + ") AS UNSIGNED)) AS key_length\n"
+                + "FROM information_schema.STATISTICS s\n"
+                + "LEFT JOIN information_schema.COLUMNS c\n"
+                + "    ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME\n"
+                + "WHERE s.TABLE_SCHEMA = " + schema + " AND s.TABLE_NAME = " + name + "\n"
+                + "ORDER BY s.INDEX_NAME = 'PRIMARY' DESC, s.INDEX_NAME, s.SEQ_IN_INDEX";
+        Response response = this.execute(configure, sql);
+        if (response == null || !Boolean.TRUE.equals(response.getIsSuccessful())) {
+            return response;
+        }
+        // Usage is optional: performance_schema may be off or unreadable for this account.
+        java.util.Map<String, ObjectNode> usage = new java.util.HashMap<>();
+        Response stats = this.execute(configure, "SELECT INDEX_NAME AS index_name, COUNT_STAR AS usage_count, COUNT_READ AS usage_rows\n"
+                + "FROM performance_schema.table_io_waits_summary_by_index_usage\n"
+                + "WHERE OBJECT_SCHEMA = " + schema + " AND OBJECT_NAME = " + name + " AND INDEX_NAME IS NOT NULL");
+        if (stats != null && Boolean.TRUE.equals(stats.getIsSuccessful()) && stats.getColumns() != null) {
+            stats.getColumns().stream().filter(ObjectNode.class::isInstance).map(ObjectNode.class::cast)
+                    .forEach(row -> usage.put(row.path("index_name").asText(), row));
+        }
+        if (response.getColumns() != null) {
+            response.getColumns().stream().filter(ObjectNode.class::isInstance).map(ObjectNode.class::cast).forEach(row -> {
+                ObjectNode used = usage.get(row.path("index_name").asText());
+                row.set("usage_count", used == null ? row.nullNode() : used.get("usage_count"));
+                row.set("usage_rows", used == null ? row.nullNode() : used.get("usage_rows"));
+            });
+        }
+        List<String> headers = response.getHeaders() == null ? Lists.newArrayList() : Lists.newArrayList(response.getHeaders());
+        headers.add("usage_count");
+        headers.add("usage_rows");
+        response.setHeaders(headers);
+        response.setContent(sql);
+        return response;
     }
 
     default Response getPrimaryKeys(RuntimeConfigure configure, String database, String table)

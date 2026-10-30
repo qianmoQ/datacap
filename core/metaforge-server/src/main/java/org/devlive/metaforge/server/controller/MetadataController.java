@@ -240,6 +240,27 @@ public class MetadataController
         return this.service.dropColumn(code, database, table, configure);
     }
 
+    @GetMapping(value = "{code}/{database}/{table}/index-details")
+    public CommonResponse<Response> fetchIndexDetails(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table
+    )
+    {
+        return this.service.getIndexDetails(code, database, table);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/alter-index")
+    public CommonResponse<Response> alterIndex(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table,
+            @RequestBody TableDefinition configure
+    )
+    {
+        return this.service.alterIndex(code, database, table, configure);
+    }
+
     @PostMapping(value = "{code}/{database}/{table}/column-dependencies")
     public CommonResponse<Response> fetchColumnDependencies(
             @PathVariable String code,

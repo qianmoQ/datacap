@@ -65,6 +65,10 @@ public interface MetadataService
 
     CommonResponse<Response> getColumnDependencies(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> getIndexDetails(String code, String database, String table);
+
+    CommonResponse<Response> alterIndex(String code, String database, String table, TableDefinition configure);
+
     CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> changeColumn(String code, String database, String table, TableDefinition configure);
