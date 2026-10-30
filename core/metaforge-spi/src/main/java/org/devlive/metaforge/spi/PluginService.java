@@ -1729,7 +1729,7 @@ public interface PluginService
                     "    least(({2} * {3}), total) as object_end_index\n" +
                     "FROM (\n" +
                     "    SELECT count(1) as total\n" +
-                    "    FROM `{0}`.`{1}`\n" +
+                    "    FROM `{0}`.`{1}`{4}\n" +
                     ") t";
 
             return this.formatPagination(configure, sql, definition);
@@ -1739,13 +1739,28 @@ public interface PluginService
         }
     }
 
+    /**
+     * The WHERE clause matching {@link #queryTable}, so the total counts the same rows the page shows.
+     */
+    default String formatFilterClause(TableDefinition definition)
+    {
+        if (definition.getFilters() == null || definition.getFilters().isEmpty()) {
+            return "";
+        }
+        return "\n    WHERE " + definition.getFilters().stream()
+                .map(filter -> Filter.create(filter.getName(), filter.getOperator(), filter.getValue()).build())
+                .collect(Collectors.joining(" AND "));
+    }
+
     default Pagination formatPagination(RuntimeConfigure configure, String sql, TableDefinition definition)
     {
         Response response = this.getResponse(
                 sql.replace("{0}", definition.getDatabase())
                         .replace("{1}", definition.getName())
                         .replace("{2}", String.valueOf(definition.getPagination().getPage()))
-                        .replace("{3}", String.valueOf(definition.getPagination().getSize())),
+                        .replace("{3}", String.valueOf(definition.getPagination().getSize()))
+                        // Filter values are user input: substitute them last so they are never re-scanned for placeholders.
+                        .replace("{4}", formatFilterClause(definition)),
                 configure,
                 definition
         );
