@@ -127,6 +127,12 @@ class MetadataService
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/column-dependencies`, configure)
     }
 
+    /** Foreign keys of other tables, views, routines and triggers that depend on the table. */
+    getTableDependencies(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/table-dependencies`)
+    }
+
     deleteData(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/delete-data`, configure)
