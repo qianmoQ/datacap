@@ -144,6 +144,18 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/foreign-keys`)
     }
 
+    /** One row per index column, with order, prefix, cardinality, type, comment, key length and usage. */
+    getIndexDetails(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/index-details`)
+    }
+
+    /** Changes or rebuilds indexes: each one is dropped and added again in one statement. */
+    alterIndex(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/alter-index`, configure)
+    }
+
     createIndex(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/create-index`, configure)
