@@ -150,6 +150,28 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/index-details`)
     }
 
+    /** Triggers of the table with timing, event, body, definer, creation time, SQL mode and charset. */
+    getTriggerDetails(code: string, database: string, table: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/trigger-details`)
+    }
+
+    createTrigger(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/create-trigger`, configure)
+    }
+
+    /** Changes or rebuilds one trigger: dropped and created again, restored when the new one fails. */
+    alterTrigger(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/alter-trigger`, configure)
+    }
+
+    dropTrigger(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().delete(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/drop-trigger`, configure)
+    }
+
     /** One row per foreign key column of the table, with its reference, rules and whether the referenced table exists. */
     getForeignKeyDetails(code: string, database: string, table: string): Promise<ResponseModel>
     {

@@ -57,7 +57,7 @@ export function useMetadataContent() {
     sql: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceSqlPane.vue')),
     indexes: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableIndexes.vue')),
     foreignkeys: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableForeignKeys.vue')),
-    triggers: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableTriggerPanel.vue')),
+    triggers: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableTriggers.vue')),
     info: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableInfo.vue')),
     statement: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableStatement.vue')),
     erDiagram: defineAsyncComponent(() => import('@/views/pages/admin/source/SourceTableErDiagram.vue')),
