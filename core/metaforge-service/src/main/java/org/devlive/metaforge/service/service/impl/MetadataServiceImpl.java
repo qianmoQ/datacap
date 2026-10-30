@@ -505,6 +505,40 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getTriggerDetails(String code, String database, String table)
+    {
+        return withPlugin(code, List.of("trigger:read"), (service, configure) -> service.getTriggerDetails(configure, database, table));
+    }
+
+    @Override
+    public CommonResponse<Response> createTrigger(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        return withPlugin(code, List.of("trigger:create"), (service, runtime) -> service.createTrigger(runtime, configure));
+    }
+
+    @Override
+    public CommonResponse<Response> alterTrigger(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        if (configure.getTriggers().size() != 1) {
+            return CommonResponse.failure("Change one trigger at a time");
+        }
+        // MySQL has no ALTER TRIGGER: editing drops the trigger and creates it again.
+        return withPlugin(code, List.of("trigger:create", "trigger:drop"), (service, runtime) -> service.alterTrigger(runtime, configure));
+    }
+
+    @Override
+    public CommonResponse<Response> dropTrigger(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        return withPlugin(code, List.of("trigger:drop"), (service, runtime) -> service.dropTrigger(runtime, configure));
+    }
+
+    @Override
     public CommonResponse<Response> getIndexDetails(String code, String database, String table)
     {
         return repository.findByCode(code)

@@ -240,6 +240,33 @@ public class MetadataController
         return this.service.dropColumn(code, database, table, configure);
     }
 
+    @GetMapping(value = "{code}/{database}/{table}/trigger-details")
+    public CommonResponse<Response> fetchTriggerDetails(@PathVariable String code, @PathVariable String database, @PathVariable String table)
+    {
+        return this.service.getTriggerDetails(code, database, table);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/create-trigger")
+    public CommonResponse<Response> createTrigger(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.createTrigger(code, database, table, configure);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/alter-trigger")
+    public CommonResponse<Response> alterTrigger(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.alterTrigger(code, database, table, configure);
+    }
+
+    @DeleteMapping(value = "{code}/{database}/{table}/drop-trigger")
+    public CommonResponse<Response> dropTrigger(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.dropTrigger(code, database, table, configure);
+    }
+
     @GetMapping(value = "{code}/{database}/{table}/foreign-key-details")
     public CommonResponse<Response> fetchForeignKeyDetails(@PathVariable String code, @PathVariable String database, @PathVariable String table)
     {

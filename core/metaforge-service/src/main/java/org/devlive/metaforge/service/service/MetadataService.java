@@ -77,6 +77,14 @@ public interface MetadataService
 
     CommonResponse<Response> dropForeignKey(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> getTriggerDetails(String code, String database, String table);
+
+    CommonResponse<Response> createTrigger(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> alterTrigger(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> dropTrigger(String code, String database, String table, TableDefinition configure);
+
     CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> changeColumn(String code, String database, String table, TableDefinition configure);

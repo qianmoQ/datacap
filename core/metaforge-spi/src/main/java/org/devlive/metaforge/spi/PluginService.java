@@ -26,6 +26,7 @@ import org.devlive.metaforge.spi.generator.definition.ColumnDefinition;
 import org.devlive.metaforge.spi.generator.definition.ForeignKeyDefinition;
 import org.devlive.metaforge.spi.generator.definition.IndexDefinition;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
+import org.devlive.metaforge.spi.generator.definition.TriggerDefinition;
 import org.devlive.metaforge.spi.generator.table.AbstractTable;
 import org.devlive.metaforge.spi.generator.table.AlterTable;
 import org.devlive.metaforge.spi.generator.table.CreateTable;
@@ -1059,6 +1060,96 @@ public interface PluginService
     {
         String value = rule == null ? "" : rule.trim().toUpperCase(java.util.Locale.ROOT).replaceAll("\\s+", " ");
         return java.util.Arrays.asList("RESTRICT", "CASCADE", "SET NULL", "NO ACTION").contains(value) ? value : "";
+    }
+
+    /**
+     * 触发器明细 | Triggers of the table with timing, event, body, definer, creation time, SQL mode
+     * and client character set.
+     */
+    default Response getTriggerDetails(RuntimeConfigure configure, String database, String table)
+    {
+        String sql = "SELECT TRIGGER_NAME AS trigger_name, ACTION_TIMING AS timing, EVENT_MANIPULATION AS event, ACTION_STATEMENT AS body,\n"
+                + "    DEFINER AS definer, CREATED AS created, SQL_MODE AS sql_mode, CHARACTER_SET_CLIENT AS charset, ACTION_ORDER AS action_order\n"
+                + "FROM information_schema.TRIGGERS\n"
+                + "WHERE EVENT_OBJECT_SCHEMA = " + sqlLiteral(database) + " AND EVENT_OBJECT_TABLE = " + sqlLiteral(table) + "\n"
+                + "ORDER BY ACTION_TIMING, EVENT_MANIPULATION, ACTION_ORDER";
+        Response response = this.execute(configure, sql);
+        if (response != null) {
+            response.setContent(sql);
+        }
+        return response;
+    }
+
+    default Response createTrigger(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(definition.getTriggers().stream()
+                .map(trigger -> this.createTriggerStatement(definition.getDatabase(), definition.getName(), trigger))
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    default Response dropTrigger(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(definition.getTriggers().stream()
+                .map(trigger -> "DROP TRIGGER " + sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(trigger.getName()))
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    /**
+     * 修改或重建触发器 | MySQL has no ALTER TRIGGER, so the trigger is dropped and created again. The
+     * original statement is read first; when the new one fails it is run again so the table keeps
+     * its trigger.
+     */
+    default Response alterTrigger(RuntimeConfigure configure, TableDefinition definition)
+    {
+        TriggerDefinition trigger = definition.getTriggers().get(0);
+        String original = trigger.getOriginalName() == null || trigger.getOriginalName().isEmpty() ? trigger.getName() : trigger.getOriginalName();
+        String drop = "DROP TRIGGER " + sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(original) + ";";
+        String create = this.createTriggerStatement(definition.getDatabase(), definition.getName(), trigger) + ";";
+        if (definition.isPreview()) {
+            return this.getResponse(drop + "\n" + create, configure, definition);
+        }
+        Response shown = this.execute(configure, "SHOW CREATE TRIGGER " + sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(original));
+        String restore = shown != null && Boolean.TRUE.equals(shown.getIsSuccessful()) && shown.getColumns() != null && !shown.getColumns().isEmpty()
+                && shown.getColumns().get(0) instanceof ObjectNode
+                ? ((ObjectNode) shown.getColumns().get(0)).path("SQL Original Statement").asText(null) : null;
+        Response dropped = this.getResponse(drop, configure, definition);
+        if (!Boolean.TRUE.equals(dropped.getIsSuccessful())) {
+            dropped.setContent(drop);
+            return dropped;
+        }
+        Response created = this.getResponse(create, configure, definition);
+        created.setContent(drop + "\n" + create);
+        if (!Boolean.TRUE.equals(created.getIsSuccessful()) && restore != null) {
+            Response restored = this.execute(configure, restore);
+            boolean back = restored != null && Boolean.TRUE.equals(restored.getIsSuccessful());
+            created.setContent(drop + "\n" + create + "\n" + restore + ";");
+            created.setMessage(created.getMessage() + (back ? " (the original trigger was restored)" : " (restoring the original trigger failed: " + (restored == null ? "" : restored.getMessage()) + ")"));
+        }
+        return created;
+    }
+
+    default String createTriggerStatement(String database, String table, TriggerDefinition trigger)
+    {
+        String timing = "AFTER".equalsIgnoreCase(trigger.getTiming()) ? "AFTER" : "BEFORE";
+        String event = trigger.getEvent() == null ? "" : trigger.getEvent().trim().toUpperCase(java.util.Locale.ROOT);
+        if (!java.util.Arrays.asList("INSERT", "UPDATE", "DELETE").contains(event)) {
+            throw new IllegalArgumentException("Trigger event must be INSERT, UPDATE or DELETE");
+        }
+        String body = trigger.getBody() == null ? "" : trigger.getBody().trim().replaceAll(";+\\s*$", "");
+        if (body.isEmpty()) {
+            throw new IllegalArgumentException("Trigger body is required");
+        }
+        StringBuilder sql = new StringBuilder("CREATE ");
+        String definer = trigger.getDefiner() == null ? "" : trigger.getDefiner().trim();
+        if (!definer.isEmpty()) {
+            int at = definer.lastIndexOf('@');
+            String user = (at < 0 ? definer : definer.substring(0, at)).replaceAll("^[`'\"]|[`'\"]$", "");
+            String host = (at < 0 ? "%" : definer.substring(at + 1)).replaceAll("^[`'\"]|[`'\"]$", "");
+            sql.append("DEFINER = ").append(sqlLiteral(user)).append("@").append(sqlLiteral(host)).append(" ");
+        }
+        return sql.append("TRIGGER ").append(sqlIdentifier(database)).append(".").append(sqlIdentifier(trigger.getName()))
+                .append("\n").append(timing).append(" ").append(event).append(" ON ").append(sqlIdentifier(database)).append(".").append(sqlIdentifier(table))
+                .append("\nFOR EACH ROW\n").append(body).toString();
     }
 
     default Response getPrimaryKeys(RuntimeConfigure configure, String database, String table)
