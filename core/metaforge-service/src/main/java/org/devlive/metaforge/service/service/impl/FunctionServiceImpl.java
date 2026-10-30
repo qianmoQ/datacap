@@ -65,7 +65,6 @@ public class FunctionServiceImpl
             existing.putIfAbsent(entity.getName(), entity);
         }
 
-        String pluginCsv = String.join(",", configure.getPlugin());
         int imported = 0;
         int duplicated = 0;
         int invalid = 0;
