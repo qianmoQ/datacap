@@ -165,7 +165,9 @@ onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
-    <div v-if="fill" class="flex min-h-0 w-full flex-1 flex-col overflow-hidden" :class="bordered && 'rounded-mf-lg border border-line'">
+    <!-- A filled table lives in a framed pane, so `bordered` only draws the cell borders here; an
+         outer frame of its own doubled the pane's border and left gaps where the two radii met. -->
+    <div v-if="fill" class="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
         <div class="flex shrink-0 border-b border-line bg-surface-hover">
             <div ref="headScroller" class="min-w-0 flex-1 overflow-hidden">
                 <table class="table-fixed border-collapse text-sm" :style="{ width: bodyWidth ? `${bodyWidth}px` : '100%' }">
