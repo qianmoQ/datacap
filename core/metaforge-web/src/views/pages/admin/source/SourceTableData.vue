@@ -23,18 +23,9 @@
       </div>
       <div class="flex items-center gap-2">
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('columns')"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
-        <MfDropdown trigger="click" placement="bottomRight">
-          <MfButton size="sm" :disabled="!columnNames.length"><ArrowUpDown :size="14"/>{{ order ? `${order.name} ${order.order.toUpperCase()}` : $t('source.data.sort') }}<ChevronDown :size="12"/></MfButton>
-          <template #overlay>
-            <MfMenu>
-              <MfMenuItem :disabled="!order" @click="setOrder(null)">{{ $t('source.data.noSort') }}</MfMenuItem>
-              <template v-for="name in columnNames" :key="name">
-                <MfMenuItem @click="setOrder(name, 'asc')"><span class="inline-flex items-center gap-2"><ArrowUp :size="13"/>{{ name }}</span></MfMenuItem>
-                <MfMenuItem @click="setOrder(name, 'desc')"><span class="inline-flex items-center gap-2"><ArrowDown :size="13"/>{{ name }}</span></MfMenuItem>
-              </template>
-            </MfMenu>
-          </template>
-        </MfDropdown>
+        <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('sort')">
+          <ArrowUpDown :size="14"/>{{ orders.length ? $t('source.data.sortCount', { count: orders.length }) : $t('source.data.sort') }}<ChevronDown :size="12"/>
+        </MfButton>
         <MfDropdown trigger="click" placement="bottomRight">
           <MfButton size="sm" :aria-label="$t('source.data.settings')"><Settings :size="14"/></MfButton>
           <template #overlay>
@@ -80,6 +71,8 @@
                      :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @tab="setEditorTab" @save="submitEditor"/>
     <SourceColumnSettings v-if="sidePanel === 'columns'" :open="sidePanel === 'columns'" :view="columnView" :defaults="defaultView"
                           :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyColumnView"/>
+    <SourceSortSettings v-if="sidePanel === 'sort'" :open="sidePanel === 'sort'" :rules="orders" :fields="columnNames" :quick="quickSortRules"
+                        :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyOrders"/>
     <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
     <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
   </div>
@@ -88,23 +81,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
+import { ArrowUpDown, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import TableRowDelete from './components/TableRowDelete.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
 import SourceColumnSettings from './components/SourceColumnSettings.vue'
+import SourceSortSettings from './components/SourceSortSettings.vue'
 import { INDEX_COLUMN } from '@/model/source-data-view'
 import { useSourceTableData } from '@/composables/useSourceTableData'
 
 defineOptions({ name: 'SourceTableData' })
 const { t } = useI18n()
 const {
-  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, order, typeOf,
+  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, orders, typeOf,
   sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-  onPageChange, setOrder, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
+  onPageChange, applyOrders, quickSortRules, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
   deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh,
 } = useSourceTableData()

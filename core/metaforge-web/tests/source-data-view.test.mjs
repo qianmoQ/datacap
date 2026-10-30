@@ -4,7 +4,7 @@ import test from 'node:test'
 import ts from 'typescript'
 const source = await readFile(new URL('../src/model/source-data-view.ts', import.meta.url), 'utf8')
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } })
-const { INDEX_COLUMN, defaultColumnView, readColumnView } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const { INDEX_COLUMN, defaultColumnView, quickSorts, readColumnView, sameSort } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 
 const fields = [{ name: 'id', kind: 'number' }, { name: 'name', kind: 'text' }, { name: 'created_at', kind: 'datetime' }]
 
@@ -23,4 +23,13 @@ test('saved views keep their order, drop removed columns and append new ones', (
   assert.equal(view.columns[1].width, 100)
   assert.equal(view.bordered, true)
   assert.deepEqual(readColumnView('not json', fields), defaultColumnView(fields))
+})
+
+test('quick sorts offer created, updated and key columns in both directions', () => {
+  const columns = [{ name: 'uid', kind: 'number' }, { name: 'created_at', kind: 'datetime' }, { name: 'updated_at', kind: 'datetime' }, { name: 'created_by', kind: 'number' }]
+  assert.deepEqual(quickSorts(columns, ['uid']).map(rule => `${rule.name} ${rule.order}`),
+    ['created_at desc', 'created_at asc', 'updated_at desc', 'updated_at asc', 'uid desc', 'uid asc'])
+  assert.deepEqual(quickSorts([{ name: 'name', kind: 'text' }], []), [])
+  assert.ok(sameSort([{ name: 'a', order: 'asc' }], [{ name: 'a', order: 'asc' }]))
+  assert.ok(!sameSort([{ name: 'a', order: 'asc' }], [{ name: 'a', order: 'desc' }]))
 })

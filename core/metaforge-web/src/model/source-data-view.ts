@@ -68,3 +68,28 @@ export function readColumnView(raw: string | null, fields: DataField[]): ColumnV
 }
 
 export const sameColumnView = (left: ColumnView, right: ColumnView) => JSON.stringify(left) === JSON.stringify(right)
+
+export type SortDirection = 'asc' | 'desc'
+
+export interface SortRule {
+  name: string
+  order: SortDirection
+}
+
+export const MAX_SORT_RULES = 5
+
+/**
+ * One-click sorts offered for this table: created and updated timestamps, then the primary key,
+ * each newest/largest first and then ascending.
+ */
+export function quickSorts(fields: DataField[], primaryKeys: string[]): SortRule[] {
+  const dated = fields.filter(field => field.kind === 'date' || field.kind === 'datetime')
+  const created = dated.find(field => /creat/i.test(field.name))
+  const updated = dated.find(field => /updat|modif/i.test(field.name))
+  const key = fields.find(field => primaryKeys.includes(field.name)) || fields.find(field => field.name.toLowerCase() === 'id')
+  return [created, updated, key].filter((field, index, list): field is DataField => !!field && list.indexOf(field) === index)
+    .flatMap(field => [{ name: field.name, order: 'desc' as const }, { name: field.name, order: 'asc' as const }])
+}
+
+export const sameSort = (left: SortRule[], right: SortRule[]) =>
+  left.length === right.length && left.every((rule, index) => rule.name === right[index].name && rule.order === right[index].order)

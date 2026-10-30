@@ -6,7 +6,7 @@ import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageR
 import { mapSourceColumns } from '@/model/source-column'
 import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, formToJson, formToRow, jsonToRow, rowToForm, toCsv, toJson, validateForm,
   type DataCondition, type DataField, type DataOperator, type FieldIssue, type FormValues } from '@/model/source-data'
-import { defaultColumnView, INDEX_COLUMN, readColumnView, type ColumnView } from '@/model/source-data-view'
+import { defaultColumnView, INDEX_COLUMN, MAX_SORT_RULES, quickSorts, readColumnView, type ColumnView, type SortRule } from '@/model/source-data-view'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
@@ -32,7 +32,7 @@ export function useSourceTableData() {
   const page = ref(1)
   const size = ref(10)
   const sql = ref('')
-  const order = ref<{ name: string; order: 'asc' | 'desc' } | null>(null)
+  const orders = ref<SortRule[]>([])
   let nextConditionId = 1
   const conditions = ref<DataCondition[]>([])
   let applied: DataCondition[] = []
@@ -103,7 +103,7 @@ export function useSourceTableData() {
       const response = await MetadataService.queryTable(source, database, table, {
         pagination: { page: page.value, size: size.value },
         filters: buildDataFilters(applied),
-        orders: order.value ? [order.value] : [],
+        orders: orders.value,
       })
       if (request !== revision || !alive) return
       assertSuccess(response)
@@ -154,11 +154,13 @@ export function useSourceTableData() {
     if (nextSize !== size.value) { size.value = nextSize; page.value = 1 } else page.value = next
     load()
   }
-  function setOrder(name: string | null, direction: 'asc' | 'desc' = 'asc') {
-    order.value = name ? { name, order: direction } : null
+  function applyOrders(rules: SortRule[]) {
+    orders.value = rules.slice(0, MAX_SORT_RULES)
+    sidePanel.value = null
     page.value = 1
     load()
   }
+  const primaryKeys = computed(() => (sharedRows.value || []).filter(row => row.type_name === 'primary').map(row => String(row.object_name)))
 
   // Row editor: a typed form or raw JSON, kept in sync when the user switches between them.
   const fields = computed<DataField[]>(() => {
@@ -304,7 +306,7 @@ export function useSourceTableData() {
   watch(identity, () => {
     closeEditor(true)
     sidePanel.value = null
-    order.value = null
+    orders.value = []
     conditions.value = []
     addCondition()
     applied = []
@@ -314,10 +316,10 @@ export function useSourceTableData() {
   onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
 
   return {
-    can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, order, typeOf,
+    can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, orders, typeOf,
     sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView: computed(() => defaultColumnView(fields.value)),
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-    onPageChange, setOrder, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
+    onPageChange, applyOrders, quickSortRules: computed(() => quickSorts(fields.value, primaryKeys.value)), selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
     openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
     deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh: load,
