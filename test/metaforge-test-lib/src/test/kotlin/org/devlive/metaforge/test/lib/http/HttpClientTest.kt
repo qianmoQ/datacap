@@ -1,6 +1,7 @@
 package org.devlive.metaforge.test.lib.http
 
 import com.sun.net.httpserver.HttpServer
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import org.devlive.metaforge.lib.http.HttpClient
 import org.devlive.metaforge.lib.http.HttpConfigure
 import org.devlive.metaforge.lib.http.HttpMethod
@@ -17,6 +18,7 @@ class HttpClientTest
     private lateinit var server: HttpServer
 
     @Before
+    @SuppressFBWarnings(value = ["NP_NULL_ON_SOME_PATH"], justification = "Kotlin lateinit server is initialized in @Before before every test")
     fun start()
     {
         // Serve locally so the test does not depend on an external site
@@ -39,6 +41,7 @@ class HttpClientTest
     }
 
     @After
+    @SuppressFBWarnings(value = ["NP_NULL_ON_SOME_PATH"], justification = "Kotlin lateinit server is initialized in @Before before every test")
     fun stop()
     {
         server.stop(0)
