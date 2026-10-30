@@ -76,8 +76,8 @@ function display(record: T, column: MfTableColumn): unknown {
 </script>
 
 <template>
-    <div class="w-full" :class="fill ? 'min-h-0 flex-1 overflow-auto' : 'overflow-x-auto'">
-        <table class="w-full border-collapse text-sm" :class="bordered && 'border border-line rounded-mf-lg'">
+    <div class="w-full" :class="fill ? 'flex min-h-0 flex-1 flex-col overflow-auto' : 'overflow-x-auto'">
+        <table class="w-full border-collapse text-sm" :class="[bordered && 'border border-line rounded-mf-lg', fill && 'shrink-0']">
             <thead>
                 <tr class="bg-surface-hover">
                     <th
@@ -138,7 +138,7 @@ function display(record: T, column: MfTableColumn): unknown {
                         </slot>
                     </td>
                 </tr>
-                <tr v-if="rows.length === 0">
+                <tr v-if="rows.length === 0 && !fill">
                     <td :colspan="Math.max(columns.length, 1)" class="px-3 py-3 text-center text-sm text-content-tertiary">
                         <slot name="emptyText">
                             <MfEmpty :title="emptyText" :description="emptyDescription" :variant="emptyVariant" size="sm"/>
@@ -147,7 +147,15 @@ function display(record: T, column: MfTableColumn): unknown {
                 </tr>
             </tbody>
         </table>
-        <div v-if="loading" class="flex items-center justify-center py-10">
+        <!-- In a bounded pane the empty and loading states fill the space under the header, centered
+             and pinned to the visible width while the table scrolls sideways. -->
+        <div v-if="fill && (loading || rows.length === 0)" class="sticky left-0 flex w-full min-h-40 flex-1 items-center justify-center px-3 py-6">
+            <MfSpinner v-if="loading" label="Loading..." />
+            <slot v-else name="emptyText">
+                <MfEmpty :title="emptyText" :description="emptyDescription" :variant="emptyVariant" size="sm"/>
+            </slot>
+        </div>
+        <div v-else-if="loading" class="flex items-center justify-center py-10">
             <MfSpinner label="Loading..." />
         </div>
     </div>
