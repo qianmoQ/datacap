@@ -11,9 +11,9 @@
 
     <div class="flex min-h-48 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
       <MfTable fill :columns="headers" :data-source="indexes" row-key="name" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')"
-               :row-class="index => index.name === detailName ? 'bg-primary/5 [&>td]:bg-primary/5' : ''" class="cursor-default" @row-click="index => detailName = index.name">
+               :row-class="rowClass" class="cursor-default" @row-click="onRowClick" @mousedown="onTableMouseDown">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :disabled="!indexes.some(index => !index.primary)" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
-        <template #cell-__check__="{ record }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.name)" :disabled="record.primary" :aria-label="$t('source.data.selectRow')" @update:model-value="value => toggle(record.name, !!value)"/></span></template>
+        <template #cell-__check__="{ record, index }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.name)" :disabled="record.primary" :aria-label="$t('source.data.selectRow')" @update:model-value="value => onCheck(record, index, !!value)"/></span></template>
         <template #cell-__index__="{ index }"><span class="tabular-nums text-content-secondary">{{ index + 1 }}</span></template>
         <template #cell-name="{ record }"><span class="inline-flex items-center gap-1.5">{{ record.name }}<Crown v-if="record.primary" :size="14" class="text-warning"/></span></template>
         <template #cell-method="{ record }"><MfTag size="sm" :variant="methodTone(record.method)" :color="record.method === 'FULLTEXT' ? 'var(--mf-color-data-complex)' : undefined">{{ record.method }}</MfTag></template>
@@ -126,7 +126,7 @@ import { useSourceTableIndexes } from '@/composables/useSourceTableIndexes'
 defineOptions({ name: 'SourceTableIndexes' })
 const { t } = useI18n()
 const {
-  can, loading, saving, indexes, tableColumns, selected, allSelected, partialSelected, toggleAll, toggle, detail, detailName, detailSql,
+  can, loading, saving, indexes, tableColumns, selected, allSelected, partialSelected, toggleAll, onRowClick, onCheck, detail, detailName, detailSql,
   editorVisible, editorMode, form, issues, previewSql, previewError, fieldPanelHost, fieldPanelWidth,
   openEditor, closeEditor, submitEditor, rebuild, dropTargets, requestDrop, closeDrop, confirmDrop, reload, executed, executedVisible,
 } = useSourceTableIndexes()
@@ -143,6 +143,11 @@ const headers = computed(() => [
   { title: t('source.idx.comment'), dataIndex: 'comment' },
   { title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const },
 ])
+// Checked rows take the hover background; the open detail row keeps a light primary tint.
+const rowClass = (index: SourceIndex) => selected.value.has(index.name) ? 'bg-surface-hover [&>td]:bg-surface-hover'
+    : index.name === detailName.value ? 'bg-primary/5 [&>td]:bg-primary/5' : ''
+// Shift-click extends the selection; keep the browser from selecting text across rows.
+const onTableMouseDown = (event: MouseEvent) => { if (event.shiftKey) event.preventDefault() }
 const methodTone = (method: IndexMethod) => method === 'BTREE' ? 'info' : method === 'HASH' ? 'warning' : 'default'
 const formatNumber = (value: number | null) => value === null ? '-' : value.toLocaleString()
 const kindLabel = (index: SourceIndex) => t(index.primary ? 'source.idx.kindPrimary' : index.method === 'FULLTEXT' ? 'source.idx.kindFulltext'

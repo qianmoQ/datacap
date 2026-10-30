@@ -50,6 +50,25 @@ export function useSourceTableIndexes() {
   const selection = useRowSelection(() => indexes.value.filter(index => !index.primary), index => index.name)
   const { selected, allSelected, partialSelected, toggleAll, toggle, select } = selection
   const detail = computed(() => indexes.value.find(index => index.name === detailName.value) || null)
+  // Rows select like the data preview: a click selects that row, shift extends from the last one,
+  // cmd/ctrl toggles. PRIMARY cannot be dropped, so it only opens its details.
+  let anchor: number | null = null
+  function onRowClick(index: SourceIndex, position: number, event: MouseEvent) {
+    detailName.value = index.name
+    const selectable = (item: SourceIndex) => !item.primary
+    if (event.shiftKey && anchor !== null) {
+      const [from, to] = anchor < position ? [anchor, position] : [position, anchor]
+      select(indexes.value.slice(from, to + 1).filter(selectable).map(item => item.name))
+      return
+    }
+    anchor = position
+    if (event.metaKey || event.ctrlKey) { if (selectable(index)) toggle(index.name, !selected.value.has(index.name)) }
+    else select(selectable(index) ? [index.name] : [])
+  }
+  function onCheck(index: SourceIndex, position: number, checked: boolean) {
+    anchor = position
+    toggle(index.name, checked)
+  }
 
   async function load() {
     const request = ++revision
@@ -194,7 +213,7 @@ export function useSourceTableIndexes() {
   onScopeDispose(() => { alive = false; revision++; previewRevision++; clearTimeout(previewTimer); fieldPanelOpen.value = false })
 
   return {
-    can, loading, saving, indexes, tableColumns, selected, allSelected, partialSelected, toggleAll, toggle, detail, detailName, detailSql,
+    can, loading, saving, indexes, tableColumns, selected, allSelected, partialSelected, toggleAll, onRowClick, onCheck, detail, detailName, detailSql,
     editorVisible: editor.visible, editorMode, form, issues, previewSql, previewError, fieldPanelHost, fieldPanelWidth,
     openEditor, closeEditor, submitEditor, rebuild, dropTargets, requestDrop, closeDrop, confirmDrop, reload,
     executed: executedSql.executed, executedVisible: executedSql.visible,
