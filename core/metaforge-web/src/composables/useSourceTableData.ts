@@ -4,7 +4,8 @@ import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { mapSourceColumns } from '@/model/source-column'
-import { buildDataFilters, dataKind, defaultOperator, emptyValue, toCsv, toJson, type DataCondition, type DataOperator } from '@/model/source-data'
+import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, formToJson, formToRow, jsonToRow, rowToForm, toCsv, toJson, validateForm,
+  type DataCondition, type DataField, type DataOperator, type FieldIssue, type FormValues } from '@/model/source-data'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
@@ -67,7 +68,13 @@ export function useSourceTableData() {
   const rowClass = (row: DataRow) => selected.value.has(row.__key) ? 'bg-surface-hover [&>td]:bg-surface-hover' : ''
   const editor = usePanelState<DataRow>()
   const editorMode = ref<RowEditorMode>('add')
-  const editorValues = ref<Record<string, string | null>>({})
+  const editorValues = ref<FormValues>({})
+  const editorOriginal = ref<FormValues>({})
+  const editorTab = ref<'form' | 'json'>('form')
+  const editorJson = ref('')
+  const editorIssues = ref<Record<string, FieldIssue>>({})
+  const jsonError = ref('')
+  const continueAdding = ref(false)
 
   const identity = () => [route.params.source, route.params.database, route.params.table].join('/')
   const errorMessage = (error: unknown) => error instanceof Error ? error.message : String(error)
@@ -148,29 +155,89 @@ export function useSourceTableData() {
     hidden.value = next
   }
 
-  // Row editor
-  const display = (value: unknown) => value === null || value === undefined ? null : typeof value === 'object' ? JSON.stringify(value) : String(value)
+  // Row editor: a typed form or raw JSON, kept in sync when the user switches between them.
+  const fields = computed<DataField[]>(() => {
+    const list = dataFields(sharedRows.value || [])
+    return list.length ? list : headers.value.map(name => ({ name, type: '', kind: 'text' as const, options: [], nullable: true, hasDefault: false, autoIncrement: false, required: false }))
+  })
   function openEditor(mode: RowEditorMode, row: DataRow | null = null) {
     if (saving.value || !can(mode === 'edit' ? 'data:modify' : 'data:insert')) return
     editorMode.value = mode
-    editorValues.value = Object.fromEntries(columnNames.value.map(name => [name, row ? display(row[name]) : null]))
+    editorTab.value = 'form'
+    editorValues.value = rowToForm(fields.value, row)
+    editorOriginal.value = { ...editorValues.value }
+    editorIssues.value = {}
+    jsonError.value = ''
     editor.open(row)
   }
   const closeEditor = (force = false) => { if (!saving.value || force) editor.close() }
+  /** Parses the JSON editor into row objects; a single object or an array of objects. */
+  function parseJsonRows(): Record<string, unknown>[] | null {
+    let parsed: unknown
+    try { parsed = JSON.parse(editorJson.value) } catch (error) {
+      jsonError.value = t('source.data.jsonInvalid', { message: errorMessage(error) })
+      return null
+    }
+    const list = Array.isArray(parsed) ? parsed : [parsed]
+    if (!list.length || list.some(item => item === null || typeof item !== 'object' || Array.isArray(item))) {
+      jsonError.value = t('source.data.jsonObjectRequired')
+      return null
+    }
+    jsonError.value = ''
+    return list as Record<string, unknown>[]
+  }
+  function setEditorTab(tab: 'form' | 'json') {
+    if (tab === editorTab.value) return
+    if (tab === 'json') {
+      editorJson.value = JSON.stringify(formToJson(fields.value, editorValues.value), null, 2)
+      jsonError.value = ''
+      editorTab.value = 'json'
+      return
+    }
+    const parsed = parseJsonRows()
+    if (!parsed) return
+    if (parsed.length !== 1) { jsonError.value = t('source.data.formSingleRow'); return }
+    editorValues.value = rowToForm(fields.value, parsed[0])
+    editorIssues.value = {}
+    editorTab.value = 'form'
+  }
+  /** Rows to send: typed form values, or the parsed JSON. Edits keep only the fields that changed. */
+  function editorRows(): Record<string, unknown>[] | null {
+    const editing = editorMode.value === 'edit'
+    if (editorTab.value === 'form') {
+      editorIssues.value = validateForm(fields.value, editorValues.value)
+      if (Object.keys(editorIssues.value).length) return null
+      if (!editing) return [formToRow(fields.value, editorValues.value)]
+      const changed = fields.value.filter(field => editorValues.value[field.name] !== editorOriginal.value[field.name])
+      return [formToRow(changed, editorValues.value, false)]
+    }
+    const parsed = parseJsonRows()
+    if (!parsed) return null
+    if (!editing) return parsed.map(row => jsonToRow(fields.value, row))
+    if (parsed.length !== 1) { jsonError.value = t('source.data.formSingleRow'); return null }
+    const original = formToJson(fields.value, editorOriginal.value)
+    const changed = Object.fromEntries(Object.entries(parsed[0]).filter(([name, value]) => JSON.stringify(value) !== JSON.stringify(original[name])))
+    return [jsonToRow(fields.value, changed)]
+  }
   async function submitEditor() {
     if (saving.value) return
+    const rowsToSave = editorRows()
+    if (!rowsToSave) return
     const [source, database, table] = [route.params.source, route.params.database, route.params.table].map(String)
     const target = editor.target.value
-    const values = editorValues.value
-    let request: Promise<any>
-    if (editorMode.value === 'edit' && target) {
-      const changed = Object.fromEntries(Object.entries(values).filter(([name, value]) => value !== display(target[name])))
-      if (!Object.keys(changed).length) { closeEditor(); return }
-      request = MetadataService.updateData(source, database, table, { preview: false, rows: [{ row: changed, original: plain(target) }] })
-    } else {
-      request = MetadataService.insertData(source, database, table, { preview: false, rows: [values] })
+    if (editorMode.value === 'edit') {
+      if (!target || !Object.keys(rowsToSave[0]).length) { closeEditor(); return }
+      await mutate(MetadataService.updateData(source, database, table, { preview: false, rows: [{ row: rowsToSave[0], original: plain(target) }] }), () => closeEditor(true))
+      return
     }
-    await mutate(request, () => closeEditor(true))
+    await mutate(MetadataService.insertData(source, database, table, { preview: false, rows: rowsToSave }), () => {
+      // "Continue adding" keeps the panel open with a blank form for the next row.
+      if (continueAdding.value && editorMode.value === 'add') {
+        editorValues.value = rowToForm(fields.value, null)
+        editorJson.value = JSON.stringify(formToJson(fields.value, editorValues.value), null, 2)
+        editorIssues.value = {}
+      } else closeEditor(true)
+    })
   }
   async function mutate(request: Promise<any>, onSuccess: () => void) {
     const key = identity()
@@ -225,7 +292,8 @@ export function useSourceTableData() {
     can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
     onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
-    editorVisible: editor.visible, editorMode, editorValues, openEditor, closeEditor, submitEditor, fieldPanelHost, fieldPanelWidth,
+    editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, fields,
+    openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
     deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh: load,
   }
 }

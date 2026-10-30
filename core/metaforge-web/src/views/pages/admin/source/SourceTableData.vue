@@ -83,8 +83,9 @@
       </label>
     </div>
 
-    <SourceRowEditor v-if="editorVisible" v-model="editorValues" :open="editorVisible" :mode="editorMode" :columns="columnNames" :type-of="typeOf"
-                     :saving="saving" :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @save="submitEditor"/>
+    <SourceRowEditor v-if="editorVisible" v-model="editorValues" v-model:json="editorJson" v-model:continue-adding="continueAdding" :open="editorVisible"
+                     :mode="editorMode" :tab="editorTab" :fields="fields" :issues="editorIssues" :json-error="jsonError" :saving="saving"
+                     :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @tab="setEditorTab" @save="submitEditor"/>
     <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
     <TableCellInfo v-if="copyTargets.length" :is-visible="!!copyTargets.length" :columns="copyRows" @close="closeCopy"/>
     <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
@@ -109,7 +110,7 @@ const {
   can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
-  editorVisible, editorMode, editorValues, openEditor, closeEditor, submitEditor, fieldPanelHost, fieldPanelWidth,
+  editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
   deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh,
 } = useSourceTableData()
 
