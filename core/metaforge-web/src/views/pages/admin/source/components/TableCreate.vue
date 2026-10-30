@@ -435,7 +435,6 @@ const formatting = ref(false)
 
 const fieldColumns = [
   { title: '', dataIndex: '__check__', width: 44 },
-  { title: t('common.id'), dataIndex: '__index__', width: 48 },
   { title: t('source.structure.fieldName'), dataIndex: 'name' },
   { title: t('source.structure.type'), dataIndex: 'type', width: 140 },
   { title: t('source.create.lengthValue'), dataIndex: 'length', width: 90 },
@@ -537,6 +536,23 @@ const onAdd = () => {
     name: '', type: dataTypes.value[0] || 'VARCHAR', length: '', defaultValue: '',
     nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: ''
   })
+}
+
+// 按原型预填示例字段与唯一索引，用户在其上修改
+const prefillRows = () => {
+  formState.value.columns = [
+    { name: 'id', type: 'BIGINT', length: '', defaultValue: '', nullable: false, primaryKey: true, autoIncrement: true, unique: false, comment: t('source.create.colId') },
+    { name: 'username', type: 'VARCHAR', length: '50', defaultValue: '', nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colUsername') },
+    { name: 'password', type: 'VARCHAR', length: '100', defaultValue: '', nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colPassword') },
+    { name: 'email', type: 'VARCHAR', length: '100', defaultValue: '', nullable: true, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colEmail') },
+    { name: 'status', type: 'TINYINT', length: '1', defaultValue: '1', nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colStatus') },
+    { name: 'created_at', type: 'DATETIME', length: '', defaultValue: 'CURRENT_TIMESTAMP', nullable: false, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colCreatedAt') },
+    { name: 'updated_at', type: 'DATETIME', length: '', defaultValue: 'CURRENT_TIMESTAMP', nullable: true, primaryKey: false, autoIncrement: false, unique: false, comment: t('source.create.colUpdatedAt') }
+  ]
+  indexRows.value = [
+    { __key: 'idx_prefill_username', kind: 'unique', name: 'idx_username', columnsText: 'username', method: 'BTREE', comment: t('source.create.idxUsernameComment'), editing: false }
+  ]
+  selectedRows.value = new Set()
 }
 
 const onRemove = (index: number) => {
@@ -689,5 +705,5 @@ HttpUtils.all([MetadataService.getEngines(code), MetadataService.getDataTypes(co
          }))
          .finally(() => (loading.value = false))
 
-onAdd()
+prefillRows()
 </script>
