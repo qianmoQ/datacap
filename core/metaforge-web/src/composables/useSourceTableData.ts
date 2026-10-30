@@ -48,6 +48,23 @@ export function useSourceTableData() {
   const selection = useRowSelection(() => rows.value, row => row.__key)
   const { selected, allSelected, partialSelected, toggleAll, toggle, select } = selection
   const selectedRows = computed(() => rows.value.filter(row => selected.value.has(row.__key)))
+  // Shift-click selects from the last row clicked or checked; plain clicks replace the selection.
+  let anchor: number | null = null
+  function onRowClick(row: DataRow, index: number, event: MouseEvent) {
+    if (event.shiftKey && anchor !== null) {
+      const [from, to] = anchor < index ? [anchor, index] : [index, anchor]
+      select(rows.value.slice(from, to + 1).map(item => item.__key))
+      return
+    }
+    anchor = index
+    if (event.metaKey || event.ctrlKey) toggle(row.__key, !selected.value.has(row.__key))
+    else select([row.__key])
+  }
+  function onCheck(row: DataRow, index: number, checked: boolean) {
+    anchor = index
+    toggle(row.__key, checked)
+  }
+  const rowClass = (row: DataRow) => selected.value.has(row.__key) ? 'bg-surface-hover [&>td]:bg-surface-hover' : ''
   const editor = usePanelState<DataRow>()
   const editorMode = ref<RowEditorMode>('add')
   const editorValues = ref<Record<string, string | null>>({})
@@ -79,6 +96,7 @@ export function useSourceTableData() {
       total.value = Number(data.pagination?.total ?? rows.value.length)
       sql.value = data.content || ''
       select([])
+      anchor = null
     } catch (error) {
       if (request === revision && alive) { rows.value = []; total.value = 0; MfMessage.error(errorMessage(error)) }
     } finally {
@@ -206,7 +224,7 @@ export function useSourceTableData() {
   return {
     can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-    onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, toggle,
+    onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, openEditor, closeEditor, submitEditor, fieldPanelHost, fieldPanelWidth,
     deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh: load,
   }

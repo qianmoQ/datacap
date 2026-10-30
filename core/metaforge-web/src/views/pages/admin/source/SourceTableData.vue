@@ -56,16 +56,17 @@
     </div>
 
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
-      <MfTable fill :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')">
+      <MfTable fill :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')"
+               :row-class="rowClass" class="cursor-default" @row-click="onRowClick" @mousedown="onTableMouseDown">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
-        <template #cell-__check__="{ record }"><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => toggle(record.__key, !!value)"/></template>
+        <template #cell-__check__="{ record, index }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => onCheck(record, index, !!value)"/></span></template>
         <template #cell-__index__="{ index }"><span class="tabular-nums text-content-secondary">{{ (page - 1) * size + index + 1 }}</span></template>
         <template v-for="name in visibleColumns" :key="name" #[`cell-${name}`]="{ record }">
           <span v-if="record[name] === null || record[name] === undefined" class="text-content-tertiary">NULL</span>
           <div v-else class="max-w-72"><EllipsisCell :text="cellText(record[name])"/></div>
         </template>
         <template #cell-__action__="{ record }">
-          <div class="flex items-center gap-4 text-xs">
+          <div class="flex items-center gap-4 text-xs" @click.stop>
             <button v-if="can('data:modify')" type="button" class="text-primary hover:underline disabled:opacity-50" :disabled="saving" @click="openEditor('edit', record)">{{ $t('common.edit') }}</button>
             <button v-if="can('data:delete')" type="button" class="text-danger hover:underline disabled:opacity-50" :disabled="saving" @click="requestDelete([record])">{{ $t('common.delete') }}</button>
           </div>
@@ -107,7 +108,7 @@ const { t } = useI18n()
 const {
   can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-  onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, toggle,
+  onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, openEditor, closeEditor, submitEditor, fieldPanelHost, fieldPanelWidth,
   deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh,
 } = useSourceTableData()
@@ -119,6 +120,8 @@ const tableColumns = computed(() => [
   ...(can('data:modify') || can('data:delete') ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
 ])
 const cellText = (value: unknown) => typeof value === 'object' ? JSON.stringify(value) : String(value)
+// Shift-click extends the row selection; keep the browser from selecting text across rows.
+const onTableMouseDown = (event: MouseEvent) => { if (event.shiftKey) event.preventDefault() }
 const jump = ref('')
 function onJump() {
   const target = Math.trunc(Number(jump.value))

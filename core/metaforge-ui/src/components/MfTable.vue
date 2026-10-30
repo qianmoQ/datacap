@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<{
 })
 
 defineEmits<{
-    rowClick: [record: T, index: number]
+    rowClick: [record: T, index: number, event: MouseEvent]
 }>()
 
 const alignClass = (align?: string) =>
@@ -176,7 +176,7 @@ onBeforeUnmount(() => observer?.disconnect())
                         :data-row-key="String(record[rowKey] ?? index)"
                         class="group transition-[background-color] duration-(--mf-duration-fast)"
                         :class="rowClasses(record, index)"
-                        @click="$emit('rowClick', record, index)"
+                        @click="$emit('rowClick', record, index, $event)"
                     >
                         <td v-for="column in columns" :key="colKey(column)" :class="tdClass(column, index)">
                             <slot :name="`cell-${colKey(column)}`" :record="record" :column="column" :index="index" :text="display(record, column)">
@@ -212,7 +212,7 @@ onBeforeUnmount(() => observer?.disconnect())
                     :data-row-key="String(record[rowKey] ?? index)"
                     class="group transition-[background-color] duration-(--mf-duration-fast)"
                     :class="rowClasses(record, index)"
-                    @click="$emit('rowClick', record, index)"
+                    @click="$emit('rowClick', record, index, $event)"
                 >
                     <td v-for="column in columns" :key="colKey(column)" :class="tdClass(column, index)">
                         <slot :name="`cell-${colKey(column)}`" :record="record" :column="column" :index="index" :text="display(record, column)">
