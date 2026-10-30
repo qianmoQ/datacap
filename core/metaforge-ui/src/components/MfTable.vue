@@ -104,6 +104,7 @@ function display(record: T, column: MfTableColumn): unknown {
                 <tr
                     v-for="(record, index) in rows"
                     :key="String(record[rowKey] ?? index)"
+                    :data-row-key="String(record[rowKey] ?? index)"
                     class="group transition-[background-color] duration-(--mf-duration-fast)"
                     :class="clsx(
                         striped && index % 2 === 1 && 'bg-surface-hover/40',
