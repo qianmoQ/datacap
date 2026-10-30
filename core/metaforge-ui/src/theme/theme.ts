@@ -21,6 +21,7 @@ export type MfThemeTokenName =
     | 'color-danger'
     | 'color-danger-subtle'
     | 'color-info'
+    | 'color-data-complex'
     | 'color-info-subtle'
     | 'color-page'
     | 'color-surface'
@@ -65,6 +66,7 @@ export const mfLightPreset: MfThemeTokens = {
     'color-danger': '#DC5656',
     'color-danger-subtle': '#FFF1F1',
     'color-info': '#3B82F6',
+    'color-data-complex': '#7955DF',
     'color-info-subtle': '#EFF6FF',
     'color-page': '#F6FAF9',
     'color-surface': '#ffffff',
@@ -108,6 +110,7 @@ export const mfDarkPreset: MfThemeTokens = {
     'color-danger': '#E57272',
     'color-danger-subtle': 'rgb(229 114 114 / 0.14)',
     'color-info': '#6CA5F8',
+    'color-data-complex': '#B39AFA',
     'color-info-subtle': 'rgb(108 165 248 / 0.14)',
     'color-page': '#0C1412',
     'color-surface': '#111B18',

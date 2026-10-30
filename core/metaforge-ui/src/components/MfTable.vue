@@ -29,6 +29,10 @@ const props = withDefaults(defineProps<{
     bordered?: boolean
     striped?: boolean
     hoverable?: boolean
+    density?: 'default' | 'compact'
+    rowClass?: (record: T, index: number) => string
+    /** Scroll rows inside a bounded workspace while keeping the header visible. */
+    fill?: boolean
   /** Empty-state text. */
     emptyText?: string
     emptyDescription?: string
@@ -41,6 +45,8 @@ const props = withDefaults(defineProps<{
     bordered: true,
     striped: false,
     hoverable: true,
+    density: 'default',
+    fill: false,
     emptyText: 'No data',
     emptyDescription: '',
     emptyVariant: 'data',
@@ -70,16 +76,18 @@ function display(record: T, column: MfTableColumn): unknown {
 </script>
 
 <template>
-    <div class="w-full overflow-x-auto">
+    <div class="w-full" :class="fill ? 'min-h-0 flex-1 overflow-auto' : 'overflow-x-auto'">
         <table class="w-full border-collapse text-sm" :class="bordered && 'border border-line rounded-mf-lg'">
             <thead>
                 <tr class="bg-surface-hover">
                     <th
                         v-for="column in columns"
                         :key="colKey(column)"
-                        class="whitespace-nowrap border-b border-line px-3 py-2.5 text-xs font-semibold text-content-secondary"
+                        class="whitespace-nowrap border-b border-line px-3 text-xs font-semibold text-content-secondary"
                         :class="[
                             alignClass(column.align),
+                            density === 'compact' ? 'py-2' : 'py-2.5',
+                            fill && 'sticky top-0 z-20 bg-surface-hover',
                             bordered && 'border-r border-line last:border-r-0',
                             column.fixed === 'right' && 'sticky right-0 z-10 bg-surface-hover border-l border-line',
                             column.fixed === 'left' && 'sticky left-0 z-10 bg-surface-hover border-r border-line',
@@ -101,15 +109,17 @@ function display(record: T, column: MfTableColumn): unknown {
                         striped && index % 2 === 1 && 'bg-surface-hover/40',
                         hoverable && 'hover:bg-surface-hover',
                         'border-b border-line last:border-b-0',
+                        rowClass?.(record, index),
                     )"
                     @click="$emit('rowClick', record, index)"
                 >
                     <td
                         v-for="column in columns"
                         :key="colKey(column)"
-                        class="whitespace-nowrap px-3 py-2.5 text-content"
+                        class="whitespace-nowrap px-3 text-content"
                         :class="[
                             alignClass(column.align),
+                            density === 'compact' ? 'py-1.5' : 'py-2.5',
                             bordered && 'border-r border-line last:border-r-0',
                             column.ellipsis && 'max-w-0 overflow-hidden',
                             column.fixed === 'right' && clsx('sticky right-0 z-10 border-l border-line', striped && index % 2 === 1 ? STRIPED_SOLID : 'bg-surface', hoverable && 'group-hover:bg-surface-hover'),

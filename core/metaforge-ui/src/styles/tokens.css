@@ -31,6 +31,7 @@
     --mf-color-danger: #DC5656;
     --mf-color-danger-subtle: #FFF1F1;
     --mf-color-info: #3B82F6;
+    --mf-color-data-complex: #7955DF;
     --mf-color-info-subtle: #EFF6FF;
 
     /* surfaces & content */
@@ -89,6 +90,7 @@
     --mf-color-danger: #E57272;
     --mf-color-danger-subtle: rgb(229 114 114 / 0.14);
     --mf-color-info: #6CA5F8;
+    --mf-color-data-complex: #B39AFA;
     --mf-color-info-subtle: rgb(108 165 248 / 0.14);
 
     --mf-color-page: #0C1412;
