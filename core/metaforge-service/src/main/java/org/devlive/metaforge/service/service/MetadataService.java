@@ -11,6 +11,8 @@ import org.devlive.metaforge.spi.model.ManagementPage;
 import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Response;
 
+import java.util.Map;
+
 public interface MetadataService
 {
     CommonResponse<ManagementCapabilities> getCapabilities(String code);
@@ -65,6 +67,8 @@ public interface MetadataService
     CommonResponse<Response> createIndex(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> previewCreateTable(String code, TableDefinition configure, String kind);
+
+    CommonResponse<Map<String, String>> previewCreateTableBatch(String code, TableDefinition configure);
 
     CommonResponse<Response> dropIndex(String code, String database, String table, TableDefinition configure);
 

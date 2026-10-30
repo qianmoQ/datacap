@@ -15,6 +15,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Map;
+
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -67,5 +69,21 @@ public class SourceManagementControllerTest
                 .andExpect(jsonPath("$.data.nextCursor").value("42"))
                 .andExpect(jsonPath("$.data.entries[0].name").value("hello"))
                 .andExpect(jsonPath("$.data.entries[0].ttl").value(1000));
+    }
+
+    @Test
+    public void aSingleBatchEndpointReturnsEverySqlTabUnderTheUserJsonView()
+            throws Exception
+    {
+        when(service.previewCreateTableBatch(eq("source-code"), any())).thenReturn(CommonResponse.success(
+                Map.of("full", "CREATE TABLE users;", "columns", "column SQL", "indexes", "index SQL", "options", "option SQL")));
+        mvc.perform(post("/api/v1/metadata/source-code/preview-create-table-batch").requestAttr("JSON_VIEW", EntityView.UserView.class)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"database\":\"app\",\"name\":\"users\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value(true))
+                .andExpect(jsonPath("$.data.full").value("CREATE TABLE users;"))
+                .andExpect(jsonPath("$.data.columns").value("column SQL"))
+                .andExpect(jsonPath("$.data.indexes").value("index SQL"))
+                .andExpect(jsonPath("$.data.options").value("option SQL"));
+        verify(service, never()).previewCreateTable(any(), any(), any());
     }
 }

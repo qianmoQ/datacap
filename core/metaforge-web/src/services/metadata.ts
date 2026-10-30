@@ -251,6 +251,11 @@ class MetadataService
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/preview-create-table?kind=${ kind }`, configure)
     }
 
+    previewCreateTableBatch(code: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/preview-create-table-batch`, configure)
+    }
+
     getColumn(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/get-column`, configure)

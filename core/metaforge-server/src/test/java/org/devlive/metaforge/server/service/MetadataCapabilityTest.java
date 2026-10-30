@@ -16,6 +16,7 @@ import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Response;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -54,10 +56,12 @@ public class MetadataCapabilityTest
         assertFalse(result.getData().supports("column:modify"));
         assertFalse(service.changeColumn("source-code", "0", "key", TableDefinition.create("0", "key")).getStatus());
         assertFalse(service.createTable("source-code", "0", TableDefinition.create("0", "key")).getStatus());
+        assertFalse(service.previewCreateTableBatch("source-code", TableDefinition.create("0", "key")).getStatus());
         assertFalse(service.getColumns("source-code", "0", "key").getStatus());
         verify(adapter, never()).connect(any());
         verify(adapter, never()).changeColumn(any(), any());
         verify(adapter, never()).createTable(any(), any());
+        verify(adapter, never()).previewCreateTable(any(), any(), anyString());
         verify(adapter, never()).getColumns(any(), any(), any());
     }
 
@@ -129,5 +133,53 @@ public class MetadataCapabilityTest
                 && "app".equals(entry.getDatabaseName()) && "user".equals(entry.getTableName()) && "source-code".equals(entry.getSourceCode())));
         service.generateTableDdl("source-code", "app", "user", "create");
         verify(history, org.mockito.Mockito.times(1)).save(any());
+    }
+
+    @Test
+    public void onePreviewRequestReturnsAllSectionsWithoutExecutingOrRecordingDdl()
+    {
+        SourceRepository repository = mock(SourceRepository.class);
+        SourceDdlHistoryRepository history = mock(SourceDdlHistoryRepository.class);
+        PluginManager manager = mock(PluginManager.class);
+        Plugin plugin = mock(Plugin.class);
+        PluginService adapter = mock(PluginService.class);
+        SourceEntity source = new SourceEntity();
+        source.setType("MySQL");
+        when(repository.findByCode("source-code")).thenReturn(Optional.of(source));
+        when(manager.getPlugin("MySQL")).thenReturn(Optional.of(plugin));
+        when(plugin.getService(PluginService.class)).thenReturn(adapter);
+        when(adapter.managementCapabilities()).thenReturn(ManagementCapabilities.forJdbc("mysql"));
+        TableDefinition definition = TableDefinition.create("app", "users");
+        when(adapter.previewCreateTable(any(), eq(definition), anyString()))
+                .thenAnswer(invocation -> Response.builder().isSuccessful(true).content(invocation.<String>getArgument(2) + " SQL").build());
+
+        CommonResponse<Map<String, String>> result = new MetadataServiceImpl(manager, repository, history).previewCreateTableBatch("source-code", definition);
+        assertTrue(result.getStatus());
+        assertEquals(Map.of("full", "full SQL", "columns", "columns SQL", "indexes", "indexes SQL", "options", "options SQL"), result.getData());
+        verify(adapter, org.mockito.Mockito.times(4)).previewCreateTable(any(), eq(definition), anyString());
+        verify(adapter, never()).connect(any());
+        verify(adapter, never()).createTable(any(), any());
+        verifyNoInteractions(history);
+    }
+
+    @Test
+    public void failedPreviewSectionsDoNotProduceAPartialSuccessfulBatch()
+    {
+        SourceRepository repository = mock(SourceRepository.class);
+        PluginManager manager = mock(PluginManager.class);
+        Plugin plugin = mock(Plugin.class);
+        PluginService adapter = mock(PluginService.class);
+        SourceEntity source = new SourceEntity();
+        source.setType("MySQL");
+        when(repository.findByCode("source-code")).thenReturn(Optional.of(source));
+        when(manager.getPlugin("MySQL")).thenReturn(Optional.of(plugin));
+        when(plugin.getService(PluginService.class)).thenReturn(adapter);
+        when(adapter.managementCapabilities()).thenReturn(ManagementCapabilities.forJdbc("mysql"));
+        when(adapter.previewCreateTable(any(), any(), anyString())).thenReturn(Response.builder().isSuccessful(false).message("preview denied").build());
+        CommonResponse<Map<String, String>> result = new MetadataServiceImpl(manager, repository, mock(SourceDdlHistoryRepository.class))
+                .previewCreateTableBatch("source-code", TableDefinition.create("app", "users"));
+        assertFalse(result.getStatus());
+        assertEquals("preview denied", result.getMessage());
+        verify(adapter, org.mockito.Mockito.times(1)).previewCreateTable(any(), any(), anyString());
     }
 }

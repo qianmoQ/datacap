@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController()
 @RequestMapping(value = "/api/v1/metadata")
 @SuppressFBWarnings(value = {"EI_EXPOSE_REP2"})
@@ -220,6 +222,13 @@ public class MetadataController
             @RequestBody TableDefinition configure)
     {
         return this.service.previewCreateTable(code, configure, kind);
+    }
+
+    /** All SQL tabs for one unsaved definition, without executing or recording DDL. */
+    @PostMapping(value = "{code}/preview-create-table-batch")
+    public CommonResponse<Map<String, String>> previewCreateTableBatch(@PathVariable String code, @RequestBody TableDefinition configure)
+    {
+        return this.service.previewCreateTableBatch(code, configure);
     }
 
     @GetMapping(value = "{code}/{database}/{table}/indexes")

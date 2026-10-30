@@ -17,7 +17,7 @@ const { outputText } = ts.transpileModule(`return ${declaration.initializer.getT
     compilerOptions: { target: ts.ScriptTarget.ES2020 },
 })
 const indexColumns = new Function('t', outputText)(key => key)
-const names = ['MfDrawer', 'MfForm', 'MfFormItem', 'MfTable', 'MfInput', 'MfSelect', 'MfTag', 'MfButton', 'MfTooltip']
+const names = ['MfDrawer', 'MfForm', 'MfFormItem', 'MfTable', 'MfInput', 'MfSelect', 'MfTag', 'MfButton', 'MfTooltip', 'MfAlert']
 const components = Object.fromEntries(await Promise.all(names.map(async name => [name, await component(name)])))
 
 function mountIndexStep(rows, manualRows = rows, callbacks = {}) {

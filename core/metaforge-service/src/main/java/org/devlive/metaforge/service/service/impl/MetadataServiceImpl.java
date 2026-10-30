@@ -24,7 +24,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -446,6 +448,32 @@ public class MetadataServiceImpl
                         .map(plugin -> CommonResponse.success(plugin.getService(PluginService.class)
                                 .previewCreateTable(entity.toConfigure(pluginManager, plugin), configure, kind)))
                         .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Map<String, String>> previewCreateTableBatch(String code, TableDefinition configure)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService adapter = plugin.getService(PluginService.class);
+                            if (!adapter.managementCapabilities().supports("table:create")) {
+                                return CommonResponse.<Map<String, String>>failure("Source does not support table:create");
+                            }
+                            RuntimeConfigure runtime = entity.toConfigure(pluginManager, plugin);
+                            Map<String, String> previews = new LinkedHashMap<>();
+                            for (String kind : List.of("full", "columns", "indexes", "options")) {
+                                Response response = adapter.previewCreateTable(runtime, configure, kind);
+                                if (response == null || !Boolean.TRUE.equals(response.getIsSuccessful()) || response.getContent() == null) {
+                                    return CommonResponse.<Map<String, String>>failure(response == null || response.getMessage() == null
+                                            ? "Failed to generate table SQL previews" : response.getMessage());
+                                }
+                                previews.put(kind, response.getContent());
+                            }
+                            return CommonResponse.success(previews);
+                        })
+                        .orElseGet(() -> CommonResponse.<Map<String, String>>failure(String.format("Plugin [ %s ] not found", entity.getType()))))
                 .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
     }
 

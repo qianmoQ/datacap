@@ -219,6 +219,10 @@
             </button>
           </div>
           <div v-if="sqlLoading" class="flex min-h-0 flex-1 items-center justify-center rounded-mf-md border border-line"><MfSpinner size="sm"/></div>
+          <div v-else-if="sqlError" class="flex min-h-0 flex-1 flex-col items-center justify-center gap-3">
+            <MfAlert variant="danger" :title="sqlError"/>
+            <MfButton size="sm" @click="retryPreview">{{ $t('common.refresh') }}</MfButton>
+          </div>
           <SqlCodeBlock v-else fill :code="sqlContent" :copyable="true" :placeholder="$t('common.noData')"/>
           <div class="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2">
             <MfButton size="sm" :disabled="!sqlContent" @click="onCopySql"><Copy :size="13"/>{{ $t('source.executed.copy') }} SQL</MfButton>
@@ -248,10 +252,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { useTableCreateIndexes, type TableCreateIndexRow as IndexRow } from '@/composables/useTableCreateIndexes'
+import { useTableCreatePreview } from '@/composables/useTableCreatePreview'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
@@ -263,7 +268,6 @@ import {
   ArrowDown, ArrowRight, ArrowUp, Check, Copy, Download, Plus, Scan, Trash2
 } from '@lucide/vue'
 import SqlCodeBlock from '@/views/components/sql/SqlCodeBlock.vue'
-import { debounce } from 'lodash'
 
 defineOptions({ name: 'TableCreate' })
 
@@ -362,8 +366,6 @@ const sqlTabs = [
   { kind: 'options', labelKey: 'source.create.tabOptionsOnly' }
 ] as const
 const sqlTab = ref<'full' | 'columns' | 'indexes' | 'options'>('full')
-const sqlContent = ref('')
-const sqlLoading = ref(false)
 const formatting = ref(false)
 
 const fieldColumns = [
@@ -413,35 +415,14 @@ const buildDefinition = () => ({
   indexes: indexDefinitions.value
 })
 
-const refreshPreview = async () => {
-  if (currentStep.value !== 4) return
-  const definition = buildDefinition()
-  if (!definition.name || !sourceCode) {
-    sqlContent.value = ''
-    return
-  }
-  sqlLoading.value = true
-  try {
-    const response = await MetadataService.previewCreateTable(sourceCode, { ...definition, database: databaseName }, sqlTab.value)
-    if (response.status && response.data?.isSuccessful !== false) {
-      sqlContent.value = String(response.data?.content || '')
-    }
-    else {
-      sqlContent.value = ''
-      MfMessage.error(response.data?.message || response.message)
-    }
-  }
-  catch {
-    sqlContent.value = ''
-  }
-  finally {
-    sqlLoading.value = false
-  }
-}
-
-const schedulePreview = debounce(refreshPreview, 500)
-watch([formState, options, advanced, indexRows, sqlTab], () => schedulePreview(), { deep: true })
-watch(sqlTab, () => refreshPreview())
+const { sqlContent, sqlLoading, sqlError, previewContext, updateSqlContent, retryPreview } = useTableCreatePreview({
+  active: () => visible.value && currentStep.value === 4,
+  source: () => sourceCode,
+  database: () => databaseName,
+  definition: buildDefinition,
+  kind: sqlTab,
+  failureMessage: () => t('source.create.previewFailed')
+})
 
 const formRef = ref<any | null>(null)
 
@@ -505,11 +486,12 @@ const onCopySql = () => {
 }
 
 const onFormatSql = () => {
+  const context = previewContext.value
   formatting.value = true
   FormatService.formatSql({ sql: sqlContent.value })
                  .then(response => {
                    if (response.status && typeof response.data === 'string') {
-                     sqlContent.value = response.data
+                     updateSqlContent(response.data, context)
                    }
                    else {
                      MfMessage.error(response.message)
@@ -546,9 +528,6 @@ const onNext = async () => {
   }
   if (currentStep.value < 4) {
     currentStep.value += 1
-    if (currentStep.value === 4) {
-      refreshPreview()
-    }
   }
 }
 
