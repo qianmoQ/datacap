@@ -1419,6 +1419,9 @@ public interface PluginService
      */
     default Response dropColumn(RuntimeConfigure configure, TableDefinition definition)
     {
+        if (definition.isForce()) {
+            return this.executeStatements(this.forceDropColumnStatements(configure, definition), configure, definition);
+        }
         AlterTable tableDefinition = AlterTable.create(definition.getDatabase(), definition.getName());
 
         definition.getColumns().forEach(col -> tableDefinition.dropColumn(col.getName()));
@@ -1428,6 +1431,162 @@ public interface PluginService
                 configure,
                 definition
         );
+    }
+
+    /**
+     * Objects that depend on the given columns: indexes, foreign keys in both directions, triggers on
+     * the table, views and generated columns that reference them. Each kind is looked up on its own,
+     * so a catalog view the account cannot read only hides that kind.
+     * Rows: object_type (index, foreign_key, trigger, view, other), object_name, object_kind,
+     * object_columns, object_schema, object_table, object_detail.
+     */
+    default Response getColumnDependencies(RuntimeConfigure configure, TableDefinition definition)
+    {
+        String database = sqlLiteral(definition.getDatabase());
+        String table = sqlLiteral(definition.getName());
+        List<String> names = definition.getColumns().stream().map(ColumnDefinition::getName).collect(Collectors.toList());
+        String columns = names.stream().map(this::sqlLiteral).collect(Collectors.joining(", "));
+        // Backtick-quoted names as MySQL writes them into trigger, view and generation expressions.
+        java.util.function.Function<String, String> mentions = expression -> names.stream()
+                .map(name -> "LOCATE(" + sqlLiteral("`" + name + "`") + ", " + expression + ") > 0")
+                .collect(Collectors.joining(" OR ", "(", ")"));
+        String select = "SELECT {type} AS object_type, {name} AS object_name, {kind} AS object_kind, {columns} AS object_columns,\n"
+                + "    {schema} AS object_schema, {table} AS object_table, {detail} AS object_detail\n";
+        List<String> queries = Lists.newArrayList(
+                select.replace("{type}", "'index'").replace("{name}", "INDEX_NAME")
+                        .replace("{kind}", "CASE WHEN INDEX_NAME = 'PRIMARY' THEN 'PRIMARY' WHEN MAX(NON_UNIQUE) = 0 THEN 'UNIQUE' "
+                                + "WHEN MAX(INDEX_TYPE) = 'FULLTEXT' THEN 'FULLTEXT' ELSE 'NORMAL' END")
+                        .replace("{columns}", "GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX SEPARATOR ', ')")
+                        .replace("{schema}", "TABLE_SCHEMA").replace("{table}", "TABLE_NAME").replace("{detail}", "''")
+                        + "FROM information_schema.STATISTICS\n"
+                        + "WHERE TABLE_SCHEMA = " + database + " AND TABLE_NAME = " + table + "\n"
+                        + "GROUP BY TABLE_SCHEMA, TABLE_NAME, INDEX_NAME\n"
+                        + "HAVING SUM(COLUMN_NAME IN (" + columns + ")) > 0",
+                select.replace("{type}", "'foreign_key'").replace("{name}", "CONSTRAINT_NAME")
+                        .replace("{kind}", "IF(TABLE_SCHEMA = " + database + " AND TABLE_NAME = " + table + ", 'OUTGOING', 'INCOMING')")
+                        .replace("{columns}", "GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ', ')")
+                        .replace("{schema}", "TABLE_SCHEMA").replace("{table}", "TABLE_NAME")
+                        .replace("{detail}", "CONCAT(REFERENCED_TABLE_SCHEMA, '.', REFERENCED_TABLE_NAME, ' (', "
+                                + "GROUP_CONCAT(REFERENCED_COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ', '), ')')")
+                        + "FROM information_schema.KEY_COLUMN_USAGE\n"
+                        + "WHERE REFERENCED_TABLE_NAME IS NOT NULL AND (\n"
+                        + "    (TABLE_SCHEMA = " + database + " AND TABLE_NAME = " + table + " AND COLUMN_NAME IN (" + columns + "))\n"
+                        + "    OR (REFERENCED_TABLE_SCHEMA = " + database + " AND REFERENCED_TABLE_NAME = " + table
+                        + " AND REFERENCED_COLUMN_NAME IN (" + columns + ")))\n"
+                        + "GROUP BY TABLE_SCHEMA, TABLE_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME",
+                select.replace("{type}", "'trigger'").replace("{name}", "TRIGGER_NAME")
+                        .replace("{kind}", "CONCAT(ACTION_TIMING, ' ', EVENT_MANIPULATION)").replace("{columns}", "''")
+                        .replace("{schema}", "TRIGGER_SCHEMA").replace("{table}", "EVENT_OBJECT_TABLE").replace("{detail}", "''")
+                        + "FROM information_schema.TRIGGERS\n"
+                        + "WHERE EVENT_OBJECT_SCHEMA = " + database + " AND EVENT_OBJECT_TABLE = " + table
+                        + " AND " + mentions.apply("ACTION_STATEMENT"),
+                select.replace("{type}", "'view'").replace("{name}", "TABLE_NAME").replace("{kind}", "'VIEW'").replace("{columns}", "''")
+                        .replace("{schema}", "TABLE_SCHEMA").replace("{table}", "TABLE_NAME").replace("{detail}", "''")
+                        + "FROM information_schema.VIEWS\n"
+                        + "WHERE LOCATE(" + sqlLiteral("`" + definition.getDatabase() + "`.`" + definition.getName() + "`") + ", VIEW_DEFINITION) > 0"
+                        + " AND " + mentions.apply("VIEW_DEFINITION"),
+                select.replace("{type}", "'other'").replace("{name}", "COLUMN_NAME").replace("{kind}", "'GENERATED'").replace("{columns}", "COLUMN_NAME")
+                        .replace("{schema}", "TABLE_SCHEMA").replace("{table}", "TABLE_NAME").replace("{detail}", "GENERATION_EXPRESSION")
+                        + "FROM information_schema.COLUMNS\n"
+                        + "WHERE TABLE_SCHEMA = " + database + " AND TABLE_NAME = " + table + " AND GENERATION_EXPRESSION <> ''"
+                        + " AND COLUMN_NAME NOT IN (" + columns + ") AND " + mentions.apply("GENERATION_EXPRESSION"));
+
+        Response response = Response.builder()
+                .isSuccessful(true)
+                .isConnected(true)
+                .headers(Lists.newArrayList("object_type", "object_name", "object_kind", "object_columns", "object_schema", "object_table", "object_detail"))
+                .types(Lists.newArrayList("String", "String", "String", "String", "String", "String", "String"))
+                .columns(Lists.newArrayList())
+                .build();
+        List<String> failures = Lists.newArrayList();
+        for (String query : queries) {
+            Response part = this.execute(configure, query);
+            if (part != null && Boolean.TRUE.equals(part.getIsSuccessful()) && part.getColumns() != null) {
+                response.getColumns().addAll(part.getColumns());
+            }
+            else if (part != null && part.getMessage() != null) {
+                failures.add(part.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            response.setMessage(String.join("; ", failures));
+        }
+        response.setContent(String.join(";\n\n", queries) + ";");
+        return response;
+    }
+
+    /**
+     * Statements for a forced drop: foreign keys (on this table and on tables referencing it), triggers
+     * and views go first, then one ALTER drops the dependent indexes, generated columns and the columns.
+     */
+    default List<String> forceDropColumnStatements(RuntimeConfigure configure, TableDefinition definition)
+    {
+        Response dependencies = this.getColumnDependencies(configure, definition);
+        List<String> statements = Lists.newArrayList();
+        List<String> alterations = Lists.newArrayList();
+        for (Object item : dependencies.getColumns()) {
+            if (!(item instanceof ObjectNode)) {
+                continue;
+            }
+            ObjectNode node = (ObjectNode) item;
+            String type = node.path("object_type").asText();
+            String name = sqlIdentifier(node.path("object_name").asText());
+            String owner = sqlIdentifier(node.path("object_schema").asText()) + "." + sqlIdentifier(node.path("object_table").asText());
+            switch (type) {
+                case "foreign_key":
+                    statements.add("ALTER TABLE " + owner + " DROP FOREIGN KEY " + name);
+                    break;
+                case "trigger":
+                    statements.add("DROP TRIGGER " + sqlIdentifier(node.path("object_schema").asText()) + "." + name);
+                    break;
+                case "view":
+                    statements.add("DROP VIEW " + owner);
+                    break;
+                case "index":
+                    alterations.add("PRIMARY".equals(node.path("object_name").asText()) ? "DROP PRIMARY KEY" : "DROP INDEX " + name);
+                    break;
+                case "other":
+                    alterations.add("DROP COLUMN " + name);
+                    break;
+                default:
+                    break;
+            }
+        }
+        definition.getColumns().forEach(column -> alterations.add("DROP COLUMN " + sqlIdentifier(column.getName())));
+        statements.add("ALTER TABLE " + sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(definition.getName())
+                + "\n    " + String.join(",\n    ", alterations));
+        return statements;
+    }
+
+    /**
+     * Runs statements one at a time and stops at the first failure; the response content lists every
+     * statement that was run, the failing one included.
+     */
+    default Response executeStatements(List<String> statements, RuntimeConfigure configure, TableDefinition definition)
+    {
+        List<String> executed = Lists.newArrayList();
+        Response response = null;
+        for (String statement : statements) {
+            executed.add(statement + ";");
+            response = this.getResponse(statement + ";", configure, definition);
+            if (!Boolean.TRUE.equals(response.getIsSuccessful())) {
+                break;
+            }
+        }
+        if (response != null) {
+            response.setContent(String.join("\n", definition.isPreview() ? statements.stream().map(statement -> statement + ";").collect(Collectors.toList()) : executed));
+        }
+        return response;
+    }
+
+    default String sqlLiteral(String value)
+    {
+        return "'" + String.valueOf(value).replace("\\", "\\\\").replace("'", "''") + "'";
+    }
+
+    default String sqlIdentifier(String value)
+    {
+        return "`" + String.valueOf(value).replace("`", "``") + "`";
     }
 
     /**

@@ -43,6 +43,8 @@ public class TableDefinition
     private Set<ColumnDefinition> orders = new LinkedHashSet<>();
     private Set<ColumnDefinition> filters = Sets.newHashSet();
     private Pagination pagination;
+    // Dropping columns also drops the objects that depend on them (indexes, foreign keys, triggers, views, generated columns).
+    private boolean force;
     private List<JsonNode> rows = Lists.newArrayList();
 
     private TableDefinition(String database, String name)

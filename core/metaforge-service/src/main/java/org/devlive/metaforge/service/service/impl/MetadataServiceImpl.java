@@ -455,6 +455,25 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getColumnDependencies(String code, String database, String table, TableDefinition configure)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            // Read-only, but only offered where columns can be dropped.
+                            if (!service.managementCapabilities().supports("column:drop")) {
+                                return CommonResponse.<Response>failure("Source does not support column:drop");
+                            }
+                            configure.setDatabase(database);
+                            configure.setName(table);
+                            return CommonResponse.success(service.getColumnDependencies(entity.toConfigure(pluginManager, plugin), configure));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
     public CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure)
     {
         return repository.findByCode(code)

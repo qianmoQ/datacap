@@ -240,6 +240,17 @@ public class MetadataController
         return this.service.dropColumn(code, database, table, configure);
     }
 
+    @PostMapping(value = "{code}/{database}/{table}/column-dependencies")
+    public CommonResponse<Response> fetchColumnDependencies(
+            @PathVariable String code,
+            @PathVariable String database,
+            @PathVariable String table,
+            @RequestBody TableDefinition configure
+    )
+    {
+        return this.service.getColumnDependencies(code, database, table, configure);
+    }
+
     @PostMapping(value = "{code}/{database}/{table}/get-column")
     public CommonResponse<Response> getColumn(
             @PathVariable String code,
