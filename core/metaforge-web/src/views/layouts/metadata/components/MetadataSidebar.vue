@@ -51,7 +51,7 @@
         </template>
       </MfTree>
 
-      <MfEmpty v-if="!loading && filteredTreeArray.length === 0" size="sm" :title="$t('common.noData')"/>
+      <MfEmpty v-if="!loading && filteredTreeArray.length === 0" class="h-full" size="sm" :title="$t('common.noData')"/>
 
       <div v-if="contextmenu.visible && dataInfo"
            ref="contextMenuRoot"

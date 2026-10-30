@@ -3,7 +3,7 @@
     <div class="isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 py-2">
       <div v-if="capabilityLoading" class="flex flex-1 items-center justify-center"><MfSpinner/></div>
       <div v-else-if="capabilityError"><MfAlert variant="danger" :title="capabilityError"/><MfButton size="sm" class="mt-2" @click="onRefresh"><RefreshCw :size="14"/>{{ $t('common.refresh') }}</MfButton></div>
-      <MfEmpty v-else-if="!originalDatabase && profile?.kind === 'relational' && selectTab !== 'sql'" variant="initial" :title="$t('source.tip.notSelectedNode')"/>
+      <MfEmpty v-else-if="!originalDatabase && profile?.kind === 'relational' && selectTab !== 'sql'" class="flex-1" variant="initial" :title="$t('source.tip.notSelectedNode')"/>
       <template v-else>
         <div class="mb-2 flex min-h-8 shrink-0 flex-wrap items-center justify-between gap-2">
           <nav v-if="profile?.kind === 'relational'" class="flex min-w-0 items-center gap-2 text-xs text-content-tertiary" :aria-label="$t('source.common.database')">
@@ -53,7 +53,7 @@
             <component :is="paneComponent" v-if="selectTab === tab.key" :key="paneKey"/>
           </MfTabPane>
         </MfTabs>
-        <div v-if="(!originalTable && !['sql','keys','objects'].includes(selectTab)) || selectTab === 'erDiagram'" class="min-h-0 flex-1 overflow-auto"><component :is="paneComponent" v-if="paneComponent" :key="paneKey"/><MfEmpty v-else variant="initial" :title="$t('source.tip.notSelectedNode')"/></div>
+        <div v-if="(!originalTable && !['sql','keys','objects'].includes(selectTab)) || selectTab === 'erDiagram'" class="min-h-0 flex-1 overflow-auto"><component :is="paneComponent" v-if="paneComponent" :key="paneKey"/><MfEmpty v-else class="h-full" variant="initial" :title="$t('source.tip.notSelectedNode')"/></div>
       </template>
     </div>
   </div>

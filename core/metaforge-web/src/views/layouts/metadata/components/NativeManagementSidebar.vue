@@ -16,7 +16,7 @@
           <EllipsisCell :text="entry.name"/>
         </button>
       </div>
-      <MfEmpty v-else size="sm" :title="$t('common.noData')"/>
+      <MfEmpty v-else class="h-full" size="sm" :title="$t('common.noData')"/>
     </div>
     <MfButton v-if="hasMore" size="sm" class="mt-2 shrink-0" :loading="loading" @click="load(true)">{{ $t('source.native.loadMore') }}</MfButton>
   </div>
