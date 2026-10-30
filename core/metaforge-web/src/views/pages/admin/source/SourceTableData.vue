@@ -72,7 +72,8 @@
                         :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyOrders"/>
     <SourceTableSettings v-if="sidePanel === 'settings'" :open="sidePanel === 'settings'" :settings="settings" :bordered="columnView.bordered" :default-sort="defaultSort"
                          :quick="quickSortRules" :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applySettings"/>
-    <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" :track="trackDelete" @close="closeDelete"/>
+    <SourceDataDelete :open="!!deleteTargets.length" :rows="deleteRows" :fields="fields" :columns="visibleColumns" :primary-keys="primaryKeys" :saving="saving"
+                      @close="closeDelete" @confirm="confirmDelete"/>
     <ExecutedSqlDialog v-model:open="executedVisible" :executed="executed"/>
   </div>
 </template>
@@ -82,7 +83,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpDown, CircleCheck, CircleX, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
-import TableRowDelete from './components/TableRowDelete.vue'
+import SourceDataDelete from './components/SourceDataDelete.vue'
 import ExecutedSqlDialog from '@/views/components/sql/ExecutedSqlDialog.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
@@ -100,7 +101,7 @@ const {
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, applyOrders, quickSortRules, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-  deleteTargets, deleteRows, requestDelete, closeDelete, trackDelete, executed, executedVisible, exportRows,
+  deleteTargets, deleteRows, requestDelete, closeDelete, confirmDelete, primaryKeys, executed, executedVisible, exportRows,
 } = useSourceTableData()
 
 // Columns follow the applied column settings: order, visibility, width, alignment and pinning.

@@ -308,14 +308,17 @@ export function useSourceTableData() {
   }
 
 
-  // Delete goes through a confirm dialog that previews the generated SQL.
-  const requestDelete = (targets: DataRow[]) => { if (targets.length && can('data:delete')) deleteTargets.value = targets }
+  // Single rows and batches are confirmed in a dialog; the delete is recorded like any other change.
+  const requestDelete = (targets: DataRow[]) => { if (targets.length && can('data:delete') && !saving.value) deleteTargets.value = targets }
   const deleteRows = computed(() => deleteTargets.value.map(plain))
-  function closeDelete() { deleteTargets.value = []; load() }
-  /** The delete dialog runs the statement itself; this records what it executed. */
-  const trackDelete = (request: Promise<any>) => executedSql.record({
-    operation: t('source.executed.deleteRow'), table: String(route.params.table), target: { label: t('source.executed.rows'), value: String(deleteTargets.value.length) },
-  }).run(request)
+  const closeDelete = () => { if (!saving.value) deleteTargets.value = [] }
+  async function confirmDelete() {
+    const targets = deleteRows.value
+    if (!targets.length || saving.value) return
+    const [source, database, table] = [route.params.source, route.params.database, route.params.table].map(String)
+    await mutate(MetadataService.deleteData(source, database, table, { preview: false, columns: targets.map(original => ({ original })) }),
+      () => { deleteTargets.value = [] }, { operation: 'source.executed.deleteRow', rows: targets.length })
+  }
 
   /**
    * Exports the selected rows, or every row the query matches (the current filters only when the
@@ -387,6 +390,6 @@ export function useSourceTableData() {
     onPageChange, applyOrders, quickSortRules: computed(() => quickSorts(fields.value, primaryKeys.value)), selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
     openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-    deleteTargets, deleteRows, requestDelete, closeDelete, trackDelete, executed: executedSql.executed, executedVisible: executedSql.visible, exportRows, refresh: load,
+    deleteTargets, deleteRows, requestDelete, closeDelete, confirmDelete, primaryKeys, executed: executedSql.executed, executedVisible: executedSql.visible, exportRows, refresh: load,
   }
 }
