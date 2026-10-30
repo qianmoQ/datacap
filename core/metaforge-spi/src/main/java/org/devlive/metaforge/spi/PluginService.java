@@ -1965,6 +1965,58 @@ public interface PluginService
     }
 
     /**
+     * 表依赖对象 | Objects that depend on the table, checked before dropping it: foreign keys of other
+     * tables referencing it (incoming), views naming it, stored procedures and functions of the
+     * same schema mentioning it, and its own triggers, which are dropped with it. Routine bodies are
+     * matched by name, so a routine listed may only mention the table. Each row has object_type
+     * (foreign_key, view, routine or trigger), object_schema, object_name and object_detail.
+     */
+    default Response getTableDependencies(RuntimeConfigure configure, String database, String table)
+    {
+        String schema = sqlLiteral(database);
+        String name = sqlLiteral(table);
+        List<String> queries = Lists.newArrayList(
+                "SELECT 'foreign_key' AS object_type, TABLE_SCHEMA AS object_schema, CONSTRAINT_NAME AS object_name,\n"
+                        + "    CONCAT(TABLE_NAME, ' (', GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ', '), ') -> (',\n"
+                        + "        GROUP_CONCAT(REFERENCED_COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ', '), ')') AS object_detail\n"
+                        + "FROM information_schema.KEY_COLUMN_USAGE\n"
+                        + "WHERE REFERENCED_TABLE_SCHEMA = " + schema + " AND REFERENCED_TABLE_NAME = " + name + "\n"
+                        + "    AND NOT (TABLE_SCHEMA = " + schema + " AND TABLE_NAME = " + name + ")\n"
+                        + "GROUP BY TABLE_SCHEMA, TABLE_NAME, CONSTRAINT_NAME",
+                "SELECT 'view' AS object_type, TABLE_SCHEMA AS object_schema, TABLE_NAME AS object_name, '' AS object_detail\n"
+                        + "FROM information_schema.VIEWS\n"
+                        + "WHERE LOCATE(" + sqlLiteral("`" + database + "`.`" + table + "`") + ", VIEW_DEFINITION) > 0",
+                "SELECT 'routine' AS object_type, ROUTINE_SCHEMA AS object_schema, ROUTINE_NAME AS object_name, ROUTINE_TYPE AS object_detail\n"
+                        + "FROM information_schema.ROUTINES\n"
+                        + "WHERE ROUTINE_SCHEMA = " + schema + " AND LOCATE(LOWER(" + name + "), LOWER(ROUTINE_DEFINITION)) > 0",
+                "SELECT 'trigger' AS object_type, TRIGGER_SCHEMA AS object_schema, TRIGGER_NAME AS object_name,\n"
+                        + "    CONCAT(ACTION_TIMING, ' ', EVENT_MANIPULATION) AS object_detail\n"
+                        + "FROM information_schema.TRIGGERS\n"
+                        + "WHERE EVENT_OBJECT_SCHEMA = " + schema + " AND EVENT_OBJECT_TABLE = " + name);
+        Response response = Response.builder()
+                .isSuccessful(true)
+                .isConnected(true)
+                .headers(Lists.newArrayList("object_type", "object_schema", "object_name", "object_detail"))
+                .types(Lists.newArrayList("String", "String", "String", "String"))
+                .columns(Lists.newArrayList())
+                .build();
+        List<String> failures = Lists.newArrayList();
+        for (String query : queries) {
+            Response part = this.execute(configure, query);
+            if (part != null && Boolean.TRUE.equals(part.getIsSuccessful()) && part.getColumns() != null) {
+                response.getColumns().addAll(part.getColumns());
+            }
+            else if (part != null && part.getMessage() != null) {
+                failures.add(part.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            response.setMessage(String.join("; ", failures));
+        }
+        return response;
+    }
+
+    /**
      * Objects that depend on the given columns: indexes, foreign keys in both directions, triggers on
      * the table, views and generated columns that reference them. Each kind is looked up on its own,
      * so a catalog view the account cannot read only hides that kind.

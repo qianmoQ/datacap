@@ -380,6 +380,13 @@ public class MetadataController
         return this.service.getColumnDependencies(code, database, table, configure);
     }
 
+    /** Foreign keys, views, routines and triggers that depend on the table, checked before dropping it. */
+    @GetMapping(value = "{code}/{database}/{table}/table-dependencies")
+    public CommonResponse<Response> fetchTableDependencies(@PathVariable String code, @PathVariable String database, @PathVariable String table)
+    {
+        return this.service.getTableDependencies(code, database, table);
+    }
+
     @PostMapping(value = "{code}/{database}/{table}/get-column")
     public CommonResponse<Response> getColumn(
             @PathVariable String code,

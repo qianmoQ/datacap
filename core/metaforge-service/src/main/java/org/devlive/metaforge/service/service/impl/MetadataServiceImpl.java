@@ -674,6 +674,13 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getTableDependencies(String code, String database, String table)
+    {
+        // Read-only, but only offered where tables can be dropped.
+        return withPlugin(code, List.of("table:drop"), (service, configure) -> service.getTableDependencies(configure, database, table));
+    }
+
+    @Override
     public CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure)
     {
         return repository.findByCode(code)
