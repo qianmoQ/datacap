@@ -78,6 +78,24 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/statement`)
     }
 
+    /** One kind of DDL built from the table definition: create, structure, indexes, constraints, alter, alter-table or sample-data. */
+    getTableDdl(code: string, database: string, table: string, kind: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/ddl`, { kind })
+    }
+
+    /** Generates the DDL like getTableDdl and records it in the table's DDL history. */
+    generateTableDdl(code: string, database: string, table: string, kind: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/ddl?kind=${ encodeURIComponent(kind) }`)
+    }
+
+    /** DDL generated for the table, newest first. */
+    getTableDdlHistory(code: string, database: string, table: string, page: number, size: number): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/ddl-history`, { page, size })
+    }
+
     updateAutoIncrement(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().put(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/auto-increment`, configure)
