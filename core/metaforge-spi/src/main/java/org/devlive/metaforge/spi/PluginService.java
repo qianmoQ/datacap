@@ -26,6 +26,7 @@ import org.devlive.metaforge.spi.generator.definition.ColumnDefinition;
 import org.devlive.metaforge.spi.generator.definition.ForeignKeyDefinition;
 import org.devlive.metaforge.spi.generator.definition.IndexDefinition;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
+import org.devlive.metaforge.spi.generator.definition.TableOptionsDefinition;
 import org.devlive.metaforge.spi.generator.definition.TriggerDefinition;
 import org.devlive.metaforge.spi.generator.table.AbstractTable;
 import org.devlive.metaforge.spi.generator.table.AlterTable;
@@ -1150,6 +1151,87 @@ public interface PluginService
         return sql.append("TRIGGER ").append(sqlIdentifier(database)).append(".").append(sqlIdentifier(trigger.getName()))
                 .append("\n").append(timing).append(" ").append(event).append(" ON ").append(sqlIdentifier(database)).append(".").append(sqlIdentifier(table))
                 .append("\nFOR EACH ROW\n").append(body).toString();
+    }
+
+    /**
+     * 表属性 | The table's options and statistics: type, engine, row format, character set and
+     * collation, next auto-increment value, data and index bytes, rows, comment, and index and
+     * foreign key counts.
+     */
+    default Response getTableProperties(RuntimeConfigure configure, String database, String table)
+    {
+        String schema = sqlLiteral(database);
+        String name = sqlLiteral(table);
+        String sql = "SELECT t.TABLE_NAME AS table_name, t.TABLE_SCHEMA AS table_schema, t.TABLE_TYPE AS table_type, t.ENGINE AS engine,\n"
+                + "    t.ROW_FORMAT AS row_format, t.CREATE_TIME AS create_time, t.UPDATE_TIME AS update_time, c.CHARACTER_SET_NAME AS charset,\n"
+                + "    t.TABLE_COLLATION AS collation, t.AUTO_INCREMENT AS auto_increment, t.DATA_LENGTH AS data_length,\n"
+                + "    t.INDEX_LENGTH AS index_length, t.TABLE_ROWS AS table_rows, t.TABLE_COMMENT AS table_comment,\n"
+                + "    (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS s WHERE s.TABLE_SCHEMA = t.TABLE_SCHEMA AND s.TABLE_NAME = t.TABLE_NAME) AS index_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS r WHERE r.CONSTRAINT_SCHEMA = t.TABLE_SCHEMA AND r.TABLE_NAME = t.TABLE_NAME) AS foreign_key_count\n"
+                + "FROM information_schema.TABLES t\n"
+                + "LEFT JOIN information_schema.COLLATIONS c ON c.COLLATION_NAME = t.TABLE_COLLATION\n"
+                + "WHERE t.TABLE_SCHEMA = " + schema + " AND t.TABLE_NAME = " + name;
+        Response response = this.execute(configure, sql);
+        if (response != null) {
+            response.setContent(sql);
+        }
+        return response;
+    }
+
+    /** 字符集与排序规则 | Every character set with its collations; is_default marks the default one. */
+    default Response getCharacterSets(RuntimeConfigure configure)
+    {
+        return this.execute(configure, "SELECT CHARACTER_SET_NAME AS charset, COLLATION_NAME AS collation, IS_DEFAULT AS is_default\n"
+                + "FROM information_schema.COLLATIONS WHERE CHARACTER_SET_NAME IS NOT NULL ORDER BY CHARACTER_SET_NAME, COLLATION_NAME");
+    }
+
+    /** 修改表属性 | Changes the given table options in one ALTER TABLE. */
+    default Response alterTableOptions(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(Lists.newArrayList(this.tableOptionsStatement(definition.getDatabase(), definition.getName(), definition.getOptions())),
+                configure, definition);
+    }
+
+    default String tableOptionsStatement(String database, String table, TableOptionsDefinition options)
+    {
+        List<String> clauses = Lists.newArrayList();
+        if (options != null) {
+            if (options.getEngine() != null) {
+                clauses.add("ENGINE = " + tableOptionWord(options.getEngine(), "engine"));
+            }
+            if (options.getRowFormat() != null) {
+                clauses.add("ROW_FORMAT = " + tableOptionWord(options.getRowFormat(), "row format").toUpperCase(java.util.Locale.ROOT));
+            }
+            if (options.getAutoIncrement() != null) {
+                if (options.getAutoIncrement() < 1) {
+                    throw new IllegalArgumentException("The next auto-increment value must be at least 1");
+                }
+                clauses.add("AUTO_INCREMENT = " + options.getAutoIncrement());
+            }
+            if (options.getCharset() != null) {
+                clauses.add("DEFAULT CHARACTER SET = " + tableOptionWord(options.getCharset(), "character set"));
+            }
+            if (options.getCollate() != null) {
+                clauses.add("COLLATE = " + tableOptionWord(options.getCollate(), "collation"));
+            }
+            if (options.getComment() != null) {
+                clauses.add("COMMENT = " + sqlLiteral(options.getComment()));
+            }
+        }
+        if (clauses.isEmpty()) {
+            throw new IllegalArgumentException("No table option to change");
+        }
+        return "ALTER TABLE " + sqlIdentifier(database) + "." + sqlIdentifier(table) + "\n    " + String.join("\n    ", clauses);
+    }
+
+    /** Engines, row formats, character sets and collations are bare words; anything else is refused. */
+    default String tableOptionWord(String value, String option)
+    {
+        String word = value.trim();
+        if (!word.matches("[A-Za-z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid " + option + ": " + value);
+        }
+        return word;
     }
 
     default Response getPrimaryKeys(RuntimeConfigure configure, String database, String table)

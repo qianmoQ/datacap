@@ -505,6 +505,26 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getTableProperties(String code, String database, String table)
+    {
+        return withPlugin(code, List.of("table:info"), (service, configure) -> service.getTableProperties(configure, database, table));
+    }
+
+    @Override
+    public CommonResponse<Response> getCharacterSets(String code)
+    {
+        return withPlugin(code, List.of("table:alter"), (service, configure) -> service.getCharacterSets(configure));
+    }
+
+    @Override
+    public CommonResponse<Response> alterTableOptions(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        return withPlugin(code, List.of("table:alter"), (service, runtime) -> service.alterTableOptions(runtime, configure));
+    }
+
+    @Override
     public CommonResponse<Response> getTriggerDetails(String code, String database, String table)
     {
         return withPlugin(code, List.of("trigger:read"), (service, configure) -> service.getTriggerDetails(configure, database, table));

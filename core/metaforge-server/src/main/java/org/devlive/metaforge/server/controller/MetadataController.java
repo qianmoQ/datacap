@@ -240,6 +240,25 @@ public class MetadataController
         return this.service.dropColumn(code, database, table, configure);
     }
 
+    @GetMapping(value = "{code}/{database}/{table}/table-properties")
+    public CommonResponse<Response> fetchTableProperties(@PathVariable String code, @PathVariable String database, @PathVariable String table)
+    {
+        return this.service.getTableProperties(code, database, table);
+    }
+
+    @GetMapping(value = "{code}/character-sets")
+    public CommonResponse<Response> fetchCharacterSets(@PathVariable String code)
+    {
+        return this.service.getCharacterSets(code);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/alter-table-options")
+    public CommonResponse<Response> alterTableOptions(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.alterTableOptions(code, database, table, configure);
+    }
+
     @GetMapping(value = "{code}/{database}/{table}/trigger-details")
     public CommonResponse<Response> fetchTriggerDetails(@PathVariable String code, @PathVariable String database, @PathVariable String table)
     {

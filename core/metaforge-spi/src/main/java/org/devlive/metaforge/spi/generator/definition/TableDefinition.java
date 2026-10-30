@@ -45,6 +45,7 @@ public class TableDefinition
     private Pagination pagination;
     private List<ForeignKeyDefinition> foreignKeys = Lists.newArrayList();
     private List<TriggerDefinition> triggers = Lists.newArrayList();
+    private TableOptionsDefinition options;
     // Dropping columns also drops the objects that depend on them (indexes, foreign keys, triggers, views, generated columns).
     private boolean force;
     private List<JsonNode> rows = Lists.newArrayList();

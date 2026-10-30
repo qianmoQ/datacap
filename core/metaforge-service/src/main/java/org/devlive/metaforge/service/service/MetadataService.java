@@ -85,6 +85,12 @@ public interface MetadataService
 
     CommonResponse<Response> dropTrigger(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> getTableProperties(String code, String database, String table);
+
+    CommonResponse<Response> getCharacterSets(String code);
+
+    CommonResponse<Response> alterTableOptions(String code, String database, String table, TableDefinition configure);
+
     CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> changeColumn(String code, String database, String table, TableDefinition configure);
