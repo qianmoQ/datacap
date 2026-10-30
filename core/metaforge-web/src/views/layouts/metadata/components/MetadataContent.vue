@@ -16,16 +16,17 @@
           <span v-else class="text-sm font-medium text-content-secondary">{{ $t('source.manage.kind.' + (profile?.kind || 'unknown')) }}</span>
           <div class="flex shrink-0 items-center gap-2">
             <MfButton size="sm" @click="onRefresh"><RefreshCw :size="14"/>{{ $t('common.refresh') }}</MfButton>
-            <MfButton v-if="can('table:alter') && can('tab:info')" size="sm" :disabled="!originalTable" @click="onEditProperties"><Pencil :size="14"/>{{ $t('source.props.edit') }}</MfButton>
-            <MfButton v-if="can('column:read')" size="sm" :disabled="!originalTable" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}</MfButton>
-            <MfDropdown v-if="can('table:create') || can('table:export') || can('table:drop') || can('table:truncate')" trigger="click" placement="bottomRight">
+            <MfButton v-if="originalTable && can('table:alter') && can('tab:info')" size="sm" @click="onEditProperties"><Pencil :size="14"/>{{ $t('source.props.edit') }}</MfButton>
+            <MfButton v-if="originalTable && can('column:read')" size="sm" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}</MfButton>
+            <!-- Database level keeps only what applies to it (new table); table actions show once a table is open. -->
+            <MfDropdown v-if="can('table:create') || (originalTable && (can('table:export') || can('table:drop') || can('table:truncate')))" trigger="click" placement="bottomRight">
               <MfButton size="sm">{{ $t('source.common.moreActions') }}<ChevronDown :size="12"/></MfButton>
               <template #overlay>
                 <MfMenu>
                   <MfMenuItem v-if="can('table:create')" @click="tableCreateVisible = true"><span class="flex items-center gap-2"><Table :size="14"/>{{ $t('source.common.menuNewTable') }}</span></MfMenuItem>
-                  <MfMenuItem v-if="can('table:export')" :disabled="!originalTable" @click="tableExportVisible = true"><span class="flex items-center gap-2"><ArrowUpToLine :size="14"/>{{ $t('source.common.exportData') }}</span></MfMenuItem>
-                  <MfMenuItem v-if="can('table:truncate')" :disabled="!originalTable" @click="tableTruncateVisible = true"><span class="flex items-center gap-2"><Eraser :size="14"/>{{ $t('source.common.truncateTable') }}</span></MfMenuItem>
-                  <MfMenuItem v-if="can('table:drop')" :disabled="!originalTable" @click="tableDropVisible = true"><span class="flex items-center gap-2"><Trash2 :size="14"/>{{ $t('source.common.dropTable') }}</span></MfMenuItem>
+                  <MfMenuItem v-if="originalTable && can('table:export')" @click="tableExportVisible = true"><span class="flex items-center gap-2"><ArrowUpToLine :size="14"/>{{ $t('source.common.exportData') }}</span></MfMenuItem>
+                  <MfMenuItem v-if="originalTable && can('table:truncate')" @click="tableTruncateVisible = true"><span class="flex items-center gap-2"><Eraser :size="14"/>{{ $t('source.common.truncateTable') }}</span></MfMenuItem>
+                  <MfMenuItem v-if="originalTable && can('table:drop')" @click="tableDropVisible = true"><span class="flex items-center gap-2"><Trash2 :size="14"/>{{ $t('source.common.dropTable') }}</span></MfMenuItem>
                 </MfMenu>
               </template>
             </MfDropdown>
