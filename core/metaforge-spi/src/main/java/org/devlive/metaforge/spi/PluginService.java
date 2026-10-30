@@ -20,6 +20,7 @@ import org.devlive.metaforge.spi.connection.JdbcConnection;
 import org.devlive.metaforge.spi.connection.JdbcUrlGuard;
 import org.devlive.metaforge.spi.generator.DataType;
 import org.devlive.metaforge.spi.generator.Filter;
+import org.devlive.metaforge.spi.generator.Index;
 import org.devlive.metaforge.spi.generator.OrderBy;
 import org.devlive.metaforge.spi.generator.column.CreateColumn;
 import org.devlive.metaforge.spi.generator.column.SelectColumn;
@@ -1763,9 +1764,42 @@ public interface PluginService
      */
     default Response createTable(RuntimeConfigure configure, TableDefinition definition)
     {
-        AbstractTable tableDefinition = CreateTable.create(definition.getDatabase(), definition.getName())
-                .comment(definition.getComment())
-                .engine(definition.getEngine());
+        AbstractTable tableDefinition = buildCreateTable(definition);
+        return this.getResponse(tableDefinition.build(), configure, definition);
+    }
+
+    /** Builds the CREATE TABLE statement for a definition without executing or recording anything. */
+    default Response previewCreateTable(RuntimeConfigure configure, TableDefinition definition, String kind)
+    {
+        CreateTable tableDefinition = buildCreateTable(definition);
+        Response response = new Response();
+        response.setIsSuccessful(Boolean.TRUE);
+        response.setContent(tableDefinition.build(kind == null || kind.isBlank() ? "full" : kind));
+        return response;
+    }
+
+    private CreateTable buildCreateTable(TableDefinition definition)
+    {
+        CreateTable tableDefinition = CreateTable.create(definition.getDatabase(), definition.getName());
+        tableDefinition.comment(definition.getComment());
+        tableDefinition.engine(definition.getEngine());
+        tableDefinition.rowFormat(definition.getFormat());
+
+        if (definition.getAutoIncrement() > 0) {
+            tableDefinition.autoIncrement(definition.getAutoIncrement());
+        }
+
+        if (StringUtils.isNotEmpty(definition.getCharset())) {
+            tableDefinition.charset(definition.getCharset());
+        }
+
+        if (StringUtils.isNotEmpty(definition.getCollate())) {
+            tableDefinition.collate(definition.getCollate());
+        }
+
+        if (StringUtils.isNotEmpty(definition.getDataDirectory())) {
+            tableDefinition.dataDirectory(definition.getDataDirectory());
+        }
 
         definition.getColumns().forEach(col -> {
             if (col.isPrimaryKey()) {
@@ -1777,11 +1811,16 @@ public interface PluginService
             tableDefinition.addColumn(column);
         });
 
-        return this.getResponse(
-                tableDefinition.build(),
-                configure,
-                definition
-        );
+        definition.getIndexes()
+                .forEach(index -> {
+                    Index builder = Index.create(index.getName(), index.getColumns().toArray(new String[0]));
+                    if (index.isUnique()) {
+                        builder.unique();
+                    }
+                    tableDefinition.addIndex(builder);
+                });
+
+        return tableDefinition;
     }
 
     /**

@@ -33,6 +33,9 @@ public class TableDefinition
     private String name;
     private String comment;
     private String engine;
+    private String charset;
+    private String collate;
+    private String dataDirectory;
     private long autoIncrement;
     private String format;
     private long count;

@@ -213,6 +213,15 @@ public class MetadataController
         return this.service.createColumn(code, database, table, configure);
     }
 
+    /** Builds the CREATE TABLE statement for an unsaved definition; nothing is executed or recorded. */
+    @PostMapping(value = "{code}/preview-create-table")
+    public CommonResponse<Response> previewCreateTable(@PathVariable String code,
+            @RequestParam(value = "kind", defaultValue = "full") String kind,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.previewCreateTable(code, configure, kind);
+    }
+
     @GetMapping(value = "{code}/{database}/{table}/indexes")
     public CommonResponse<Response> fetchIndexes(
             @PathVariable String code,

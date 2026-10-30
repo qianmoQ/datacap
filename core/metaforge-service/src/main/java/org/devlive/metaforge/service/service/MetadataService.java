@@ -64,6 +64,8 @@ public interface MetadataService
 
     CommonResponse<Response> createIndex(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> previewCreateTable(String code, TableDefinition configure, String kind);
+
     CommonResponse<Response> dropIndex(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> getIndexes(String code, String database, String table);

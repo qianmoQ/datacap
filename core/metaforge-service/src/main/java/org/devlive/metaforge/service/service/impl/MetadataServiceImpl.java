@@ -439,6 +439,17 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> previewCreateTable(String code, TableDefinition configure, String kind)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> CommonResponse.success(plugin.getService(PluginService.class)
+                                .previewCreateTable(entity.toConfigure(pluginManager, plugin), configure, kind)))
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
     public CommonResponse<Response> dropIndex(String code, String database, String table, TableDefinition configure)
     {
         return repository.findByCode(code)
