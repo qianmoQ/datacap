@@ -4,7 +4,7 @@
       <MfSpinner/>
     </div>
 
-    <MfForm v-else ref="formRef" :model="formModel" class="flex flex-col gap-4">
+    <MfForm v-else ref="formRef" :model="formModel" class="flex h-full min-h-0 flex-col gap-4">
       <!-- 步骤条 -->
       <div class="flex items-center gap-3 rounded-mf-lg border border-line bg-surface px-5 py-4">
         <template v-for="(step, index) in steps" :key="step.titleKey">
@@ -23,29 +23,58 @@
         </template>
       </div>
 
-      <div class="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-4">
-        <!-- 左列 -->
-        <div class="flex min-w-0 flex-col gap-4">
-          <!-- 基本信息 -->
-          <section class="rounded-mf-lg border border-line bg-surface p-4">
-            <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.basicInfo') }}</h3>
-            <div class="grid grid-cols-2 gap-3">
-              <MfFormItem name="name"
-                          :label="$t('source.common.tableName')"
-                          :rules="[
-                              { required: true, message: $t('source.validator.tableName.required') },
-                              { pattern: /^[A-Za-z][A-Za-z0-9_-]*$/, message: $t('source.validator.tableName.pattern') }
-                          ]">
-                <MfInput v-model="formState.name" placeholder="user"/>
-              </MfFormItem>
-              <MfFormItem :label="$t('source.create.sourceDb')">
-                <MfInput :model-value="databaseName" disabled/>
-              </MfFormItem>
-            </div>
-          </section>
+      <!-- 第一步：基础信息（左）与表选项（右）两栏 -->
+      <div v-if="currentStep === 1" class="grid grid-cols-2 items-start gap-4">
+        <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.basicInfo') }}</h3>
+          <div class="flex flex-col gap-3">
+            <MfFormItem name="name"
+                        :label="$t('source.common.tableName')"
+                        :rules="[
+                            { required: true, message: $t('source.validator.tableName.required') },
+                            { pattern: /^[A-Za-z][A-Za-z0-9_-]*$/, message: $t('source.validator.tableName.pattern') }
+                        ]">
+              <MfInput v-model="formState.name" placeholder="user"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.create.sourceDb')">
+              <MfInput :model-value="databaseName" disabled/>
+            </MfFormItem>
+            <MfFormItem name="comment" :label="$t('source.common.comment')">
+              <MfTextarea v-model="formState.comment" :rows="3" :maxlength="500"/>
+              <div class="mt-1 text-right text-[11px] text-content-tertiary">
+                {{ $t('source.structure.commentCounter', { count: (formState.comment || '').length }) }}
+              </div>
+            </MfFormItem>
+          </div>
+        </section>
+
+        <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.optionsCard') }}</h3>
+          <div class="flex flex-col gap-3">
+            <MfFormItem :label="$t('source.create.engine')">
+              <MfSelect v-model="formState.engine" :options="engineOptions"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.structure.charset')">
+              <MfSelect v-model="options.charset" :options="charsetOptions"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.common.collation')">
+              <MfSelect v-model="options.collate" :options="collateOptions"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.create.rowFormat')">
+              <MfSelect v-model="options.rowFormat" :options="rowFormatOptions"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.create.autoIncStart')">
+              <MfInput v-model="options.autoIncrement" placeholder="1"/>
+            </MfFormItem>
+            <MfFormItem :label="$t('source.create.dataDirectory')">
+              <MfInput v-model="options.dataDirectory"/>
+            </MfFormItem>
+          </div>
+        </section>
+      </div>
 
           <!-- 字段定义 -->
-          <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <section v-else-if="currentStep === 2" class="rounded-mf-lg border border-line bg-surface p-4">
             <div class="mb-3 flex items-center justify-between gap-2">
               <h3 class="m-0 text-base font-semibold text-content">{{ $t('source.create.fieldDefine') }}</h3>
               <div class="flex items-center gap-2">
@@ -116,7 +145,7 @@
           </section>
 
           <!-- 索引与约束 -->
-          <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <section v-else-if="currentStep === 3" class="rounded-mf-lg border border-line bg-surface p-4">
             <div class="mb-3 flex items-center justify-between gap-2">
               <h3 class="m-0 text-base font-semibold text-content">{{ $t('source.create.indexCard') }}</h3>
               <MfButton size="sm" :disabled="!canAddIndex" @click="onAddIndex">
@@ -133,7 +162,8 @@
               </button>
             </div>
 
-            <MfTable :columns="indexColumns" :data-source="visibleIndexRows" row-key="__key" density="compact" :bordered="false" empty-text=" ">
+            <div class="max-h-[320px] overflow-y-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-20">
+<MfTable :columns="indexColumns" :data-source="visibleIndexRows" row-key="__key" density="compact" :bordered="false" empty-text=" ">
               <template #cell-name="{ row }">
                 <MfFormItem v-if="row.editing"
                             :name="`indexes.${indexRows.indexOf(row)}.name`"
@@ -178,10 +208,11 @@
                 </div>
               </template>
             </MfTable>
+            </div>
           </section>
 
           <!-- 高级选项 -->
-          <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <section v-if="currentStep === 4" class="rounded-mf-lg border border-line bg-surface p-4">
             <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.advanced') }}</h3>
             <div class="flex flex-wrap items-center gap-6">
               <MfCheckbox v-model="advanced.addComment">{{ $t('source.create.optAddComment') }}</MfCheckbox>
@@ -194,7 +225,7 @@
         <!-- 右列 -->
         <div class="flex flex-col gap-4">
           <!-- 生成的 SQL -->
-          <section class="rounded-mf-lg border border-line bg-surface p-4">
+          <section v-if="currentStep === 4" class="rounded-mf-lg border border-line bg-surface p-4">
             <h3 class="m-0 mb-3 text-base font-semibold text-content">{{ $t('source.create.sqlCard') }}</h3>
             <div class="mb-3 flex items-center gap-1 border-b border-line">
               <button v-for="tab in sqlTabs" :key="tab.kind" type="button"
@@ -256,26 +287,18 @@
 
     <template #footer>
       <div class="flex w-full items-center justify-end gap-2">
+        <MfButton v-if="currentStep > 1" @click="onPrev">{{ $t('source.create.prev') }}</MfButton>
         <MfButton @click="onCancel">{{ $t('common.cancel') }}</MfButton>
-        <MfButton variant="primary" :disabled="loading" @click="onNext">
-          {{ $t('source.create.nextPreview') }}
+        <MfButton v-if="currentStep < 4" variant="primary" :disabled="loading" @click="onNext">
+          {{ $t('common.next') }}
           <ArrowRight :size="14"/>
         </MfButton>
-      </div>
-    </template>
-
-    <!-- 预览确认（第三步） -->
-    <MfModal v-model:open="previewVisible" :title="$t('source.create.step3')" width="720px">
-      <p class="m-0 mb-3 text-sm text-content-secondary">{{ $t('source.create.step3Desc') }}</p>
-      <SqlCodeBlock :code="sqlContent" :copyable="true" :placeholder="$t('common.noData')" max-height="max-h-96"/>
-      <div class="mt-4 flex justify-end gap-2">
-        <MfButton @click="previewVisible = false">{{ $t('common.cancel') }}</MfButton>
-        <MfButton variant="primary" :loading="saving" :disabled="!sqlContent" @click="onSubmit">
+        <MfButton v-else variant="primary" :loading="saving" :disabled="!sqlContent" @click="onSubmit">
           <Check :size="14"/>
           {{ $t('source.create.confirmCreate') }}
         </MfButton>
       </div>
-    </MfModal>
+    </template>
   </MfDrawer>
 </template>
 
@@ -360,10 +383,10 @@ const toggleRow = (index: number, checked: boolean) => {
 const steps = [
   { titleKey: 'source.create.step1', descKey: 'source.create.step1Desc' },
   { titleKey: 'source.create.step2', descKey: 'source.create.step2Desc' },
-  { titleKey: 'source.create.step3', descKey: 'source.create.step3Desc' }
+  { titleKey: 'source.create.step3', descKey: 'source.create.step3Desc' },
+  { titleKey: 'source.create.step4', descKey: 'source.create.step4Desc' }
 ]
-const currentStep = computed(() => (previewVisible.value ? 3 : 1))
-const previewVisible = ref(false)
+const currentStep = ref(1)
 
 const indexTabs = [
   { key: 'primary', labelKey: 'source.create.tabPrimary' },
@@ -489,6 +512,7 @@ const buildDefinition = () => ({
 })
 
 const refreshPreview = async () => {
+  if (currentStep.value !== 4) return
   const definition = buildDefinition()
   if (!definition.name || !sourceCode) {
     sqlContent.value = ''
@@ -657,8 +681,16 @@ const onNext = async () => {
   catch {
     return
   }
-  refreshPreview()
-  previewVisible.value = true
+  if (currentStep.value < 4) {
+    currentStep.value += 1
+    if (currentStep.value === 4) {
+      refreshPreview()
+    }
+  }
+}
+
+const onPrev = () => {
+  currentStep.value = Math.max(1, currentStep.value - 1)
 }
 
 const onCancel = () => {
@@ -674,7 +706,6 @@ const onSubmit = () => {
                  .then(response => {
                    if (response.status && response.data && response.data.isSuccessful) {
                      MfMessage.success(t('source.tip.createTableSuccess').replace('$VALUE', String(definition.name)))
-                     previewVisible.value = false
                      visible.value = false
                      if (advanced.value.continueIndex) {
                        router.push(`/source/${ code }/d/${ database }/t/indexes/${ definition.name }`)
