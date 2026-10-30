@@ -12,11 +12,12 @@
         <MfButton v-if="can('data:delete')" size="sm" variant="danger" :disabled="saving || !selectedRows.length" @click="requestDelete(selectedRows)"><Trash2 :size="14"/>{{ $t('common.delete') }}</MfButton>
         <MfButton v-if="can('data:insert')" size="sm" :disabled="saving || !selectedRows.length" @click="openEditor('copy', selectedRows)"><Copy :size="14"/>{{ $t('source.data.copy') }}</MfButton>
         <MfDropdown trigger="click">
-          <MfButton size="sm" :disabled="!rows.length"><Download :size="14"/>{{ $t('source.data.export') }}<ChevronDown :size="12"/></MfButton>
+          <MfButton size="sm" :disabled="!rows.length" :loading="exporting"><Download :size="14"/>{{ $t('source.data.export') }}<ChevronDown :size="12"/></MfButton>
           <template #overlay>
             <MfMenu>
-              <MfMenuItem @click="exportRows('csv')">{{ $t('source.data.exportCsv') }}</MfMenuItem>
-              <MfMenuItem @click="exportRows('json')">{{ $t('source.data.exportJson') }}</MfMenuItem>
+              <MfMenuItem v-for="format in exportFormats" :key="format" @click="exportRows(format)">
+                {{ $t(format === 'csv' ? 'source.data.exportCsv' : 'source.data.exportJson') }}<span v-if="format === settings.exportFormat" class="ml-2 text-xs text-content-tertiary">{{ $t('source.data.defaultMark') }}</span>
+              </MfMenuItem>
             </MfMenu>
           </template>
         </MfDropdown>
@@ -26,20 +27,12 @@
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('sort')">
           <ArrowUpDown :size="14"/>{{ orders.length ? $t('source.data.sortCount', { count: orders.length }) : $t('source.data.sort') }}<ChevronDown :size="12"/>
         </MfButton>
-        <MfDropdown trigger="click" placement="bottomRight">
-          <MfButton size="sm" :aria-label="$t('source.data.settings')"><Settings :size="14"/></MfButton>
-          <template #overlay>
-            <MfMenu>
-              <MfMenuItem :disabled="!sql" @click="sqlVisible = true">{{ $t('source.data.viewSql') }}</MfMenuItem>
-              <MfMenuItem @click="refresh">{{ $t('common.refresh') }}</MfMenuItem>
-            </MfMenu>
-          </template>
-        </MfDropdown>
+        <MfButton size="sm" :disabled="saving" :aria-label="$t('source.data.settings')" @click="openPanel('settings')"><Settings :size="14"/></MfButton>
       </div>
     </div>
 
     <div class="flex min-h-0 flex-1 flex-col rounded-mf-md border border-line" :class="columnView.stickyHeader ? 'overflow-hidden' : 'overflow-auto'">
-      <MfTable :fill="columnView.stickyHeader" :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="columnView.bordered" :loading="loading" :empty-text="$t('common.noData')"
+      <MfTable :fill="columnView.stickyHeader" :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="columnView.bordered" :striped="settings.striped" :hoverable="settings.hoverable" :row-borders="settings.rowBorders" :loading="loading" :empty-text="$t('common.noData')"
                :row-class="rowClass" class="cursor-default" @row-click="onRowClick" @mousedown="onTableMouseDown">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
         <template #cell-__check__="{ record, index }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => onCheck(record, index, !!value)"/></span></template>
@@ -73,8 +66,9 @@
                           :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyColumnView"/>
     <SourceSortSettings v-if="sidePanel === 'sort'" :open="sidePanel === 'sort'" :rules="orders" :fields="columnNames" :quick="quickSortRules"
                         :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyOrders"/>
+    <SourceTableSettings v-if="sidePanel === 'settings'" :open="sidePanel === 'settings'" :settings="settings" :bordered="columnView.bordered" :default-sort="defaultSort"
+                         :quick="quickSortRules" :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applySettings"/>
     <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
-    <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
   </div>
 </template>
 
@@ -83,24 +77,24 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpDown, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
-import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import TableRowDelete from './components/TableRowDelete.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
 import SourceColumnSettings from './components/SourceColumnSettings.vue'
 import SourceSortSettings from './components/SourceSortSettings.vue'
+import SourceTableSettings from './components/SourceTableSettings.vue'
 import { INDEX_COLUMN } from '@/model/source-data-view'
 import { useSourceTableData } from '@/composables/useSourceTableData'
 
 defineOptions({ name: 'SourceTableData' })
 const { t } = useI18n()
 const {
-  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, orders, typeOf,
-  sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView,
+  can, loading, saving, rows, total, page, size, columnNames, visibleColumns, orders, typeOf,
+  sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView, settings, defaultSort, applySettings, exporting,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, applyOrders, quickSortRules, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-  deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh,
+  deleteTargets, deleteRows, requestDelete, closeDelete, exportRows,
 } = useSourceTableData()
 
 // Columns follow the applied column settings: order, visibility, width, alignment and pinning.
@@ -117,9 +111,11 @@ const tableColumns = computed(() => {
   return [
     { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const },
     ...configured,
-    ...(can('data:modify') || can('data:delete') ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
+    ...(settings.value.showActions && (can('data:modify') || can('data:delete')) ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
   ]
 })
+// The default export format is listed first.
+const exportFormats = computed(() => settings.value.exportFormat === 'json' ? ['json', 'csv'] as const : ['csv', 'json'] as const)
 const cellText = (value: unknown) => typeof value === 'object' ? JSON.stringify(value) : String(value)
 // Shift-click extends the row selection; keep the browser from selecting text across rows.
 const onTableMouseDown = (event: MouseEvent) => { if (event.shiftKey) event.preventDefault() }

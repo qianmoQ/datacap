@@ -6,13 +6,16 @@ import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageR
 import { mapSourceColumns } from '@/model/source-column'
 import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, formToJson, formToRow, jsonToRow, rowToForm, toCsv, toJson, validateForm,
   type DataCondition, type DataField, type DataOperator, type FieldIssue, type FormValues } from '@/model/source-data'
-import { defaultColumnView, INDEX_COLUMN, MAX_SORT_RULES, quickSorts, readColumnView, type ColumnView, type SortRule } from '@/model/source-data-view'
+import { DEFAULT_TABLE_SETTINGS, defaultColumnView, EXPORT_LIMIT, INDEX_COLUMN, MAX_SORT_RULES, quickSorts, readColumnView, readDefaultSort, readTableSettings,
+  type ColumnView, type ExportFormat, type SortRule, type TableSettings } from '@/model/source-data-view'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
 export type DataRow = Record<string, unknown> & { __key: string }
 export type RowEditorMode = 'add' | 'edit' | 'copy'
 export type SidePanel = 'columns' | 'sort' | 'settings'
+
+const SETTINGS_KEY = 'MetaForgeDataSettings'
 
 /** Data preview of one table: server-side filters, sort and paging, plus row insert/update/delete. */
 export function useSourceTableData() {
@@ -30,13 +33,17 @@ export function useSourceTableData() {
   const rows = ref<DataRow[]>([])
   const total = ref(0)
   const page = ref(1)
-  const size = ref(10)
-  const sql = ref('')
+  // Viewer-wide table preferences; the page size only persists when the viewer asks for it.
+  let storedSettings: string | null = null
+  try { storedSettings = localStorage.getItem(SETTINGS_KEY) } catch { /* Preferences are optional. */ }
+  const settings = ref<TableSettings>(readTableSettings(storedSettings))
+  const size = ref(settings.value.rememberPageSize ? settings.value.pageSize : DEFAULT_TABLE_SETTINGS.pageSize)
+  const exporting = ref(false)
+  const defaultSort = ref<SortRule | null>(null)
   const orders = ref<SortRule[]>([])
   let nextConditionId = 1
   const conditions = ref<DataCondition[]>([])
   let applied: DataCondition[] = []
-  const sqlVisible = ref(false)
   const deleteTargets = ref<DataRow[]>([])
   let revision = 0
   let alive = true
@@ -48,6 +55,20 @@ export function useSourceTableData() {
   // Column layout (order, visibility, width, alignment, pinning) is a per-viewer preference per table.
   const columnView = ref<ColumnView>(defaultColumnView([]))
   const viewKey = () => `MetaForgeDataView:${identity()}`
+  const sortKey = () => `MetaForgeDataSort:${identity()}`
+  /** Saves the settings panel; vertical borders are the same switch as in the column settings. */
+  function applySettings(next: TableSettings, bordered: boolean, sortRule: SortRule | null) {
+    const sizeChanged = next.pageSize !== size.value
+    settings.value = next
+    defaultSort.value = sortRule
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next))
+      if (sortRule) localStorage.setItem(sortKey(), JSON.stringify(sortRule)); else localStorage.removeItem(sortKey())
+    } catch { /* Preferences are optional. */ }
+    if (bordered !== columnView.value.bordered) applyColumnView({ ...columnView.value, bordered })
+    sidePanel.value = null
+    if (sizeChanged) { size.value = next.pageSize; page.value = 1; load() }
+  }
   const visibleColumns = computed(() => columnView.value.columns.filter(column => column.visible && column.name !== INDEX_COLUMN).map(column => column.name))
   function applyColumnView(view: ColumnView) {
     columnView.value = view
@@ -111,7 +132,6 @@ export function useSourceTableData() {
       headers.value = data.headers || []
       rows.value = (data.columns || []).map((row: Record<string, unknown>, index: number) => ({ ...row, __key: String(index) }))
       total.value = Number(data.pagination?.total ?? rows.value.length)
-      sql.value = data.content || ''
       select([])
       anchor = null
     } catch (error) {
@@ -278,10 +298,33 @@ export function useSourceTableData() {
   const deleteRows = computed(() => deleteTargets.value.map(plain))
   function closeDelete() { deleteTargets.value = []; load() }
 
-  // Export the rows on screen with the visible columns.
-  function exportRows(format: 'csv' | 'json') {
-    const data = (selectedRows.value.length ? selectedRows.value : rows.value).map(plain)
-    const content = format === 'csv' ? '﻿' + toCsv(visibleColumns.value, data) : toJson(visibleColumns.value, data)
+  /**
+   * Exports the selected rows, or every row the query matches (the current filters only when the
+   * settings say so), up to EXPORT_LIMIT rows, with the visible columns.
+   */
+  async function exportRows(format: ExportFormat) {
+    if (exporting.value) return
+    let data = selectedRows.value.map(plain)
+    if (!data.length) {
+      const [source, database, table] = [route.params.source, route.params.database, route.params.table].map(String)
+      exporting.value = true
+      try {
+        const response = await MetadataService.queryTable(source, database, table, {
+          pagination: { page: 1, size: EXPORT_LIMIT },
+          filters: settings.value.exportWithFilters ? buildDataFilters(applied) : [],
+          orders: orders.value,
+        })
+        assertSuccess(response)
+        data = response.data?.columns || []
+        if (data.length >= EXPORT_LIMIT) MfMessage.warning(t('source.data.exportTruncated', { count: EXPORT_LIMIT.toLocaleString() }))
+      } catch (error) {
+        MfMessage.error(errorMessage(error))
+        return
+      } finally {
+        exporting.value = false
+      }
+    }
+    const content = format === 'csv' ? '\uFEFF' + toCsv(visibleColumns.value, data) : toJson(visibleColumns.value, data)
     const url = URL.createObjectURL(new Blob([content], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json' }))
     const link = document.createElement('a')
     link.href = url
@@ -306,7 +349,10 @@ export function useSourceTableData() {
   watch(identity, () => {
     closeEditor(true)
     sidePanel.value = null
-    orders.value = []
+    let savedSort: string | null = null
+    try { savedSort = localStorage.getItem(sortKey()) } catch { /* Preferences are optional. */ }
+    defaultSort.value = readDefaultSort(savedSort)
+    orders.value = defaultSort.value ? [defaultSort.value] : []
     conditions.value = []
     addCondition()
     applied = []
@@ -316,8 +362,8 @@ export function useSourceTableData() {
   onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
 
   return {
-    can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, orders, typeOf,
-    sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView: computed(() => defaultColumnView(fields.value)),
+    can, loading, saving, rows, total, page, size, columnNames, visibleColumns, orders, typeOf,
+    sidePanel, openPanel, closePanel, columnView, applyColumnView, settings, defaultSort, applySettings, exporting, defaultView: computed(() => defaultColumnView(fields.value)),
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
     onPageChange, applyOrders, quickSortRules: computed(() => quickSorts(fields.value, primaryKeys.value)), selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,

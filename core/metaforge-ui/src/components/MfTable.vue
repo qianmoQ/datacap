@@ -29,6 +29,8 @@ const props = withDefaults(defineProps<{
     bordered?: boolean
     striped?: boolean
     hoverable?: boolean
+    /** Horizontal lines between rows. */
+    rowBorders?: boolean
     density?: 'default' | 'compact'
     rowClass?: (record: T, index: number) => string
     /** Scroll rows inside a bounded workspace while keeping the header visible. */
@@ -45,6 +47,7 @@ const props = withDefaults(defineProps<{
     bordered: true,
     striped: false,
     hoverable: true,
+    rowBorders: true,
     density: 'default',
     fill: false,
     emptyText: 'No data',
@@ -77,7 +80,7 @@ function display(record: T, column: MfTableColumn): unknown {
 const rowClasses = (record: T, index: number) => clsx(
     props.striped && index % 2 === 1 && 'bg-surface-hover/40',
     props.hoverable && 'hover:bg-surface-hover',
-    'border-b border-line last:border-b-0',
+    props.rowBorders && 'border-b border-line last:border-b-0',
     props.rowClass?.(record, index),
 )
 

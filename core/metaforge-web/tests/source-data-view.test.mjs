@@ -4,7 +4,7 @@ import test from 'node:test'
 import ts from 'typescript'
 const source = await readFile(new URL('../src/model/source-data-view.ts', import.meta.url), 'utf8')
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } })
-const { INDEX_COLUMN, defaultColumnView, quickSorts, readColumnView, sameSort } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const { DEFAULT_TABLE_SETTINGS, INDEX_COLUMN, defaultColumnView, quickSorts, readColumnView, readDefaultSort, readTableSettings, sameSort } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 
 const fields = [{ name: 'id', kind: 'number' }, { name: 'name', kind: 'text' }, { name: 'created_at', kind: 'datetime' }]
 
@@ -32,4 +32,20 @@ test('quick sorts offer created, updated and key columns in both directions', ()
   assert.deepEqual(quickSorts([{ name: 'name', kind: 'text' }], []), [])
   assert.ok(sameSort([{ name: 'a', order: 'asc' }], [{ name: 'a', order: 'asc' }]))
   assert.ok(!sameSort([{ name: 'a', order: 'asc' }], [{ name: 'a', order: 'desc' }]))
+})
+
+test('table settings fall back per field and only allow known page sizes', () => {
+  assert.deepEqual(readTableSettings(null), DEFAULT_TABLE_SETTINGS)
+  const settings = readTableSettings(JSON.stringify({ pageSize: 37, striped: true, exportFormat: 'xlsx', showActions: 'yes' }))
+  assert.equal(settings.pageSize, 10)
+  assert.equal(settings.striped, true)
+  assert.equal(settings.exportFormat, 'csv')
+  assert.equal(settings.showActions, true)
+  assert.equal(readTableSettings(JSON.stringify({ pageSize: 50, rememberPageSize: true })).pageSize, 50)
+})
+
+test('a default sort must be one well-formed rule', () => {
+  assert.deepEqual(readDefaultSort('{"name":"id","order":"desc"}'), { name: 'id', order: 'desc' })
+  assert.equal(readDefaultSort('{"name":"id","order":"up"}'), null)
+  assert.equal(readDefaultSort('oops'), null)
 })
