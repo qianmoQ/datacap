@@ -1,549 +1,129 @@
 <template>
-  <div class="source-data relative h-full min-h-0 overflow-hidden">
-    <MfCard class="relative flex h-full min-h-0 flex-col overflow-hidden">
-      <template #header>
-        <MfSpace class="items-center">
-          <MfTooltip :content="$t('source.common.firstPage')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="!configure.pagination.hasPrevious"
-                      @click="onApplyPagination(configure.operator.FIRST)">
-              <PanelLeftClose :size="15" />
-            </MfButton>
-          </MfTooltip>
+  <div class="source-data flex h-full min-h-0 flex-col gap-3 overflow-y-auto">
+    <SourceDataFilter :conditions="conditions" :columns="columnNames" :type-of="typeOf" :loading="loading"
+                      @add="addCondition()" @clear="clearConditions" @remove="removeCondition" @search="onSearch" @reset="onReset"
+                      @change-column="changeColumn" @change-operator="changeOperator"/>
 
-          <MfTooltip :content="$t('source.common.previousPage')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="!configure.pagination.hasPrevious"
-                      @click="onApplyPagination(configure.operator.PREVIOUS)">
-              <ArrowLeft :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.nextPage')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="!configure.pagination.hasNext"
-                      @click="onApplyPagination(configure.operator.NEXT)">
-              <ArrowRight :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.lastPage')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="!configure.pagination.hasNext"
-                      @click="onApplyPagination(configure.operator.LAST)">
-              <PanelLeftOpen :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('user.common.setting')">
-            <MfButton variant="ghost" size="sm" @click="visibleSettings(true)">
-              <Settings :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <div class="text-sm text-muted-foreground flex gap-2 ml-4 mr-4">
-            [ <span>{{ configure.pagination.startIndex }}</span> / <span>{{ configure.pagination.endIndex }}</span> ]
-            <span>of</span>
-            <span>{{ configure.pagination.total }}</span>
-            <span>{{ $t('source.common.records') }}</span>
-          </div>
-
-          <MfTooltip :content="$t('source.common.addRows')">
-            <MfButton variant="ghost" size="sm" @click="onAddOrCloneRow(false)">
-              <Plus :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.copyRows')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="dataSelectedChanged.columns.length === 0"
-                      @click="onAddOrCloneRow(true)">
-              <Copy :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.deleteRows')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="!dataSelectedChanged.changed"
-                      @click="visibleChanged(true)">
-              <Minus :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.previewPendingChanges')">
-            <MfButton variant="ghost"
-                      size="sm"
-                      :disabled="dataCellChanged.changed && dataCellChanged.columns.length === 0"
-                      @click="visibleCellChanged(true)">
-              <Ellipsis :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('common.preview')">
-            <MfButton variant="ghost" size="sm" @click="visibleContents(true)">
-              <Eye :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('common.refresh')">
-            <MfButton variant="ghost" size="sm" @click="onRefresh">
-              <RotateCw :size="15" />
-            </MfButton>
-          </MfTooltip>
-        </MfSpace>
-      </template>
-
-      <template #extra>
-        <MfSpace class="items-center">
-          <MfTooltip :content="$t('source.common.visibleColumn')">
-            <MfButton variant="ghost" size="sm" @click="visibleColumns(null, true)">
-              <Columns3 :size="15" />
-            </MfButton>
-          </MfTooltip>
-
-          <MfTooltip :content="$t('source.common.filterData')">
-            <MfButton variant="ghost" size="sm" @click="onFilterConfigure(true)">
-              <Filter :size="15" />
-            </MfButton>
-          </MfTooltip>
-        </MfSpace>
-      </template>
-
-      <div class="relative h-full min-h-0">
-        <AgGridVue v-show="!refererLoading"
-                   class="ag-theme-metaforge"
-                   style="width: 100%; height: 100%;"
-                   :gridOptions="gridOptions"
-                   :columnDefs="configure.headers"
-                   :rowData="configure.datasets"
-                   :tooltipShowDelay="100"
-                   :sortingOrder="['desc', 'asc', null]"
-                   :rowSelection="'multiple'"
-                   @grid-ready="onGridReady"
-                   @sortChanged="onSortChanged"
-                   @cellValueChanged="onCellValueChanged"
-                   @selectionChanged="onSelectionChanged"
-                   @columnVisible="onColumnVisible"
-                   @columnMoved="onColumnMoved">
-        </AgGridVue>
-
-        <div v-if="refererLoading" class="absolute inset-0 z-10 flex items-center justify-center">
-          <MfSpinner size="lg" label="Loading..."/>
-        </div>
+    <div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="mr-2 text-sm text-content-tertiary">{{ $t('source.data.total', { count: total.toLocaleString() }) }}</span>
+        <MfButton v-if="can('data:insert')" size="sm" :disabled="saving" @click="openEditor('add')"><Plus :size="14"/>{{ $t('source.data.add') }}</MfButton>
+        <MfButton v-if="can('data:modify')" size="sm" :disabled="saving || selectedRows.length !== 1" @click="openEditor('edit', selectedRows[0])"><Pencil :size="14"/>{{ $t('common.edit') }}</MfButton>
+        <MfButton v-if="can('data:delete')" size="sm" variant="danger" :disabled="saving || !selectedRows.length" @click="requestDelete(selectedRows)"><Trash2 :size="14"/>{{ $t('common.delete') }}</MfButton>
+        <MfButton v-if="can('data:insert')" size="sm" :disabled="saving || !selectedRows.length" @click="requestCopy"><Copy :size="14"/>{{ $t('source.data.copy') }}</MfButton>
+        <MfDropdown trigger="click">
+          <MfButton size="sm" :disabled="!rows.length"><Download :size="14"/>{{ $t('source.data.export') }}<ChevronDown :size="12"/></MfButton>
+          <template #overlay>
+            <MfMenu>
+              <MfMenuItem @click="exportRows('csv')">{{ $t('source.data.exportCsv') }}</MfMenuItem>
+              <MfMenuItem @click="exportRows('json')">{{ $t('source.data.exportJson') }}</MfMenuItem>
+            </MfMenu>
+          </template>
+        </MfDropdown>
       </div>
-    </MfCard>
-
-    <div v-if="loading" class="absolute inset-0 z-20 flex items-center justify-center">
-      <MfSpinner size="lg" label="Loading..."/>
+      <div class="flex items-center gap-2">
+        <MfDropdown trigger="click" placement="bottomRight">
+          <MfButton size="sm" :disabled="!columnNames.length"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
+          <template #overlay>
+            <div class="flex max-h-80 min-w-48 flex-col gap-1 overflow-y-auto p-2" @click.stop>
+              <MfCheckbox v-for="name in columnNames" :key="name" :model-value="!hidden.has(name)"
+                          :disabled="!hidden.has(name) && visibleColumns.length === 1" @update:model-value="value => toggleColumn(name, !!value)">{{ name }}</MfCheckbox>
+            </div>
+          </template>
+        </MfDropdown>
+        <MfDropdown trigger="click" placement="bottomRight">
+          <MfButton size="sm" :disabled="!columnNames.length"><ArrowUpDown :size="14"/>{{ order ? `${order.name} ${order.order.toUpperCase()}` : $t('source.data.sort') }}<ChevronDown :size="12"/></MfButton>
+          <template #overlay>
+            <MfMenu>
+              <MfMenuItem :disabled="!order" @click="setOrder(null)">{{ $t('source.data.noSort') }}</MfMenuItem>
+              <template v-for="name in columnNames" :key="name">
+                <MfMenuItem @click="setOrder(name, 'asc')"><span class="inline-flex items-center gap-2"><ArrowUp :size="13"/>{{ name }}</span></MfMenuItem>
+                <MfMenuItem @click="setOrder(name, 'desc')"><span class="inline-flex items-center gap-2"><ArrowDown :size="13"/>{{ name }}</span></MfMenuItem>
+              </template>
+            </MfMenu>
+          </template>
+        </MfDropdown>
+        <MfDropdown trigger="click" placement="bottomRight">
+          <MfButton size="sm" :aria-label="$t('source.data.settings')"><Settings :size="14"/></MfButton>
+          <template #overlay>
+            <MfMenu>
+              <MfMenuItem :disabled="!sql" @click="sqlVisible = true">{{ $t('source.data.viewSql') }}</MfMenuItem>
+              <MfMenuItem @click="refresh">{{ $t('common.refresh') }}</MfMenuItem>
+            </MfMenu>
+          </template>
+        </MfDropdown>
+      </div>
     </div>
 
-    <TableCellInfo v-if="dataCellChanged.pending"
-                   :isVisible="dataCellChanged.pending"
-                   :columns="dataCellChanged.columns"
-                   :is-update="dataCellChanged.type === 'UPDATE'"
-                   @close="visibleCellChanged(false)">
-    </TableCellInfo>
+    <div class="flex min-h-60 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
+      <MfTable fill :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')">
+        <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
+        <template #cell-__check__="{ record }"><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => toggle(record.__key, !!value)"/></template>
+        <template #cell-__index__="{ index }"><span class="tabular-nums text-content-secondary">{{ (page - 1) * size + index + 1 }}</span></template>
+        <template v-for="name in visibleColumns" :key="name" #[`cell-${name}`]="{ record }">
+          <span v-if="record[name] === null || record[name] === undefined" class="text-content-tertiary">NULL</span>
+          <div v-else class="max-w-72"><EllipsisCell :text="cellText(record[name])"/></div>
+        </template>
+        <template #cell-__action__="{ record }">
+          <div class="flex items-center gap-4 text-xs">
+            <button v-if="can('data:modify')" type="button" class="text-primary hover:underline disabled:opacity-50" :disabled="saving" @click="openEditor('edit', record)">{{ $t('common.edit') }}</button>
+            <button v-if="can('data:delete')" type="button" class="text-danger hover:underline disabled:opacity-50" :disabled="saving" @click="requestDelete([record])">{{ $t('common.delete') }}</button>
+          </div>
+        </template>
+      </MfTable>
+    </div>
 
-    <TableRowDelete v-if="dataSelectedChanged.pending"
-                    :isVisible="dataSelectedChanged.pending"
-                    :columns="dataSelectedChanged.columns"
-                    @close="visibleChanged(false)">
-    </TableRowDelete>
+    <div class="relative flex shrink-0 items-center justify-center pb-1">
+      <MfPagination :current="page" :page-size="size" :total="total" :size-text="$t('source.data.pageSize', { size: '{size}' })" @change="onPageChange"/>
+      <label v-if="total > size" class="absolute right-0 flex items-center gap-2 whitespace-nowrap text-sm text-content-secondary">
+        <span>{{ $t('source.data.jumpTo') }}</span>
+        <div class="w-16 shrink-0"><MfInput v-model="jump" size="sm" @keydown.enter="onJump"/></div>
+        <span>{{ $t('source.data.jumpPage') }}</span>
+      </label>
+    </div>
 
-    <TableColumn v-if="visibleColumn.show"
-                 :isVisible="visibleColumn.show"
-                 :columns="visibleColumn.columns"
-                 @close="visibleColumns($event, false)"
-                 @change="visibleColumns($event, false)">
-    </TableColumn>
-
-    <TableRowFilter v-if="filterConfigure.show"
-                    :isVisible="filterConfigure.show"
-                    :columns="filterConfigure.columns"
-                    :types="filterConfigure.types"
-                    :configure="filterConfigure.filters"
-                    @apply="onApplyFilter"
-                    @close="onFilterConfigure(false)">
-    </TableRowFilter>
-
-    <TablePagination v-if="visibleSetting.show"
-                     :is-visible="visibleSetting.show"
-                     :pagination="configure.pagination"
-                     @close="visibleSettings(false)"
-                     @change="configure.pagination = $event">
-    </TablePagination>
-
-    <SqlInfo v-if="visibleContent.show"
-             :isVisible="visibleContent.show"
-             :content="visibleContent.content"
-             @close="visibleContents(false)">
-    </SqlInfo>
+    <SourceRowEditor v-if="editorVisible" v-model="editorValues" :open="editorVisible" :mode="editorMode" :columns="columnNames" :type-of="typeOf"
+                     :saving="saving" :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @save="submitEditor"/>
+    <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
+    <TableCellInfo v-if="copyTargets.length" :is-visible="!!copyTargets.length" :columns="copyRows" @close="closeCopy"/>
+    <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
-import { MfMessage } from 'metaforge-ui'
-import { AgGridVue } from 'ag-grid-vue3'
-import 'ag-grid-community/styles/ag-grid.css'
-import '@/views/components/grid/ag-theme-metaforge.css'
-import { ColumnApi, ColumnState, GridApi } from 'ag-grid-community'
-import { PaginationEnum, PaginationModel } from '@/model/pagination.ts'
-import { createColumnDefs, createDataEditorOptions } from '@/views/pages/admin/source/components/TableUtils.ts'
-import { cloneDeep } from 'lodash'
-import TableRowDelete from '@/views/pages/admin/source/components/TableRowDelete.vue'
-import TableCellInfo from '@/views/pages/admin/source/components/TableCellInfo.vue'
-import TableColumn from '@/views/pages/admin/source/components/TableColumn.vue'
-import TableRowFilter from '@/views/pages/admin/source/components/TableRowFilter.vue'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
-import TablePagination from '@/views/pages/admin/source/components/TablePagination.vue'
-import MetadataService from '@/services/metadata'
-import { ArrowLeft, ArrowRight, Columns3, Copy, Ellipsis, Eye, Filter, Minus, PanelLeftClose, PanelLeftOpen, Plus, RotateCw, Settings } from '@lucide/vue'
+import TableRowDelete from './components/TableRowDelete.vue'
+import TableCellInfo from './components/TableCellInfo.vue'
+import SourceDataFilter from './components/SourceDataFilter.vue'
+import SourceRowEditor from './components/SourceRowEditor.vue'
+import { useSourceTableData } from '@/composables/useSourceTableData'
 
 defineOptions({ name: 'SourceTableData' })
+const { t } = useI18n()
+const {
+  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
+  conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
+  onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, toggle,
+  editorVisible, editorMode, editorValues, openEditor, closeEditor, submitEditor, fieldPanelHost, fieldPanelWidth,
+  deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh,
+} = useSourceTableData()
 
-const i18n = useI18n()
-const route = useRoute()
-
-const loading = ref(false)
-const refererLoading = ref(false)
-const gridOptions = ref<any>(null)
-let gridApi = null as unknown as GridApi
-let gridColumnApi = null as unknown as ColumnApi
-const originalColumns = ref<any[]>([])
-const originalDatasets = ref<any[]>([])
-const newRows = ref<any[]>([])
-
-const configure = reactive({
-  headers: [] as any[],
-  columns: [] as any[],
-  datasets: [] as any[],
-  pagination: null as any,
-  operator: PaginationEnum
-})
-const visibleContent = reactive({
-  show: false,
-  content: null as unknown as string
-})
-const dataCellChanged = reactive({
-  changed: false,
-  pending: false,
-  type: null as any,
-  columns: [] as any[]
-})
-const dataSelectedChanged = reactive({
-  changed: false,
-  pending: false,
-  columns: [] as any[]
-})
-const visibleColumn = reactive({
-  show: false,
-  columns: [] as any[]
-})
-const visibleSetting = reactive({
-  show: false
-})
-const filterConfigure = reactive({
-  show: false,
-  columns: [] as any[],
-  types: [] as any[],
-  filters: [] as any[]
-})
-
-const clearData = () => {
-  newRows.value = []
+const tableColumns = computed(() => [
+  { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const },
+  { title: '#', dataIndex: '__index__', width: 56 },
+  ...visibleColumns.value.map(name => ({ title: name, dataIndex: name })),
+  ...(can('data:modify') || can('data:delete') ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
+])
+const cellText = (value: unknown) => typeof value === 'object' ? JSON.stringify(value) : String(value)
+const jump = ref('')
+function onJump() {
+  const target = Math.trunc(Number(jump.value))
+  const pages = Math.max(1, Math.ceil(total.value / size.value))
+  if (target >= 1 && target <= pages) onPageChange(target, size.value)
+  jump.value = ''
 }
-
-const handleInitialize = () => {
-  clearData()
-  gridOptions.value = createDataEditorOptions(i18n)
-  if (!configure.pagination) {
-    configure.pagination = {
-      page: 1,
-      size: 100
-    }
-  }
-
-  const code = route?.params.source as string
-  const database = route?.params.database as string
-  const table = route?.params.table as string
-
-  if (code && database && table) {
-    loading.value = true
-    const { pagination } = configure
-
-    const conf = {
-      pagination: pagination
-    }
-
-    MetadataService.queryTable(code, database, table, conf)
-                   .then((response) => {
-                     if (response.status && response.data) {
-                       configure.headers = createColumnDefs(response.data.headers, response.data.types)
-                       originalColumns.value = configure.headers
-                       configure.datasets = response.data.columns
-                       originalDatasets.value = cloneDeep(response.data.columns)
-                       configure.pagination = response.data.pagination
-                       visibleContent.content = response.data.content
-                       filterConfigure.columns = cloneDeep(response.data.headers)
-                       filterConfigure.types = cloneDeep(response.data.types)
-                     }
-                     else {
-                       MfMessage.error(response.message)
-                     }
-                   })
-                   .finally(() => (loading.value = false))
-  }
-}
-
-const handleRefererData = (conf: any) => {
-  configure.datasets = []
-  gridOptions.value.overlayNoRowsTemplate = '<span></span>'
-  const code = route?.params.source as string
-  const database = route?.params.database as string
-  const table = route?.params.table as string
-
-  if (code && database && table) {
-    refererLoading.value = true
-    MetadataService.queryTable(code, database, table, conf)
-                   .then((response) => {
-                     if (response.status && response.data) {
-                       configure.headers = createColumnDefs(response.data.headers, response.data.types)
-                       configure.datasets = response.data.columns
-                       originalDatasets.value = cloneDeep(response.data.columns)
-                       if (configure?.datasets?.length === 0) {
-                         gridOptions.value.overlayNoRowsTemplate = '<span>No Rows To Show</span>'
-                       }
-                       configure.pagination = response.data.pagination
-                       visibleContent.content = response.data.content
-                       filterConfigure.columns = cloneDeep(response.data.headers)
-                       filterConfigure.types = cloneDeep(response.data.types)
-                     }
-                     else {
-                       MfMessage.error(response.message)
-                     }
-                   })
-                   .finally(() => (refererLoading.value = false))
-  }
-}
-
-const getSortConfigure = (conf: any) => {
-  const columnState = gridColumnApi.getColumnState()
-  const orders = columnState.filter((item) => item.sort !== null)
-                            .map((column: ColumnState) => ({
-                              name: column.colId,
-                              order: column.sort
-                            }))
-  conf.pagination = configure.pagination
-  conf.orders = orders
-}
-
-const getVisibleColumn = (conf: any) => {
-  conf.columns = gridColumnApi.getColumnState()
-                              .filter((item) => !item.hide)
-                              .map((item: { colId: any }) => ({ name: item.colId }))
-}
-
-const getConfigure = (): any => {
-  clearData()
-  const conf = {
-    filters: filterConfigure.filters
-  }
-  getSortConfigure(conf)
-  getVisibleColumn(conf)
-  return conf
-}
-
-const onRefresh = () => {
-  handleRefererData(getConfigure())
-}
-
-const onGridReady = (params: { api: GridApi; columnApi: ColumnApi }) => {
-  gridApi = params.api
-  gridColumnApi = params.columnApi
-}
-
-const onSortChanged = () => {
-  handleRefererData(getConfigure())
-}
-
-const onCellValueChanged = (event: { data: any; colDef: { field: string }; oldValue: any; newValue: any; rowIndex: number }) => {
-  // If the index is less than or equal to the length of the current data collection -1, no request type is specified for the new data
-  if (event.rowIndex <= originalDatasets.value.length - 1) {
-    const oldColumn = event.data
-    const originalColumn = cloneDeep(oldColumn)
-    originalColumn[event.colDef.field] = event.oldValue
-    dataCellChanged.changed = true
-
-    // 检查是否已经存在相同original的记录
-    const existingIndex = dataCellChanged.columns.findIndex(
-        (item) => item.original.id === originalColumn.id
-    )
-
-    if (existingIndex !== -1) {
-      // 如果存在,则合并row对象
-      dataCellChanged.columns[existingIndex].row = {
-        ...dataCellChanged.columns[existingIndex].row,
-        [event.colDef.field]: event.newValue
-      }
-    }
-    else {
-      // 如果不存在,则创建新记录
-      const column = {
-        row: {
-          [event.colDef.field]: event.newValue
-        },
-        original: originalColumn
-      }
-      dataCellChanged.columns.push(column)
-    }
-
-    dataCellChanged.type = 'UPDATE'
-  }
-}
-
-const onSelectionChanged = () => {
-  const selectedRows = gridApi.getSelectedRows()
-  dataSelectedChanged.changed = true
-  dataSelectedChanged.columns = selectedRows
-}
-
-const onColumnVisible = (event: { visible: any; column: { visible: any; colId: any } }) => {
-  if (!event.visible) {
-    configure.headers.map((column: { field: any; checked: boolean }) => {
-      if (column.field === event.column.colId) {
-        column.checked = false
-      }
-    })
-  }
-}
-
-const onColumnMoved = (event: { finished: any }) => {
-  if (event.finished) {
-    handleRefererData(getConfigure())
-  }
-}
-
-const onApplyPagination = (operator: PaginationEnum) => {
-  if (configure.pagination.page) {
-    if (operator === PaginationEnum.PREVIOUS) {
-      configure.pagination.page--
-    }
-    else if (operator === PaginationEnum.NEXT) {
-      configure.pagination.page++
-    }
-    else if (operator === PaginationEnum.FIRST) {
-      configure.pagination.page = 1
-    }
-    else if (operator === PaginationEnum.LAST) {
-      configure.pagination.page = configure.pagination.pages
-    }
-    onSortChanged()
-  }
-}
-
-const onApplyFilter = (value: any) => {
-  filterConfigure.filters = value
-}
-
-const onFilterConfigure = (show: boolean) => {
-  filterConfigure.show = show
-  if (!show) {
-    handleRefererData(getConfigure())
-  }
-}
-
-const onAddOrCloneRow = (clone: boolean) => {
-  const newData = {} as any
-
-  if (!clone) {
-    originalColumns.value.forEach((column: { field: string }) => {
-      newData[column.field] = null
-    })
-    configure.datasets.push(newData)
-    newRows.value.push(newData)
-  }
-  else {
-    dataSelectedChanged.columns.forEach((column) => {
-      configure.datasets.push(column)
-      newRows.value.push(column)
-    })
-  }
-  dataCellChanged.changed = true
-  dataCellChanged.type = null
-  dataCellChanged.columns = newRows.value
-  gridApi.setRowData(configure.datasets)
-}
-
-const visibleCellChanged = (isOpen: boolean) => {
-  dataCellChanged.pending = isOpen
-  if (!isOpen) {
-    dataCellChanged.changed = false
-    dataCellChanged.columns = []
-    onRefresh()
-  }
-}
-
-const visibleChanged = (isOpen: boolean) => {
-  dataSelectedChanged.pending = isOpen
-  dataSelectedChanged.changed = false
-  if (!isOpen) {
-    handleInitialize()
-  }
-}
-
-const visibleContents = (show: boolean) => {
-  visibleContent.show = show
-}
-
-const visibleColumns = (event: any, show: boolean) => {
-  visibleColumn.show = show
-  if (event) {
-    const conf = getConfigure()
-    conf.columns = event.map((item: string) => ({ name: item }))
-    // Remove the reduced column is not selected
-    originalColumns.value.filter((item: { field: string }) => !event.includes(item.field))
-                   .map((item: { checked: boolean }) => {
-                     item.checked = false
-                   })
-    // Add new Column is selected
-    originalColumns.value.filter((item: { field: string }) => event.includes(item.field))
-                   .map((item: { checked: boolean }) => {
-                     item.checked = true
-                   })
-    handleRefererData(conf)
-  }
-  visibleColumn.columns = originalColumns.value
-}
-
-const visibleSettings = (show: boolean) => {
-  visibleSetting.show = show
-  if (!show) {
-    handleRefererData(getConfigure())
-  }
-}
-
-watch(
-    () => route?.params.table,
-    () => {
-      configure.pagination = null as unknown as PaginationModel
-      handleInitialize()
-    }
-)
-
-handleInitialize()
 </script>
-
-<style scoped>
-.source-data :deep(section > header) { flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
-.source-data :deep(section > header > div:first-child) { min-width: 0; overflow-x: auto; }
-.source-data :deep(section > div) { flex: 1; min-height: 0; overflow: hidden; }
-</style>
