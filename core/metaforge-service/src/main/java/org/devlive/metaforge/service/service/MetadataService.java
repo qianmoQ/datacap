@@ -2,10 +2,25 @@ package org.devlive.metaforge.service.service;
 
 import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
+import org.devlive.metaforge.spi.model.ManagementCapabilities;
+import org.devlive.metaforge.spi.model.ManagementDetail;
+import org.devlive.metaforge.spi.model.ManagementDownload;
+import org.devlive.metaforge.spi.model.ManagementPage;
+import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Response;
 
 public interface MetadataService
 {
+    CommonResponse<ManagementCapabilities> getCapabilities(String code);
+
+    CommonResponse<ManagementPage> managementNamespaces(String code, ManagementRequest request);
+
+    CommonResponse<ManagementPage> managementList(String code, ManagementRequest request);
+
+    CommonResponse<ManagementDetail> managementDetail(String code, ManagementRequest request);
+
+    CommonResponse<ManagementDownload> managementDownload(String code, ManagementRequest request);
+
     CommonResponse<Response> getEngines(String code);
 
     CommonResponse<Response> getDataTypes(String code);

@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.service.service.MetadataService;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
+import org.devlive.metaforge.spi.model.ManagementCapabilities;
 import org.devlive.metaforge.spi.model.Response;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,12 @@ public class MetadataController
     public MetadataController(MetadataService service)
     {
         this.service = service;
+    }
+
+    @GetMapping(value = "{code}/capabilities")
+    public CommonResponse<ManagementCapabilities> capabilities(@PathVariable String code)
+    {
+        return this.service.getCapabilities(code);
     }
 
     @GetMapping(value = "{code}/engines")
