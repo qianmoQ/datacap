@@ -18,7 +18,7 @@
             <MfButton size="sm" @click="onRefresh"><RefreshCw :size="14"/>{{ $t('common.refresh') }}</MfButton>
             <MfButton v-if="can('table:alter') && can('tab:info')" size="sm" :disabled="!originalTable" @click="onEditProperties"><Pencil :size="14"/>{{ $t('source.props.edit') }}</MfButton>
             <MfButton v-if="can('column:read')" size="sm" :disabled="!originalTable" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}</MfButton>
-            <MfDropdown v-if="can('table:create') || can('table:export') || can('table:drop') || can('table:truncate') || can('tab:er-diagram')" trigger="click" placement="bottomRight">
+            <MfDropdown v-if="can('table:create') || can('table:export') || can('table:drop') || can('table:truncate')" trigger="click" placement="bottomRight">
               <MfButton size="sm">{{ $t('source.common.moreActions') }}<ChevronDown :size="12"/></MfButton>
               <template #overlay>
                 <MfMenu>
@@ -26,7 +26,6 @@
                   <MfMenuItem v-if="can('table:export')" :disabled="!originalTable" @click="tableExportVisible = true"><span class="flex items-center gap-2"><ArrowUpToLine :size="14"/>{{ $t('source.common.exportData') }}</span></MfMenuItem>
                   <MfMenuItem v-if="can('table:truncate')" :disabled="!originalTable" @click="tableTruncateVisible = true"><span class="flex items-center gap-2"><Eraser :size="14"/>{{ $t('source.common.truncateTable') }}</span></MfMenuItem>
                   <MfMenuItem v-if="can('table:drop')" :disabled="!originalTable" @click="tableDropVisible = true"><span class="flex items-center gap-2"><Trash2 :size="14"/>{{ $t('source.common.dropTable') }}</span></MfMenuItem>
-                  <MfMenuItem v-if="can('tab:er-diagram')" :disabled="!originalTable" @click="onChange('erDiagram')"><span class="flex items-center gap-2"><GitBranch :size="14"/>{{ $t('source.common.erDiagram') }}</span></MfMenuItem>
                 </MfMenu>
               </template>
             </MfDropdown>
@@ -48,13 +47,13 @@
           </div>
         </div>
         <MfAlert v-if="metadataError" variant="danger" class="mb-3 shrink-0" :title="metadataError"/>
-        <MfTabs v-if="(originalTable || ['sql','keys','objects'].includes(selectTab)) && selectTab !== 'erDiagram'" fill class="metadata-tabs" :active-key="selectTab" @change="onChange">
+        <MfTabs v-if="originalTable || ['sql','keys','objects'].includes(selectTab)" fill class="metadata-tabs" :active-key="selectTab" @change="onChange">
           <MfTabPane v-for="tab in tabs" :key="tab.key" :item-key="tab.key" :tab="tab.label">
             <template #tab><span class="inline-flex items-center gap-2 whitespace-nowrap text-sm"><component :is="tabIcons[tab.key]" :size="15"/>{{ tab.label }}</span></template>
             <component :is="paneComponent" v-if="selectTab === tab.key" :key="paneKey"/>
           </MfTabPane>
         </MfTabs>
-        <div v-if="(!originalTable && !['sql','keys','objects'].includes(selectTab)) || selectTab === 'erDiagram'" class="min-h-0 flex-1 overflow-auto"><component :is="paneComponent" v-if="paneComponent" :key="paneKey"/><MfEmpty v-else class="h-full" variant="initial" :title="$t('source.tip.notSelectedNode')"/></div>
+        <div v-if="!originalTable && !['sql','keys','objects'].includes(selectTab)" class="min-h-0 flex-1 overflow-auto"><component :is="paneComponent" v-if="paneComponent" :key="paneKey"/><MfEmpty v-else class="h-full" variant="initial" :title="$t('source.tip.notSelectedNode')"/></div>
       </template>
     </div>
   </div>
@@ -65,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpToLine, ChevronDown, Pencil, ChevronRight, Copy, Database, Eraser, GitBranch, GitCompare, Layers, LayoutGrid, RefreshCw, Settings, SquarePlay, Table, Table2, Trash2, Zap, Code, KeyRound, FolderOpen } from '@lucide/vue'
+import { ArrowUpToLine, ChevronDown, Pencil, ChevronRight, Copy, Database, Eraser, GitBranch, GitCompare, Layers, LayoutGrid, RefreshCw, Settings, SquarePlay, Table, Table2, Trash2, Zap, Code, KeyRound, FolderOpen, Waypoints } from '@lucide/vue'
 import TableCreate from '@/views/pages/admin/source/components/TableCreate.vue'
 import TableExport from '@/views/pages/admin/source/components/TableExport.vue'
 import TableTruncate from '@/views/pages/admin/source/components/TableTruncate.vue'
@@ -73,7 +72,7 @@ import TableDrop from '@/views/pages/admin/source/components/TableDrop.vue'
 import { useMetadataContent } from '@/composables/useMetadataContent'
 
 defineOptions({ name: 'MetadataContent' })
-const tabIcons: Record<string, unknown> = { keys: KeyRound, objects: FolderOpen, structure: LayoutGrid, data: Table2, sql: SquarePlay, indexes: Layers, foreignkeys: GitBranch, triggers: Zap, info: Settings, statement: Code }
+const tabIcons: Record<string, unknown> = { keys: KeyRound, objects: FolderOpen, structure: LayoutGrid, data: Table2, sql: SquarePlay, indexes: Layers, foreignkeys: GitBranch, triggers: Zap, info: Settings, statement: Code, erDiagram: Waypoints }
 const { can, profile, capabilityLoading, capabilityError, paneComponent, paneKey, databaseLocation, tableInfo, tableName, selectTab, tabs, metadataError,
   originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties,
   tableCreateVisible, tableExportVisible, tableTruncateVisible, tableDropVisible } = useMetadataContent()

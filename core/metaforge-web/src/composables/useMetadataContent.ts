@@ -45,7 +45,8 @@ export function useMetadataContent() {
     { key: 'triggers', label: t('source.tab.triggers') },
     { key: 'info', label: t('source.tab.tableOptions') },
     { key: 'statement', label: t('source.tab.ddl') },
-  ].filter(tab => can('tab:' + tab.key)))
+    { key: 'erDiagram', label: t('source.tab.erDiagram') },
+  ].filter(tab => can(sourceTabCapability(tab.key))))
   const propertiesEdit = inject<{ request: number; handled: number }>('metadataTablePropertiesEdit', { request: 0, handled: 0 })
   /** Opens the properties tab with its editor. */
   const onEditProperties = () => {
