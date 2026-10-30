@@ -19,6 +19,8 @@ export interface MfTableColumn {
     ellipsis?: boolean
     /** Rendered as `--` when falsy. */
     placeholder?: string
+    /** Opt out of header drag-resizing when the table is `resizable`. */
+    resizable?: boolean
 }
 
 const props = withDefaults(defineProps<{
@@ -39,6 +41,8 @@ const props = withDefaults(defineProps<{
     emptyText?: string
     emptyDescription?: string
     emptyVariant?: 'data' | 'search' | 'initial'
+    /** Drag a header edge to resize a column; double-click it to fit the content. */
+    resizable?: boolean
 }>(), {
     columns: () => [],
     dataSource: () => [],
@@ -53,10 +57,15 @@ const props = withDefaults(defineProps<{
     emptyText: 'No data',
     emptyDescription: '',
     emptyVariant: 'data',
+    resizable: false,
 })
 
-defineEmits<{
+const emit = defineEmits<{
     rowClick: [record: T, index: number, event: MouseEvent]
+    /** Live width while dragging a header edge. */
+    resize: [column: MfTableColumn, width: number]
+    /** Final width after a drag or a double-click fit. */
+    resizeEnd: [column: MfTableColumn, width: number]
 }>()
 
 const alignClass = (align?: string) =>
@@ -107,6 +116,7 @@ const thClass = (column: MfTableColumn) => [
     props.bordered && 'border-r border-line last:border-r-0',
     column.fixed === 'right' && 'sticky right-0 z-10 bg-surface-hover border-l border-line',
     column.fixed === 'left' && 'sticky left-0 z-10 bg-surface-hover border-r border-line',
+    !column.fixed && canResize(column) && 'relative',
 ]
 
 /*
@@ -166,7 +176,70 @@ onMounted(() => {
     measure()
 })
 watch(() => [props.columns, props.dataSource, props.loading], () => { if (props.fill) nextTick(measure) }, { deep: false })
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => { observer?.disconnect(); stopResize() })
+
+const MIN_WIDTH = 40
+const MAX_WIDTH = 800
+const plainTable = ref<HTMLTableElement>()
+const resizingKey = ref<string | null>(null)
+const canResize = (column: MfTableColumn) => props.resizable && column.resizable !== false
+const clampWidth = (width: number) => Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(width)))
+let stopResize = () => {}
+
+function startResize(event: PointerEvent, column: MfTableColumn): void {
+    const cell = (event.currentTarget as HTMLElement).parentElement
+    if (!cell) return
+    const startX = event.clientX
+    const startWidth = cell.getBoundingClientRect().width
+    let width = startWidth
+    resizingKey.value = colKey(column)
+    const move = (moveEvent: PointerEvent) => {
+        width = clampWidth(startWidth + moveEvent.clientX - startX)
+        emit('resize', column, width)
+    }
+    const up = () => {
+        stopResize()
+        if (Math.round(width) !== Math.round(startWidth)) emit('resizeEnd', column, clampWidth(width))
+    }
+    stopResize = () => {
+        resizingKey.value = null
+        window.removeEventListener('pointermove', move)
+        window.removeEventListener('pointerup', up)
+        window.removeEventListener('pointercancel', up)
+        stopResize = () => {}
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+}
+
+/**
+ * The width of a cell's rendered text plus its padding. Only text is measured: block wrappers
+ * (truncating spans, tooltips) take the current column width and would never let it shrink.
+ */
+function contentWidth(cell: HTMLElement): number {
+    const range = document.createRange()
+    const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT)
+    let widest = 0
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!node.textContent?.trim()) continue
+        range.selectNodeContents(node)
+        widest = Math.max(widest, range.getBoundingClientRect().width)
+    }
+    const style = getComputedStyle(cell)
+    // Room for tag padding and the resize handle around the text.
+    return widest + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 12
+}
+
+/** Double-click on a header edge: fit the column to its header and every rendered cell. */
+function autofit(column: MfTableColumn, index: number): void {
+    const header = props.fill ? headScroller.value?.querySelector('thead tr') : plainTable.value?.tHead?.rows[0]
+    const body = props.fill ? bodyTable.value?.tBodies[0] : plainTable.value?.tBodies[0]
+    const cells = [header?.children[index], ...Array.from(body?.rows ?? []).map(row => row.cells[index])]
+        .filter((cell): cell is HTMLElement => cell instanceof HTMLElement)
+    if (!cells.length) return
+    emit('resizeEnd', column, clampWidth(Math.max(...cells.map(contentWidth))))
+}
 </script>
 
 <template>
@@ -183,6 +256,9 @@ onBeforeUnmount(() => observer?.disconnect())
                         <tr>
                             <th v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="thClass(column)" :style="[widthStyle(column), stickyStyle(columnIndex)]">
                                 <slot :name="`header-${colKey(column)}`" :column="column">{{ column.title }}</slot>
+                                <span v-if="canResize(column)" class="absolute inset-y-0 -right-px z-30 w-1.5 cursor-col-resize touch-none transition-colors hover:bg-primary/40"
+                                      :class="resizingKey === colKey(column) && 'bg-primary/40'" role="separator" aria-orientation="vertical" :aria-label="`resize ${column.title}`"
+                                      @pointerdown.prevent.stop="startResize($event, column)" @dblclick.stop="autofit(column, columnIndex)" @click.stop />
                             </th>
                         </tr>
                     </thead>
@@ -227,11 +303,14 @@ onBeforeUnmount(() => observer?.disconnect())
         </div>
     </div>
     <div v-else class="w-full overflow-x-auto">
-        <table class="w-full border-collapse text-sm" :class="bordered && 'border border-line rounded-mf-lg'">
+        <table ref="plainTable" class="w-full border-collapse text-sm" :class="bordered && 'border border-line rounded-mf-lg'">
             <thead>
                 <tr class="bg-surface-hover">
                     <th v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="thClass(column)" :style="[widthStyle(column), stickyStyle(columnIndex)]">
                         <slot :name="`header-${colKey(column)}`" :column="column">{{ column.title }}</slot>
+                        <span v-if="canResize(column)" class="absolute inset-y-0 -right-px z-30 w-1.5 cursor-col-resize touch-none transition-colors hover:bg-primary/40"
+                              :class="resizingKey === colKey(column) && 'bg-primary/40'" role="separator" aria-orientation="vertical" :aria-label="`resize ${column.title}`"
+                              @pointerdown.prevent.stop="startResize($event, column)" @dblclick.stop="autofit(column, columnIndex)" @click.stop />
                     </th>
                 </tr>
             </thead>

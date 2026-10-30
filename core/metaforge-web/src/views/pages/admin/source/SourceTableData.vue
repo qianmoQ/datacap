@@ -33,7 +33,8 @@
 
     <div class="flex min-h-0 flex-1 flex-col rounded-mf-md border border-line" :class="columnView.stickyHeader ? 'overflow-hidden' : 'overflow-auto'">
       <MfTable :fill="columnView.stickyHeader" :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="columnView.bordered" :striped="settings.striped" :hoverable="settings.hoverable" :row-borders="settings.rowBorders" :loading="loading" :empty-text="$t('common.noData')"
-               :row-class="rowClass" class="cursor-default" @row-click="onRowClick" @mousedown="onTableMouseDown">
+               :row-class="rowClass" class="cursor-default" :resizable="!columnView.autoWidth"
+               @resize="(column, width) => resizeColumn(column.dataIndex, width, false)" @resize-end="(column, width) => resizeColumn(column.dataIndex, width, true)" @row-click="onRowClick" @mousedown="onTableMouseDown">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
         <template #cell-__check__="{ record, index }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => onCheck(record, index, !!value)"/></span></template>
         <template #cell-__index__="{ index }"><span class="tabular-nums text-content-secondary">{{ (page - 1) * size + index + 1 }}</span></template>
@@ -90,7 +91,7 @@ defineOptions({ name: 'SourceTableData' })
 const { t } = useI18n()
 const {
   can, loading, saving, rows, total, page, size, columnNames, visibleColumns, orders, typeOf,
-  sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView, settings, defaultSort, applySettings, exporting,
+  sidePanel, openPanel, closePanel, columnView, applyColumnView, resizeColumn, defaultView, settings, defaultSort, applySettings, exporting,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, applyOrders, quickSortRules, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
@@ -109,9 +110,9 @@ const tableColumns = computed(() => {
     ellipsis: !view.autoWidth && column.name !== INDEX_COLUMN,
   }))
   return [
-    { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const },
+    { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const, resizable: false },
     ...configured,
-    ...(settings.value.showActions && (can('data:modify') || can('data:delete')) ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
+    ...(settings.value.showActions && (can('data:modify') || can('data:delete')) ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const, resizable: false }] : []),
   ]
 })
 // The default export format is listed first.

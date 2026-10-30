@@ -70,6 +70,13 @@ export function useSourceTableData() {
     if (sizeChanged) { size.value = next.pageSize; page.value = 1; load() }
   }
   const visibleColumns = computed(() => columnView.value.columns.filter(column => column.visible && column.name !== INDEX_COLUMN).map(column => column.name))
+  /** Header drags update the width live and save it once the drag ends. */
+  function resizeColumn(name: string, width: number, persist: boolean) {
+    const key = name === '__index__' ? INDEX_COLUMN : name
+    const view = { ...columnView.value, columns: columnView.value.columns.map(column => column.name === key ? { ...column, width } : column) }
+    if (persist) applyColumnView(view)
+    else columnView.value = view
+  }
   function applyColumnView(view: ColumnView) {
     columnView.value = view
     try { localStorage.setItem(viewKey(), JSON.stringify(view)) } catch { /* Preferences are optional. */ }
@@ -363,7 +370,7 @@ export function useSourceTableData() {
 
   return {
     can, loading, saving, rows, total, page, size, columnNames, visibleColumns, orders, typeOf,
-    sidePanel, openPanel, closePanel, columnView, applyColumnView, settings, defaultSort, applySettings, exporting, defaultView: computed(() => defaultColumnView(fields.value)),
+    sidePanel, openPanel, closePanel, columnView, applyColumnView, resizeColumn, settings, defaultSort, applySettings, exporting, defaultView: computed(() => defaultColumnView(fields.value)),
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
     onPageChange, applyOrders, quickSortRules: computed(() => quickSorts(fields.value, primaryKeys.value)), selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
