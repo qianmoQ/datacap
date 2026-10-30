@@ -37,6 +37,7 @@ public class PluginConfiguration
         Path projectRoot = PluginPathUtils.findProjectRoot();
         PluginConfigure config = PluginConfigure.builder()
                 .pluginsDir(pluginsDirectory(projectRoot, EnvironmentUtils.isIdeEnvironment()))
+                .loadThreads(environment.getProperty("plugin.manager.load-threads", Integer.class, 0))
                 .autoCleanup(true)
                 .build();
 
