@@ -1,6 +1,8 @@
 <template>
   <MfDrawer v-model:open="visible" width="min(1280px, 94vw)" :title="$t('source.common.menuNewTable')">
-    <MfSpinner v-if="loading"/>
+    <div v-if="loading" class="flex h-full min-h-96 items-center justify-center">
+      <MfSpinner/>
+    </div>
 
     <div v-else class="flex flex-col gap-4">
       <!-- 步骤条 -->
