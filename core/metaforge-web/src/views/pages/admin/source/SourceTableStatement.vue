@@ -1,5 +1,12 @@
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto">
+    <div class="flex shrink-0 items-center justify-end">
+      <MfButton size="sm" :variant="panelOpen ? 'primary' : 'secondary'" @click="togglePanel">
+        <SlidersHorizontal :size="14"/>
+        {{ $t('source.ddl.panel.toggle') }}
+      </MfButton>
+    </div>
+
     <section v-for="card in cards" :key="card.action" :ref="bindCard(card.action)" class="shrink-0 scroll-mt-1 rounded-mf-md border border-line p-4">
       <header class="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
@@ -21,7 +28,7 @@
       </div>
     </section>
 
-    <SourceDdlPanel :open="true" :container="fieldPanelHost" :width="fieldPanelWidth" :active="active" :recent="recent" :recent-loading="recentLoading"
+    <SourceDdlPanel :open="panelOpen" :container="fieldPanelHost" :width="fieldPanelWidth" :active="active" :recent="recent" :recent-loading="recentLoading"
                     :enabled="actionEnabled" @action="runAction" @history="openHistory"/>
     <SourceDdlHistory :open="historyVisible" :table="table" :entries="history.data.value" :loading="history.loading.value" :page="history.pageIndex.value"
                       :page-size="history.pageSize.value" :total="history.dataCount.value" :detail="historyDetail"
@@ -30,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { Copy, Download, Scan } from '@lucide/vue'
+import { Copy, Download, Scan, SlidersHorizontal } from '@lucide/vue'
 import SqlCodeBlock from '@/views/components/sql/SqlCodeBlock.vue'
 import SourceDdlPanel from './components/SourceDdlPanel.vue'
 import SourceDdlHistory from './components/SourceDdlHistory.vue'
@@ -40,5 +47,6 @@ defineOptions({ name: 'SourceTableStatement' })
 const {
   cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
   copy, download, format, cardSql, history, historyVisible, historyDetail, openHistory, toggleHistoryDetail,
+  panelOpen, togglePanel,
 } = useSourceTableDdl()
 </script>

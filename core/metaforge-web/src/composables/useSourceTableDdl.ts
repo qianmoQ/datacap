@@ -1,4 +1,4 @@
-import { computed, inject, nextTick, onMounted, onScopeDispose, ref, watch, type Ref } from 'vue'
+import { computed, inject, nextTick, onScopeDispose, ref, watch, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
@@ -164,14 +164,26 @@ export function useSourceTableDdl() {
   }
   const toggleHistoryDetail = (entry: DdlHistoryEntry) => { historyDetail.value = historyDetail.value?.id === entry.id ? null : entry }
 
-  // The quick menu lives in the workspace's right panel for as long as this tab is shown.
-  onMounted(() => { fieldPanelOpen.value = true })
+  // 快捷操作面板默认收起，由页面的「DDL 操作」按钮开合；开合状态接入工作台右侧布局
+  const panelOpen = ref(false)
+  function togglePanel() {
+    panelOpen.value = !panelOpen.value
+    fieldPanelOpen.value = panelOpen.value
+  }
+  watch(panelOpen, value => { fieldPanelOpen.value = value })
+
   watch(identity, initialize, { immediate: true })
   if (refreshKey) watch(refreshKey, initialize)
-  onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
+  onScopeDispose(() => {
+    alive = false
+    revision++
+    panelOpen.value = false
+    fieldPanelOpen.value = false
+  })
 
   return {
     can, cards, active, recent, recentLoading, table, fieldPanelHost, fieldPanelWidth, actionEnabled, runAction, bindCard,
     copy, download, format, cardSql, history, historyVisible: historyPanel.visible, historyDetail, openHistory, toggleHistoryDetail,
+    panelOpen, togglePanel,
   }
 }
