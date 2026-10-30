@@ -1,14 +1,14 @@
 <template>
-  <div class="relative min-h-screen">
-    <MfSkeleton v-if="loading"/>
+  <div class="relative h-full min-h-0 overflow-hidden">
+    <div v-if="loading" class="flex h-full items-center justify-center"><MfSpinner/></div>
 
-    <AceEditor v-else-if="statement" :value="statement" height="100vh" :read-only="true"/>
+    <AceEditor v-else-if="statement" :value="statement" height="100%" :read-only="true"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import AceEditor from '@/views/components/editor/AceEditor.vue'

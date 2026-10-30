@@ -1,5 +1,6 @@
 import { BaseService } from '@/services/base'
 import { ResponseModel } from '@/model/response'
+import type { NativeRequest } from '@/model/source-native'
 import { HttpUtils } from '@/utils/http'
 
 const DEFAULT_PATH = '/api/v1/metadata'
@@ -10,6 +11,31 @@ class MetadataService
     constructor()
     {
         super(DEFAULT_PATH)
+    }
+
+    nativeNamespaces(code: string, request: NativeRequest): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`/api/v1/source-management/${ encodeURIComponent(code) }/namespaces`, request)
+    }
+
+    nativeBrowse(code: string, request: NativeRequest): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`/api/v1/source-management/${ encodeURIComponent(code) }/browse`, request)
+    }
+
+    nativeDetail(code: string, request: NativeRequest): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`/api/v1/source-management/${ encodeURIComponent(code) }/detail`, request)
+    }
+
+    nativeDownload(code: string, request: NativeRequest): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`/api/v1/source-management/${ encodeURIComponent(code) }/download`, request)
+    }
+
+    getCapabilities(code: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`/api/v1/source-management/${ encodeURIComponent(code) }/capabilities`)
     }
 
     getEngines(code: string): Promise<ResponseModel>

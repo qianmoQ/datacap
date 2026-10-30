@@ -1,5 +1,5 @@
 <template>
-  <div class="relative h-screen">
+  <div class="relative h-full min-h-0 overflow-hidden">
     <div v-if="loading" class="flex items-center justify-center py-8">
       <MfSpinner size="lg" label="Loading..."/>
     </div>
@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import ErDiagram from '@/views/components/diagram/ErDiagram.vue'
 import { ErDiagramOptions } from '@/views/components/diagram/ErDiagramOptions.ts'
@@ -33,7 +33,7 @@ const handleInitialize = () => {
     MetadataService.getColumnsByTable(code, database, table)
                    .then((response) => {
                      if (response.status && response.data && response.data.isSuccessful) {
-                       const tableName = response.data[0]
+                       const tableName = String(route.params.table)
                        options.value = new ErDiagramOptions()
                        options.value.table = { id: tableName, name: tableName }
                        options.value.columns = response.data.columns

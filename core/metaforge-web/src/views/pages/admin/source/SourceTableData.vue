@@ -1,6 +1,6 @@
 <template>
-  <div class="relative">
-    <MfCard class="h-screen relative">
+  <div class="source-data relative h-full min-h-0 overflow-hidden">
+    <MfCard class="relative flex h-full min-h-0 flex-col overflow-hidden">
       <template #header>
         <MfSpace class="items-center">
           <MfTooltip :content="$t('source.common.firstPage')">
@@ -115,10 +115,10 @@
         </MfSpace>
       </template>
 
-      <div class="relative">
+      <div class="relative h-full min-h-0">
         <AgGridVue v-show="!refererLoading"
                    class="ag-theme-metaforge"
-                   style="width: 100%; height: calc(100vh - 40px);"
+                   style="width: 100%; height: 100%;"
                    :gridOptions="gridOptions"
                    :columnDefs="configure.headers"
                    :rowData="configure.datasets"
@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -541,3 +541,9 @@ watch(
 
 handleInitialize()
 </script>
+
+<style scoped>
+.source-data :deep(section > header) { flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
+.source-data :deep(section > header > div:first-child) { min-width: 0; overflow-x: auto; }
+.source-data :deep(section > div) { flex: 1; min-height: 0; overflow: hidden; }
+</style>

@@ -1,633 +1,91 @@
 <template>
-  <div class="relative">
-    <MfSkeleton v-if="loading"/>
-
+  <div class="source-structure flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+    <div v-if="loading" class="flex justify-center py-16"><MfSpinner :label="$t('common.loading')"/></div>
     <template v-else>
-      <!-- 工具栏 -->
-      <div class="mb-3 flex flex-wrap items-center gap-2">
-        <MfButton variant="primary" @click="openPanel('add', null)">
-          <Plus :size="14"/>
-          {{ $t('source.structure.addField') }}
-        </MfButton>
-        <MfButton @click="onInsertField">
-          <ListPlus :size="14"/>
-          {{ $t('source.structure.insertField') }}
-        </MfButton>
-        <MfButton :disabled="selectedNames.size === 0" @click="dropVisible = true">
-          <Trash2 :size="14"/>
-          {{ $t('source.structure.dropTitle') }}
-        </MfButton>
-        <MfButton :disabled="!detailColumn" @click="onMove(-1)">
-          <ArrowUp :size="14"/>
-          {{ $t('source.structure.moveUp') }}
-        </MfButton>
-        <MfButton :disabled="!detailColumn" @click="onMove(1)">
-          <ArrowDown :size="14"/>
-          {{ $t('source.structure.moveDown') }}
-        </MfButton>
-        <MfButton :disabled="columns.length === 0" @click="reorderVisible = true">
-          <ArrowUpDown :size="14"/>
-          {{ $t('source.structure.reorder') }}
-        </MfButton>
-      </div>
-
-      <!-- 字段表 -->
-      <MfTable :columns="fieldHeaders"
-               :data-source="sortedColumns"
-               row-key="name"
-               empty-text=" ">
-        <template #header-__check__>
-          <MfCheckbox :model-value="allSelected" :indeterminate="partialSelected"
-                      @update:model-value="(checked: any) => toggleAll(!!checked)"/>
-        </template>
-        <template #header-name>
-          <button type="button" class="inline-flex items-center gap-1" @click="toggleNameSort">
-            {{ $t('source.structure.fieldName') }}
-            <ArrowUpDown :size="11" :class="nameSort ? 'text-primary' : 'text-content-tertiary'"/>
-          </button>
-        </template>
-        <template #cell-__check__="{ record }">
-          <MfCheckbox :model-value="selectedNames.has(record.name)"
-                      @update:model-value="(checked: any) => toggleSelect(record.name, !!checked)"/>
-        </template>
-        <template #cell-name="{ record }">
-          <button type="button" class="inline-flex items-center gap-1 font-mono text-content transition-colors hover:text-primary"
-                  @click="detailName = record.name">
-            {{ record.name }}
-            <KeyRound v-if="primaryNames.has(record.name)" :size="12" class="text-warning"/>
-          </button>
-        </template>
-        <template #cell-type="{ record }">
-          <MfTag size="sm" :variant="typeTone(record.type)">{{ record.type }}</MfTag>
-        </template>
-        <template #cell-length="{ record }">
-          {{ record.length && record.length > 0 ? record.length : '-' }}
-        </template>
-        <template #cell-nullable="{ record }">
-          <span :class="record.nullable === 'NO' ? 'text-danger' : 'text-content'">
-            {{ record.nullable === 'NO' ? $t('common.no') : $t('common.yes') }}
-          </span>
-        </template>
-        <template #cell-defaultValue="{ record }">
-          <span v-if="record.default" class="font-mono text-xs">{{ record.default }}</span>
-          <span v-else class="text-content-tertiary">-</span>
-        </template>
-        <template #cell-comment="{ record }">
-          <EllipsisCell :text="record.comment"/>
-        </template>
-        <template #cell-action="{ record }">
-          <div class="flex items-center gap-2 text-xs">
-            <button type="button" class="text-primary hover:underline" @click="openPanel('edit', record)">
-              {{ $t('common.edit') }}
-            </button>
-            <button type="button" class="text-danger hover:underline" @click="confirmDrop([record.name])">
-              {{ $t('common.delete') }}
-            </button>
-          </div>
-        </template>
-      </MfTable>
-
-      <!-- 字段详情卡 -->
-      <div v-if="detailColumn" class="mt-4 rounded-mf-lg border border-line bg-surface">
-        <div class="flex items-center justify-between border-b border-line px-4 py-3">
-          <div class="flex items-center gap-2">
-            <span class="inline-flex size-7 items-center justify-center rounded-mf-md bg-primary/10 text-primary">
-              <Columns3 :size="15"/>
-            </span>
-            <MfTag size="sm" :variant="typeTone(detailColumn.type)">{{ detailColumn.type }}</MfTag>
-            <span class="font-mono text-sm text-content">{{ detailColumn.name }}</span>
-          </div>
-          <MfButton size="sm" @click="openPanel('edit', detailColumn)">
-            <Pencil :size="13"/>
-            {{ $t('common.edit') }}
-          </MfButton>
+      <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-md border border-line bg-surface/60">
+        <div v-if="can('column:create') || can('column:modify') || can('column:drop')" class="flex shrink-0 flex-wrap items-center gap-2 px-2.5 py-2.5">
+          <MfButton v-if="can('column:create')" size="sm" variant="primary" :disabled="saving" @click="openPanel('add')"><Plus :size="14"/>{{ $t('source.structure.addField') }}</MfButton>
+          <MfButton v-if="can('column:create')" size="sm" :disabled="saving || !detailColumn" @click="onInsertField"><ListPlus :size="14"/>{{ $t('source.structure.insertField') }}</MfButton>
+          <MfButton v-if="can('column:drop')" size="sm" :disabled="saving || (!selectedNames.size && !detailColumn)" @click="onRequestDrop"><Trash2 :size="14"/>{{ $t('source.structure.dropTitle') }}</MfButton>
+          <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position <= 1" @click="onMove(-1)"><ArrowUp :size="14"/>{{ $t('source.structure.moveUp') }}</MfButton>
+          <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position >= columns.length" @click="onMove(1)"><ArrowDown :size="14"/>{{ $t('source.structure.moveDown') }}</MfButton>
+          <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !columns.length" @click="reorderVisible = true"><ArrowUpDown :size="14"/>{{ $t('source.structure.reorder') }}</MfButton>
         </div>
-        <div class="px-4 py-3">
-          <div class="mb-2 text-xs font-medium text-content-tertiary">{{ $t('source.common.info') }}</div>
-          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.structure.fieldName') }}</span>
-              <span class="min-w-0 truncate font-mono text-content">{{ detailColumn.name }}</span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.structure.comment') }}</span>
-              <span class="min-w-0 truncate text-content">{{ detailColumn.comment || '-' }}</span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.structure.type') }}</span>
-              <span class="font-mono text-content">{{ detailColumn.type }}</span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.structure.nullable') }}</span>
-              <span :class="detailColumn.nullable === 'NO' ? 'text-danger' : 'text-content'">
-                {{ detailColumn.nullable === 'NO' ? $t('common.no') : $t('common.yes') }}
-              </span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.structure.lengthPrecision') }}</span>
-              <span class="text-content">{{ detailColumn.length && detailColumn.length > 0 ? detailColumn.length : '-' }}</span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.common.defaultValue') }}</span>
-              <span class="min-w-0 truncate text-content">
-                {{ detailColumn.autoincrement === 'YES' ? $t('source.common.autoIncrement') : (detailColumn.default || '-') }}
-              </span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('common.position') }}</span>
-              <span class="text-content">{{ detailColumn.position }}</span>
-            </div>
-            <div class="flex justify-between gap-4 border-b border-line py-1">
-              <span class="text-content-tertiary">{{ $t('source.common.columnPrimaryKey') }}</span>
-              <span class="text-content">{{ primaryNames.has(detailColumn.name) ? $t('common.yes') : $t('common.no') }}</span>
-            </div>
-          </div>
-        </div>
+        <MfTable fill :columns="fieldHeaders" :data-source="sortedColumns" row-key="name" density="compact" :bordered="false" :row-class="rowClass" :empty-text="$t('common.noData')" @row-click="selectDetail">
+          <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.prototype.selectAll')" @update:model-value="checked => toggleAll(!!checked)"/></template>
+          <template #header-name><button type="button" class="inline-flex items-center gap-1" @click="toggleNameSort">{{ $t('source.structure.fieldName') }}<ArrowUpDown :size="10" :class="nameSort ? 'text-primary' : 'text-content-tertiary'"/></button></template>
+          <template #cell-__check__="{ record }">
+            <button type="button" :draggable="can('column:reorder') && !saving && !nameSort" class="flex size-4 cursor-grab items-center justify-center rounded text-content-secondary active:cursor-grabbing" :class="selectedNames.has(record.name) && 'bg-primary/15 text-primary'" :aria-label="$t('source.prototype.selectField', { name: record.name })" :aria-pressed="selectedNames.has(record.name)" @click.stop="toggleSelect(record.name, !selectedNames.has(record.name))" @dragstart="onDragStart(record.name, $event)" @dragend="draggedName = null"><GripVertical :size="14"/></button>
+          </template>
+          <template #cell-name="{ record }"><div class="flex min-w-0 items-center gap-2" @dragover.prevent @drop.prevent="onDropBefore(record.name)"><EllipsisCell :text="record.name"/><KeyRound v-if="primaryNames.has(record.name)" :size="13" class="shrink-0 text-warning"/></div></template>
+          <template #cell-type="{ record }"><MfTag size="sm" :variant="typeTone(record.type)" :color="typeColor(record.type)">{{ record.type }}</MfTag></template>
+          <template #cell-length="{ record }">{{ record.length || '-' }}</template>
+          <template #cell-nullable="{ record }"><span :class="record.nullable === 'NO' && 'text-danger'">{{ $t(record.nullable === 'NO' ? 'common.no' : 'common.yes') }}</span></template>
+          <template #cell-defaultValue="{ record }"><EllipsisCell :text="displayDefault(record)" :class="record.default === null && record.autoincrement !== 'YES' && 'text-content-tertiary'"/></template>
+          <template #cell-comment="{ record }"><EllipsisCell :text="record.comment || '-'"/></template>
+          <template #cell-action="{ record }"><div class="flex items-center gap-4 text-xs" @click.stop><button type="button" v-if="can('column:modify')" class="text-primary hover:underline disabled:opacity-50" :disabled="saving" @click="openPanel('edit', record)">{{ $t('common.edit') }}</button><button type="button" v-if="can('column:drop')" class="text-danger hover:underline disabled:opacity-50" :disabled="saving" @click="confirmDrop([record.name])">{{ $t('common.delete') }}</button></div></template>
+        </MfTable>
       </div>
+      <section v-if="detailColumn" class="source-field-detail mt-3 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-mf-md border border-line bg-surface/60 px-3 py-3">
+        <div class="mb-1 flex shrink-0 items-center justify-between px-1.5">
+          <div class="flex items-center gap-4"><Columns3 :size="23" class="text-content-secondary"/><MfTag size="sm" :variant="typeTone(detailColumn.type)" :color="typeColor(detailColumn.type)">{{ detailColumn.type }}</MfTag></div>
+          <MfButton v-if="can('column:modify')" size="sm" :disabled="saving" @click="openPanel('edit', detailColumn)"><Pencil :size="13"/>{{ $t('common.edit') }}</MfButton>
+        </div>
+        <MfTabs v-model:active-key="detailTab" fill class="source-field-details">
+          <MfTabPane v-for="tab in detailTabs" :key="tab.key" :item-key="tab.key" :tab="tab.label">
+            <div v-if="detailTab === 'basic'" class="grid grid-cols-2 gap-6 rounded-mf-sm border border-line p-3.5 text-xs">
+              <dl v-for="(items, group) in [detailBasics, detailAdditional]" :key="group" class="m-0 grid content-start grid-cols-[minmax(72px,1fr)_minmax(0,1.6fr)] gap-x-3 gap-y-2" :class="group && 'border-l border-line pl-6'">
+                <template v-for="item in items" :key="item.label"><dt class="text-content-tertiary">{{ item.label }}</dt><dd class="m-0 min-w-0" :class="item.tone || 'text-content-secondary'"><EllipsisCell :text="item.value"/></dd></template>
+              </dl>
+            </div>
+            <dl v-else-if="detailTab === 'constraints'" class="m-0 grid grid-cols-[140px_1fr] gap-3 rounded-mf-sm border border-line p-4 text-sm"><template v-for="item in detailConstraints" :key="item.label"><dt class="text-content-tertiary">{{ item.label }}</dt><dd class="m-0" :class="item.tone">{{ item.value }}</dd></template></dl>
+            <template v-else-if="detailTab === 'indexes'">
+              <MfEmpty v-if="!detailIndexes.length" size="sm" :title="$t('common.noData')"/>
+              <div v-for="index in detailIndexes" :key="index.name" class="mb-2 flex items-center gap-4 rounded-mf-md border border-line px-4 py-3 text-sm"><KeyRound :size="14" class="text-content-tertiary"/><span>{{ index.name }}</span><MfTag size="sm">{{ $t(index.unique ? 'source.index.unique' : 'source.index.normal') }}</MfTag><span class="text-content-tertiary">{{ index.columns.join(', ') }}</span></div>
+            </template>
+            <template v-else-if="detailTab === 'foreignkeys'">
+              <MfEmpty v-if="!detailForeignKeys.length" size="sm" :title="$t('common.noData')"/>
+              <div v-for="(key, index) in detailForeignKeys" :key="index" class="mb-2 rounded-mf-md border border-line px-4 py-3 text-sm">{{ key.object_name }} · {{ key.object_column }} → {{ key.object_reference_table }}.{{ key.object_reference_column }}</div>
+            </template>
+            <MfEmpty v-else size="sm" :title="$t('source.detail.noUsage')"/>
+          </MfTabPane>
+        </MfTabs>
+      </section>
     </template>
-
-    <!-- 右侧添加/编辑字段面板：点击添加/编辑后才出现 -->
-    <Transition enter-active-class="transition-transform duration-(--mf-duration-base)"
-                enter-from-class="translate-x-full"
-                leave-active-class="transition-transform duration-(--mf-duration-base)"
-                leave-to-class="translate-x-full">
-      <aside v-if="panelVisible"
-             class="fixed bottom-0 right-0 top-16 z-30 flex w-[380px] flex-col border-l border-line bg-surface shadow-mf-lg">
-        <div class="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
-          <h3 class="m-0 text-base font-semibold text-content">
-            {{ panelMode === 'edit' ? $t('source.structure.editField') : $t('source.structure.addField') }}
-          </h3>
-          <button type="button" class="text-content-tertiary transition-colors hover:text-content" @click="closePanel">
-            <X :size="16"/>
-          </button>
-        </div>
-
-        <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <div v-if="panelMode === 'insert' && panelAnchor"
-               class="mb-3 rounded-mf-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-content-secondary">
-            {{ $t('source.structure.insertAfter').replace('$VALUE', panelAnchor) }}
-          </div>
-
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-content-secondary">
-                {{ $t('source.structure.fieldName') }} <span class="text-danger">*</span>
-              </label>
-              <MfInput v-model="panelForm.name" :disabled="panelMode === 'edit'"/>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-content-secondary">
-                {{ $t('source.structure.type') }} <span class="text-danger">*</span>
-              </label>
-              <MfSelect v-model="panelForm.type" :options="typeOptions"/>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.structure.lengthPrecision') }}</label>
-              <MfInput v-model="panelForm.length" placeholder="0"/>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <MfCheckbox v-model="panelForm.nullable">{{ $t('source.structure.nullable') }}</MfCheckbox>
-              <MfCheckbox v-model="panelForm.autoIncrement">{{ $t('source.common.autoIncrement') }}</MfCheckbox>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.common.defaultValue') }}</label>
-              <div class="flex gap-2">
-                <MfSelect v-model="panelForm.defaultMode" class="w-32 shrink-0" :options="defaultModeOptions"/>
-                <MfInput v-model="panelForm.defaultValue" class="min-w-0 flex-1" :disabled="panelForm.defaultMode !== 'constant'"/>
-              </div>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-content-secondary">{{ $t('source.structure.comment') }}</label>
-              <MfTextarea v-model="panelForm.comment" :rows="3" :maxlength="500"/>
-              <div class="mt-1 text-right text-[11px] text-content-tertiary">
-                {{ $t('source.structure.commentCounter', { count: (panelForm.comment || '').length }) }}
-              </div>
-            </div>
-
-            <!-- 更多选项 -->
-            <div class="rounded-mf-md border border-line">
-              <button type="button" class="flex w-full items-center gap-1.5 px-3 py-2 text-sm font-medium text-content"
-                      @click="moreOptionsOpen = !moreOptionsOpen">
-                <ChevronDown :size="13" :class="['text-content-tertiary transition-transform duration-200', moreOptionsOpen && 'rotate-180']"/>
-                {{ $t('source.structure.moreOptions') }}
-              </button>
-              <div v-if="moreOptionsOpen" class="space-y-3 border-t border-line px-3 py-3">
-                <div>
-                  <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.structure.charset') }}</label>
-                  <MfSelect v-model="panelForm.charset" :options="charsetOptions" clearable/>
-                </div>
-                <div>
-                  <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.common.collation') }}</label>
-                  <MfSelect v-model="panelForm.collate" :options="collateOptions" clearable/>
-                </div>
-
-                <div class="rounded-mf-md bg-surface-hover/50 p-2.5">
-                  <MfCheckbox v-model="panelForm.createIndex">{{ $t('source.tab.indexes') }}</MfCheckbox>
-                  <div v-if="panelForm.createIndex" class="mt-2 grid grid-cols-2 gap-2">
-                    <div>
-                      <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.index.indexType') }}</label>
-                      <MfSelect v-model="panelForm.indexType" size="sm" :options="indexTypeOptions"/>
-                    </div>
-                    <div>
-                      <label class="mb-1 block text-xs text-content-secondary">{{ $t('source.index.indexName') }}</label>
-                      <MfInput v-model="panelForm.indexName" size="sm" placeholder="idx_"/>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex shrink-0 justify-end gap-2 border-t border-line px-4 py-3">
-          <MfButton @click="closePanel">{{ $t('common.cancel') }}</MfButton>
-          <MfButton variant="primary" :loading="saving" @click="onSubmitPanel">
-            {{ $t('common.confirm') }}
-          </MfButton>
-        </div>
-      </aside>
-    </Transition>
-
-    <!-- 调整字段顺序 -->
+    <SourceColumnEditor v-if="panelVisible" v-model="panelForm" v-model:more="moreOptionsOpen" :open="panelVisible" :can-create-index="can('index:create')" :width="fieldPanelWidth" :mode="panelMode" :anchor="panelAnchor" :saving="saving" :index-only="indexOnly" :container="fieldPanelHost" :issues="panelIssues" :columns="columns" :supported-types="dataTypes" :types-loading="typesLoading" :type-options="typeOptions" :default-mode-options="defaultModeOptions" :charset-options="charsetOptions" :collate-options="collateOptions" :index-type-options="indexTypeOptions" :composite-column-options="compositeColumnOptions" @close="closePanel()" @save="onSubmitPanel"/>
     <MfModal v-model:open="reorderVisible" :title="$t('source.structure.reorderTitle')" width="440px">
-      <div class="divide-y divide-line rounded-mf-md border border-line">
-        <div v-for="(column, index) in columns" :key="column.name" class="flex items-center gap-2 px-3 py-2">
-          <span class="w-6 text-xs text-content-tertiary">{{ index + 1 }}</span>
-          <span class="min-w-0 flex-1 truncate font-mono text-sm text-content">{{ column.name }}</span>
-          <MfButton size="sm" shape="circle" :disabled="index === 0" @click="onMoveByName(column.name, -1)">
-            <ArrowUp :size="13"/>
-          </MfButton>
-          <MfButton size="sm" shape="circle" :disabled="index === columns.length - 1" @click="onMoveByName(column.name, 1)">
-            <ArrowDown :size="13"/>
-          </MfButton>
-        </div>
+      <div class="flex flex-col gap-1">
+        <div v-for="(column, index) in columns" :key="column.name" class="flex items-center gap-2 rounded-mf-md px-3 py-2 hover:bg-surface-hover"><span class="w-6 text-xs text-content-tertiary">{{ index + 1 }}</span><span class="min-w-0 flex-1 truncate text-sm">{{ column.name }}</span><MfButton size="sm" :aria-label="$t('source.structure.moveUp')" :disabled="saving || index === 0" @click="onMoveByName(column.name, -1)"><ArrowUp :size="13"/></MfButton><MfButton size="sm" :aria-label="$t('source.structure.moveDown')" :disabled="saving || index === columns.length - 1" @click="onMoveByName(column.name, 1)"><ArrowDown :size="13"/></MfButton></div>
       </div>
     </MfModal>
-
-    <!-- 删除字段确认 -->
     <MfModal v-model:open="dropVisible" :title="$t('source.structure.dropTitle')" width="440px">
-      <MfSpace direction="vertical" fill :style="{ width: '100%' }">
-        <MfAlert variant="danger" :title="$t('source.structure.dropAlert1')"/>
-        <MfAlert :title="$t('source.common.dropColumnInfo').replace('$VALUE', [...selectedNames].join(', '))"/>
-      </MfSpace>
-      <div class="mt-4 flex justify-end">
-        <MfSpace>
-          <MfButton @click="dropVisible = false">{{ $t('common.cancel') }}</MfButton>
-          <MfButton variant="danger" :loading="saving" @click="onDropFields">{{ $t('common.delete') }}</MfButton>
-        </MfSpace>
-      </div>
+      <MfAlert variant="danger" :title="$t('source.structure.dropAlert1')"/>
+      <p class="mt-3 break-words text-sm text-content-secondary">{{ $t('source.common.dropColumnInfo').replace('$VALUE', [...selectedNames].join(', ')) }}</p>
+      <template #footer><MfButton :disabled="saving" @click="dropVisible = false">{{ $t('common.cancel') }}</MfButton><MfButton variant="danger" :loading="saving" @click="onDropFields">{{ $t('common.delete') }}</MfButton></template>
     </MfModal>
   </div>
 </template>
 
-<script lang="ts" setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { MfMessage } from 'metaforge-ui'
-import {
-  ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Columns3, KeyRound, ListPlus, Pencil,
-  Plus, Trash2, X
-} from '@lucide/vue'
-import MetadataService from '@/services/metadata'
+<script setup lang="ts">
+import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, GripVertical, KeyRound, ListPlus, Pencil, Plus, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
-import { useRowSelection } from '@/composables/useRowSelection'
-
+import SourceColumnEditor from './components/SourceColumnEditor.vue'
+import { useSourceTableStructure } from '@/composables/useSourceTableStructure'
 defineOptions({ name: 'SourceTableStructure' })
-
-const { t } = useI18n()
-const route = useRoute()
-
-const DATA_TYPES = ['TINYINT', 'SMALLINT', 'INT', 'BIGINT', 'FLOAT', 'DOUBLE', 'DECIMAL',
-  'CHAR', 'VARCHAR', 'TEXT', 'LONGTEXT', 'DATE', 'TIME', 'DATETIME', 'TIMESTAMP', 'BLOB', 'LONGBLOB']
-const CHARSETS = ['utf8mb4', 'utf8', 'latin1', 'gbk']
-const COLLATES = ['utf8mb4_general_ci', 'utf8mb4_unicode_ci', 'utf8mb4_bin', 'utf8_general_ci', 'latin1_swedish_ci', 'gbk_chinese_ci']
-
-const loading = ref(false)
-const tableName = ref(String(route.params.table || ''))
-const columns = ref<any[]>([])
-const primaryNames = ref<Set<string>>(new Set())
-const detailName = ref<string | null>(null)
-
-const { selected: selectedNames, allSelected, partialSelected, toggleAll, toggle: toggleSelect, select: selectNames, prune: pruneSelection } = useRowSelection(
-    () => columns.value,
-    (column: any) => column.name
-)
-
-const panelVisible = ref(false)
-const panelMode = ref<'add' | 'edit' | 'insert'>('add')
-const panelAnchor = ref<string | null>(null)
-const saving = ref(false)
-const moreOptionsOpen = ref(false)
-const dropVisible = ref(false)
-
-const panelForm = ref({
-  name: '',
-  type: 'VARCHAR',
-  length: '' as string | number,
-  nullable: true,
-  autoIncrement: false,
-  defaultMode: 'none' as 'none' | 'constant' | 'timestamp',
-  defaultValue: '',
-  comment: '',
-  charset: '',
-  collate: '',
-  createIndex: false,
-  indexType: 'normal',
-  indexName: ''
-})
-const reorderVisible = ref(false)
-const nameSort = ref(false)
-const refreshKey = inject<import('vue').Ref<number> | null>('metadataRefreshKey', null)
-
-const sortedColumns = computed(() => {
-  if (!nameSort.value) return columns.value
-  return [...columns.value].sort((left, right) => String(left.name).localeCompare(String(right.name)))
-})
-
-const toggleNameSort = () => {
-  nameSort.value = !nameSort.value
-}
-
-const typeOptions = computed(() => {
-  const options = DATA_TYPES.map(value => ({ label: value, value }))
-  // JDBC 类型可能超出枚举（JSON、POINT 等）：编辑时保留原值可选
-  const current = panelForm.value.type
-  if (current && !DATA_TYPES.includes(current)) {
-    options.unshift({ label: current, value: current })
-  }
-  return options
-})
-const defaultModeOptions = computed(() => [
-  { label: t('source.structure.defaultNone'), value: 'none' },
-  { label: t('source.structure.defaultConstant'), value: 'constant' },
-  { label: 'CURRENT_TIMESTAMP', value: 'timestamp' }
-])
-const charsetOptions = computed(() => CHARSETS.map(value => ({ label: value, value })))
-const collateOptions = computed(() => COLLATES.map(value => ({ label: value, value })))
-const indexTypeOptions = computed(() => [
-  { label: t('source.index.normal'), value: 'normal' },
-  { label: t('source.index.unique'), value: 'unique' }
-])
-
-const detailColumn = computed(() => columns.value.find(item => item.name === detailName.value) || null)
-
-const fieldHeaders = computed(() => [
-  { title: '', key: '__check__', width: 40 },
-  { title: '#', key: 'position', width: 50 },
-  { title: t('source.structure.fieldName'), key: 'name' },
-  { title: t('source.structure.type'), key: 'type', width: 120 },
-  { title: t('source.structure.lengthPrecision'), key: 'length', width: 100 },
-  { title: t('source.structure.nullable'), key: 'nullable', width: 80 },
-  { title: t('source.common.defaultValue'), key: 'defaultValue', width: 160 },
-  { title: t('source.structure.comment'), key: 'comment', width: 240, ellipsis: true },
-  { title: t('common.action'), key: 'action', width: 110 }
-])
-
-const typeTone = (type: string): 'info' | 'success' | 'warning' | 'primary' | 'default' => {
-  const value = (type || '').toUpperCase()
-  if (/TINYINT|SMALLINT|INT|BIGINT|FLOAT|DOUBLE|DECIMAL|NUMERIC|DATE|TIME|DATETIME|TIMESTAMP|YEAR/.test(value)) return 'info'
-  if (/CHAR|ENUM|SET/.test(value)) return 'success'
-  if (/TEXT/.test(value)) return 'warning'
-  if (/JSON/.test(value)) return 'primary'
-  return 'default'
-}
-
-const handleInitialize = () => {
-  const code = route.params.source
-  const database = route.params.database
-  const table = route.params.table
-  tableName.value = String(table || '')
-  if (!(code && database && table)) return
-
-  loading.value = true
-  MetadataService.getColumnsByTable(code as string, database as string, table as string)
-      .then((columnResponse) => {
-        if (columnResponse.status && columnResponse.data?.isSuccessful) {
-          const rows = columnResponse.data.columns || []
-          primaryNames.value = new Set(rows.filter((row: any) => row.type_name === 'primary').map((row: any) => row.object_name))
-          columns.value = rows
-              .filter((row: any) => row.type_name === 'column')
-              .map((row: any) => ({
-                name: row.object_name,
-                type: row.object_data_type,
-                nullable: row.object_nullable,
-                default: row.object_default_value || '',
-                comment: row.object_comment || '',
-                position: Number(row.object_position) || 0,
-                length: Number(row.object_length) || 0,
-                autoincrement: row.object_autoincrement || 'NO'
-              }))
-          if (!columns.value.some(item => item.name === detailName.value)) {
-            detailName.value = columns.value[0]?.name || null
-          }
-          pruneSelection()
-        }
-        else {
-          MfMessage.error(columnResponse.message)
-        }
-      })
-      .finally(() => (loading.value = false))
-}
-
-const openPanel = (mode: 'add' | 'edit' | 'insert', row: any) => {
-  panelMode.value = mode
-  panelAnchor.value = mode === 'insert' ? String(row?.name || detailColumn.value?.name || '') : null
-  if (mode === 'edit' && row) {
-    panelForm.value = {
-      name: row.name,
-      type: row.type,
-      length: row.length > 0 ? row.length : '',
-      nullable: row.nullable !== 'NO',
-      autoIncrement: row.autoincrement === 'YES',
-      defaultMode: row.default && row.default.toUpperCase() === 'CURRENT_TIMESTAMP' ? 'timestamp'
-          : row.default ? 'constant' : 'none',
-      defaultValue: row.default && row.default.toUpperCase() !== 'CURRENT_TIMESTAMP' ? row.default : '',
-      comment: row.comment || '',
-      charset: '',
-      collate: '',
-      createIndex: false,
-      indexType: 'normal',
-      indexName: `idx_${ row.name }`
-    }
-  }
-  else {
-    panelForm.value = {
-      name: '', type: 'VARCHAR', length: '', nullable: true, autoIncrement: false,
-      defaultMode: 'none', defaultValue: '', comment: '', charset: '', collate: '',
-      createIndex: false, indexType: 'normal', indexName: ''
-    }
-  }
-  moreOptionsOpen.value = false
-  panelVisible.value = true
-}
-
-const closePanel = () => {
-  panelVisible.value = false
-}
-
-const onInsertField = () => {
-  const anchor = detailColumn.value?.name || columns.value[columns.value.length - 1]?.name
-  if (!anchor) {
-    MfMessage.warning(t('source.structure.selectFirst'))
-    return
-  }
-  openPanel('insert', { name: anchor })
-}
-
-const onSubmitPanel = () => {
-  const form = panelForm.value
-  if (!form.name.trim()) {
-    MfMessage.error(t('source.common.columnName'))
-    return
-  }
-  saving.value = true
-  const code = route.params.source as string
-  const database = route.params.database as string
-  const table = route.params.table as string
-  const column: Record<string, unknown> = {
-    name: form.name.trim(),
-    type: form.type,
-    length: form.length !== '' && Number(form.length) > 0 ? Number(form.length) : undefined,
-    nullable: form.nullable,
-    autoIncrement: form.autoIncrement,
-    defaultValue: form.defaultMode === 'constant' && form.defaultValue !== '' ? form.defaultValue
-        : form.defaultMode === 'timestamp' ? 'CURRENT_TIMESTAMP' : undefined,
-    comment: form.comment || undefined,
-    charset: form.charset || undefined,
-    collate: form.collate || undefined
-  }
-  if (panelMode.value === 'insert' && panelAnchor.value) {
-    column.after = panelAnchor.value
-  }
-  const payload = { name: table, columns: [column] }
-  const request = panelMode.value === 'edit'
-      ? MetadataService.changeColumn(code, database, table, payload)
-      : MetadataService.createColumn(code, database, table, payload)
-  request
-      .then(response => {
-        if (response.status) {
-          if (panelMode.value !== 'edit' && form.createIndex && form.indexName.trim()) {
-            const indexPayload = {
-              name: table,
-              indexes: [{
-                name: form.indexName.trim(),
-                columns: [form.name.trim()],
-                unique: form.indexType === 'unique'
-              }]
-            }
-            return MetadataService.createIndex(code, database, table, indexPayload)
-          }
-          return undefined
-        }
-        return Promise.reject(new Error(response.message))
-      })
-      .then(indexResponse => {
-        if (indexResponse && !indexResponse.status) {
-          MfMessage.error(indexResponse.message)
-        }
-        MfMessage.success(t('source.structure.saveSuccess'))
-        closePanel()
-        handleInitialize()
-      })
-      .catch((error: Error) => {
-        if (error?.message) {
-          MfMessage.error(error.message)
-        }
-      })
-      .finally(() => (saving.value = false))
-}
-
-const confirmDrop = (names: string[]) => {
-  selectNames(names)
-  dropVisible.value = true
-}
-
-const onDropFields = () => {
-  if (selectedNames.value.size === 0) return
-  saving.value = true
-  const code = route.params.source as string
-  const database = route.params.database as string
-  const table = route.params.table as string
-  MetadataService.dropColumn(code, database, table, {
-    name: table,
-    columns: [...selectedNames.value].map(name => ({ name }))
-  })
-                 .then(response => {
-                   if (response.status) {
-                     MfMessage.success(t('source.structure.dropSuccess'))
-                     dropVisible.value = false
-                     handleInitialize()
-                   }
-                   else {
-                     MfMessage.error(response.message)
-                   }
-                 })
-                 .finally(() => (saving.value = false))
-}
-
-const onMove = (direction: -1 | 1) => {
-  if (!detailColumn.value) {
-    MfMessage.warning(t('source.structure.selectFirst'))
-    return
-  }
-  onMoveByName(detailColumn.value.name, direction)
-}
-
-const onMoveByName = (columnName: string, direction: -1 | 1) => {
-  const column = columns.value.find(item => item.name === columnName)
-  if (!column) return
-  const index = columns.value.findIndex(item => item.name === columnName)
-  const targetIndex = index + direction
-  if (targetIndex < 0 || targetIndex >= columns.value.length) return
-
-  const payload: Record<string, unknown> = {
-    name: column.name,
-    type: column.type,
-    length: column.length > 0 ? column.length : undefined,
-    nullable: column.nullable !== 'NO',
-    autoIncrement: column.autoincrement === 'YES',
-    defaultValue: column.default || undefined,
-    comment: column.comment || undefined
-  }
-  if (direction === -1) {
-    // 上移：到首位用 FIRST，否则排在原前前列之后
-    if (targetIndex === 0) {
-      payload.first = true
-    }
-    else {
-      payload.after = columns.value[targetIndex - 1].name
-    }
-  }
-  else {
-    payload.after = columns.value[targetIndex].name
-  }
-
-  saving.value = true
-  const code = route.params.source as string
-  const database = route.params.database as string
-  const table = route.params.table as string
-  MetadataService.changeColumn(code, database, table, { name: table, columns: [payload] })
-                 .then(response => {
-                   if (response.status) {
-                     handleInitialize()
-                   }
-                   else {
-                     MfMessage.error(response.message)
-                   }
-                 })
-                 .finally(() => (saving.value = false))
-}
-
-watch(() => route.params.table, () => handleInitialize())
-
-// 容器头部的「刷新」按钮递增该值，触发列重新加载
-watch(refreshKey, () => handleInitialize())
-
-onMounted(() => handleInitialize())
+const { can, loading, columns, primaryNames, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
+  panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,
+  reorderVisible, nameSort, sortedColumns, toggleNameSort, typeOptions, dataTypes, typesLoading, defaultModeOptions,
+  charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs,
+  detailIndexes, detailForeignKeys, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor,
+  displayDefault, openPanel, closePanel, onInsertField, onSubmitPanel, confirmDrop, onRequestDrop, onDropFields,
+  onMove, onMoveByName, selectDetail, rowClass, onDragStart, onDropBefore, draggedName } = useSourceTableStructure()
 </script>
+
+<style scoped>
+.source-field-detail { flex-basis: min(42%, 300px); }
+.source-structure :deep(td), .source-structure :deep(th) { padding-left: 10px; padding-right: 10px; }
+.source-structure :deep(td) { font-size: 12px; line-height: 20px; }
+.source-structure :deep(td .mf-tag) { line-height: 16px; }
+.source-field-details :deep([role='tablist']) { gap: 8px; overflow-x: auto; }
+.source-field-details :deep([role='tabpanel']) { padding-top: 0; }
+</style>

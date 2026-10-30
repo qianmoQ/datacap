@@ -1,7 +1,7 @@
 import type { Router } from 'vue-router'
 import LayoutContainer from '@/views/layouts/common/LayoutContainer.vue'
 import ProfileContainer from '@/views/layouts/profile/LayoutContainer.vue'
-import MetadataContainer from '@/views/layouts/metadata/MetadataContainer.vue'
+import { sourceManageLocation } from '@/model/source-manage'
 import { accountPages, businessPages, canonicalPagePath } from './navigation'
 
 const createDefaultRouter = (router: Router) => {
@@ -116,86 +116,19 @@ const createDefaultRouter = (router: Router) => {
                 component: () => import('@/views/pages/admin/source/SourceHome.vue')
             },
             {
-                path: 'source/:source',
-                component: MetadataContainer,
-                meta: {
-                    title: 'common.source',
-                    isRoot: false
-                },
-                children: [
-                    {
-                        path: 'd/:database/',
-                        meta: {
-                            title: 'common.database',
-                            isRoot: false
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceDatabase.vue')
-                    },
-                    {
-                        path: 'd/:database/t/info/:table',
-                        meta: {
-                            title: 'source.common.info',
-                            isRoot: false,
-                            type: 'info'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableInfo.vue')
-                    },
-                    {
-                        path: 'd/:database/t/structure/:table',
-                        meta: {
-                            title: 'source.common.structure',
-                            isRoot: false,
-                            type: 'structure'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableStructure.vue')
-                    },
-                    {
-                        path: 'd/:database/t/data/:table',
-                        meta: {
-                            title: 'source.common.tableData',
-                            isRoot: false,
-                            type: 'data'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableData.vue')
-                    },
-                    {
-                        path: 'd/:database/t/statement/:table',
-                        meta: {
-                            title: 'source.common.statement',
-                            isRoot: false,
-                            type: 'statement'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableStatement.vue')
-                    },
-                    {
-                        path: 'd/:database/t/erDiagram/:table',
-                        meta: {
-                            title: 'source.common.erDiagram',
-                            isRoot: false,
-                            type: 'erDiagram'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableErDiagram.vue')
-                    },
-                    {
-                        path: 'd/:database/t/indexes/:table',
-                        meta: {
-                            title: 'source.tab.indexes',
-                            isRoot: false,
-                            type: 'indexes'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableIndexes.vue')
-                    },
-                    {
-                        path: 'd/:database/t/foreignkeys/:table',
-                        meta: {
-                            title: 'source.tab.foreignKeys',
-                            isRoot: false,
-                            type: 'foreignkeys'
-                        },
-                        component: () => import('@/views/pages/admin/source/SourceTableForeignKeys.vue')
-                    }
-                ]
+                name: 'manage', path: 'manage', meta: { title: 'common.source', sourceWorkspace: true },
+                component: () => import('@/views/layouts/metadata/ManageWorkspace.vue')
             },
+            ...[
+                { path: 'source/:source', tab: '' },
+                { path: 'source/:source/d/:database/', tab: '' },
+                ...['structure', 'data', 'info', 'indexes', 'foreignkeys', 'triggers', 'statement', 'erDiagram'].map(tab => ({ path: 'source/:source/d/:database/t/' + tab + '/:table', tab }))
+            ].map(({ path, tab }) => ({
+                path, redirect: (to: import('vue-router').RouteLocation) => ({
+                    ...sourceManageLocation({ source: String(to.params.source), database: String(to.params.database || ''), table: String(to.params.table || ''), tab }, to.query),
+                    hash: to.hash
+                })
+            })),
             {
                 path: 'import',
                 meta: {

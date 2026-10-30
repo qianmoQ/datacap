@@ -9,8 +9,9 @@ const compile = source => ts.transpileModule(source, { compilerOptions: { target
 const navigationUrl = moduleUrl(compile(await readFile(new URL('../src/router/navigation.ts', import.meta.url), 'utf8')))
 const { canonicalPagePath, normalizeNavigation, pageAccess, signInTarget } = await import(navigationUrl)
 let routes = compile(await readFile(new URL('../src/router/default.ts', import.meta.url), 'utf8'))
+const manageUrl = moduleUrl(compile(await readFile(new URL('../src/model/source-manage.ts', import.meta.url), 'utf8')))
 const layoutUrl = moduleUrl('export default {render(){return null}}')
-routes = routes.replace(/from (['"])([^'"]+)\1/g, (_match, _quote, name) => `from ${JSON.stringify(name === './navigation' ? navigationUrl : layoutUrl)}`)
+routes = routes.replace(/from (['"])([^'"]+)\1/g, (_match, _quote, name) => `from ${JSON.stringify(name === './navigation' ? navigationUrl : name === '@/model/source-manage' ? manageUrl : layoutUrl)}`)
 routes = routes.replace(/import\((['"])@\/views\/[^'"]+\1\)/g, 'Promise.resolve({render(){return null}})')
 const { createDefaultRouter } = await import(moduleUrl(routes))
 const user = { token: 'test', roles: ['USER'] }
@@ -54,7 +55,7 @@ test('management pages require ADMIN and the account route does not collide with
 test('legacy deep links preserve parameters, queries and hashes and normalize only once', async () => {
     const cases = [
         ['/admin/query/history/AbC?sql=select%201#editor', '/query/history/AbC'],
-        ['/admin/source/SRC/d/MyDB/t/data/MyTable?limit=1#rows', '/source/SRC/d/MyDB/t/data/MyTable'],
+        ['/admin/source/SRC/d/MyDB/t/data/MyTable?limit=1#rows', '/manage'],
         ['/admin/dataset/info/source/SourceCode?tempId=3', '/dataset/info/source/SourceCode'],
         ['/system/role?tab=members#list', '/admin/role'],
         ['/SYSTEM/ROLE', '/admin/role'],
@@ -65,6 +66,7 @@ test('legacy deep links preserve parameters, queries and hashes and normalize on
         await router.push(old)
         assert.equal(router.currentRoute.value.path, expected)
         assert.equal(canonicalPagePath(expected), expected)
+        if (expected === '/manage') assert.deepEqual({type:router.currentRoute.value.query.type,id:router.currentRoute.value.query.id,database:router.currentRoute.value.query.database,table:router.currentRoute.value.query.table,tab:router.currentRoute.value.query.tab},{type:'source',id:'SRC',database:'MyDB',table:'MyTable',tab:'data'})
         const original = new URL(old, 'https://example.test')
         assert.equal(router.currentRoute.value.hash, original.hash)
         for (const [key, value] of original.searchParams) assert.equal(router.currentRoute.value.query[key], value)

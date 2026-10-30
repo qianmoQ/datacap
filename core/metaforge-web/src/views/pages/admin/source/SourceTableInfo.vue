@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-0">
     <MfSkeleton v-if="loading"/>
 
     <div v-else-if="dataInfo">
@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata.ts'
 import TableAutoIncrement from '@/views/pages/admin/source/components/TableAutoIncrement.vue'

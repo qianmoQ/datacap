@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-0">
     <div v-if="loading" class="flex items-center justify-center py-8">
       <MfSpinner size="lg" label="Loading..."/>
     </div>
@@ -96,7 +96,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata.ts'
 import { Clock, Database } from '@lucide/vue'

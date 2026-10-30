@@ -58,8 +58,8 @@
 
               <template #overlay>
                 <MfMenu>
-                  <MfMenuItem v-if="(loginUserCode === record.user.code) && record.available && record.isSupportMeta" key_="manager">
-                    <router-link :to="`/source/${ record?.code }`" target="_blank">
+                  <MfMenuItem v-if="(loginUserCode === record.user.code) && record.available" key_="manager">
+                    <router-link :to="sourceManageLocation({ source: String(record.code) })" target="_blank">
                       <div class="flex items-center space-x-2">
                         <Settings :size="15" />
                         <span>{{ $t('source.common.manager') }}</span>
@@ -111,6 +111,7 @@
 </template>
 
 <script setup lang="ts">
+import { sourceManageLocation } from '@/model/source-manage'
 import { onMounted, ref } from 'vue'
 import Common from '@/utils/common'
 import { useHeaders } from '@/views/pages/admin/source/SourceUtils'

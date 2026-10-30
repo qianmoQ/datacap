@@ -1,75 +1,40 @@
 <template>
-  <BaseLayout>
-    <!-- 工作台通栏布局：侧栏贴左、内容区自适应（严格按原型） -->
-    <div class="flex min-h-[calc(100vh-4rem)] w-full flex-col">
-      <div class="flex w-full flex-1">
-        <aside class="w-[260px] shrink-0 border-r border-line bg-surface">
-          <MetadataSidebar/>
-        </aside>
-        <div class="min-w-0 flex-1 px-6 py-4">
-          <MetadataContent/>
-        </div>
-      </div>
+  <div ref="workspaceRoot" class="source-workspace flex h-full min-h-0 w-full overflow-hidden">
+    <aside :style="{ width: leftWidth + 'px' }" class="h-full shrink-0 overflow-hidden rounded-mf-lg bg-surface/90">
+      <MetadataSidebar v-if="can('table:list') || capabilityLoading"/>
+      <NativeManagementSidebar v-else-if="can('namespace:list')"/>
+      <MfEmpty v-else class="h-full px-3" size="sm" variant="initial" :title="$t('source.manage.kind.' + (profile?.kind || 'unknown'))" :description="$t('source.manage.nativeHint')"/>
+    </aside>
+    <MfResizeHandle v-model="leftWidth" :min="limits.leftMin" :max="limits.leftMax" :label="$t('source.workspace.resizeSidebar')" @change="saveLayout"/>
+    <div class="h-full min-w-0 flex-1 overflow-hidden rounded-mf-lg bg-surface/95">
+      <MetadataContent/>
     </div>
-  </BaseLayout>
+    <MfResizeHandle v-show="fieldPanelOpen" v-model="rightWidth" reverse :min="limits.rightMin" :max="limits.rightMax" :label="$t('source.workspace.resizeEditor')" @change="saveLayout"/>
+    <div v-show="fieldPanelOpen" ref="fieldPanelHost" :style="{ width: rightWidth + 'px' }" class="source-column-panel isolate h-full shrink-0 overflow-hidden rounded-mf-lg bg-surface/95"/>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { provide, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import NativeManagementSidebar from './components/NativeManagementSidebar.vue'
 import MetadataSidebar from '@/views/layouts/metadata/components/MetadataSidebar.vue'
 import MetadataContent from '@/views/layouts/metadata/components/MetadataContent.vue'
-import BaseLayout from '@/views/layouts/base/BaseLayout.vue'
-import MetadataService from '@/services/metadata'
-import { MfMessage } from 'metaforge-ui'
+import { useMetadataWorkspace } from '@/composables/useMetadataWorkspace'
+import { MfResizeHandle } from 'metaforge-ui'
 
-// Shared table context (name/comment/engine/format) for the sidebar and content header,
-// plus index / foreign-key listings for the tab counts and their pages.
-const route = useRoute()
-const tableInfo = ref<any | null>(null)
-const tableIndexes = ref<any[]>([])
-const tableForeignKeys = ref<any[]>([])
-const metadataRefreshKey = ref(0)
-provide('metadataTableInfo', tableInfo)
-provide('metadataTableStats', { indexes: tableIndexes, foreignKeys: tableForeignKeys })
-provide('metadataRefreshKey', metadataRefreshKey)
-
-const loadTableContext = () => {
-  const source = route.params.source as string
-  const database = route.params.database as string
-  const table = route.params.table as string
-  if (!(source && database && table)) {
-    tableInfo.value = null
-    tableIndexes.value = []
-    tableForeignKeys.value = []
-    return
-  }
-  MetadataService.getTable(source, database, table)
-                 .then(response => {
-                   if (response.status && response.data?.isSuccessful) {
-                     tableInfo.value = response.data.columns?.[0] || null
-                   }
-                   else {
-                     MfMessage.error(response.message)
-                   }
-                 })
-  MetadataService.getIndexes(source, database, table)
-                 .then(response => {
-                   if (response.status && response.data?.isSuccessful) {
-                     tableIndexes.value = response.data.columns || []
-                   }
-                 })
-  MetadataService.getForeignKeys(source, database, table)
-                 .then(response => {
-                   if (response.status && response.data?.isSuccessful) {
-                     tableForeignKeys.value = response.data.columns || []
-                   }
-                 })
-}
-
-watch(
-    () => [route.params.source, route.params.database, route.params.table, metadataRefreshKey.value],
-    () => loadTableContext(),
-    { immediate: true }
-)
+const { workspaceRoot, leftWidth, rightWidth, limits, saveLayout, fieldPanelOpen, fieldPanelHost, can, profile, capabilityLoading } = useMetadataWorkspace()
 </script>
+
+<style scoped>
+.source-workspace :deep(*) {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--mf-color-content-tertiary) 40%, transparent) transparent;
+}
+.source-workspace :deep(*::-webkit-scrollbar) { width: 6px; height: 6px; }
+.source-workspace :deep(*::-webkit-scrollbar-track) { background: transparent; }
+.source-workspace :deep(*::-webkit-scrollbar-thumb) {
+  background: color-mix(in srgb, var(--mf-color-content-tertiary) 40%, transparent);
+  border-radius: var(--mf-radius-full);
+}
+/* The panel host is already a card, so the docked drawer drops its own divider and surface. */
+.source-column-panel :deep(section[role='dialog']) { border: 0; background: transparent; }
+</style>

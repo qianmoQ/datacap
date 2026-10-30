@@ -13,7 +13,8 @@ export class HttpUtils
     constructor()
     {
         if (process.env.NODE_ENV === 'development') {
-            axios.defaults.baseURL = 'http://localhost:9096'
+            // 允许用 VITE_API_BASE_URL 指向独立验证实例（如 http://localhost:9097），默认仍是 9096
+            axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9096'
         }
         else {
             axios.defaults.baseURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '')
