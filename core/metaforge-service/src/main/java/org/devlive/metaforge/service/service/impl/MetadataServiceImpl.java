@@ -17,6 +17,8 @@ import org.devlive.metaforge.spi.model.Response;
 import org.devlive.metaforge.spi.model.RuntimeConfigure;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -452,6 +454,54 @@ public class MetadataServiceImpl
                         })
                         .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
                 .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    /** Runs an operation on the source's plugin when it supports every listed capability. */
+    private CommonResponse<Response> withPlugin(String code, List<String> capabilities, BiFunction<PluginService, RuntimeConfigure, Response> operation)
+    {
+        return repository.findByCode(code)
+                .map(entity -> pluginManager.getPlugin(entity.getType())
+                        .map(plugin -> {
+                            PluginService service = plugin.getService(PluginService.class);
+                            Optional<String> missing = capabilities.stream().filter(capability -> !service.managementCapabilities().supports(capability)).findFirst();
+                            if (missing.isPresent()) {
+                                return CommonResponse.<Response>failure("Source does not support " + missing.get());
+                            }
+                            return CommonResponse.success(operation.apply(service, entity.toConfigure(pluginManager, plugin)));
+                        })
+                        .orElseGet(() -> CommonResponse.failure(String.format("Plugin [ %s ] not found", entity.getType()))))
+                .orElseGet(() -> CommonResponse.failure(String.format("Resource [ %s ] not found", code)));
+    }
+
+    @Override
+    public CommonResponse<Response> getForeignKeyDetails(String code, String database, String table)
+    {
+        return withPlugin(code, List.of("foreign-key:read"), (service, configure) -> service.getForeignKeyDetails(configure, database, table));
+    }
+
+    @Override
+    public CommonResponse<Response> createForeignKey(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        return withPlugin(code, List.of("foreign-key:create"), (service, runtime) -> service.createForeignKey(runtime, configure));
+    }
+
+    @Override
+    public CommonResponse<Response> alterForeignKey(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        // Editing or rebuilding drops the foreign key and adds it again.
+        return withPlugin(code, List.of("foreign-key:create", "foreign-key:drop"), (service, runtime) -> service.alterForeignKey(runtime, configure));
+    }
+
+    @Override
+    public CommonResponse<Response> dropForeignKey(String code, String database, String table, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        configure.setName(table);
+        return withPlugin(code, List.of("foreign-key:drop"), (service, runtime) -> service.dropForeignKey(runtime, configure));
     }
 
     @Override

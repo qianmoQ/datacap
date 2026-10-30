@@ -69,6 +69,14 @@ public interface MetadataService
 
     CommonResponse<Response> alterIndex(String code, String database, String table, TableDefinition configure);
 
+    CommonResponse<Response> getForeignKeyDetails(String code, String database, String table);
+
+    CommonResponse<Response> createForeignKey(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> alterForeignKey(String code, String database, String table, TableDefinition configure);
+
+    CommonResponse<Response> dropForeignKey(String code, String database, String table, TableDefinition configure);
+
     CommonResponse<Response> getColumn(String code, String database, String table, TableDefinition configure);
 
     CommonResponse<Response> changeColumn(String code, String database, String table, TableDefinition configure);

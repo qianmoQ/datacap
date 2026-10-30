@@ -23,6 +23,7 @@ import org.devlive.metaforge.spi.generator.column.CreateColumn;
 import org.devlive.metaforge.spi.generator.column.SelectColumn;
 import org.devlive.metaforge.spi.generator.definition.BaseDefinition;
 import org.devlive.metaforge.spi.generator.definition.ColumnDefinition;
+import org.devlive.metaforge.spi.generator.definition.ForeignKeyDefinition;
 import org.devlive.metaforge.spi.generator.definition.IndexDefinition;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
 import org.devlive.metaforge.spi.generator.table.AbstractTable;
@@ -973,6 +974,91 @@ public interface PluginService
         response.setHeaders(headers);
         response.setContent(sql);
         return response;
+    }
+
+    /**
+     * 外键明细 | One row per foreign key column of this table: the referenced column, the update
+     * and delete rules, and whether the referenced table still exists.
+     * Rows: constraint_name, column_name, ordinal_position, referenced_database, referenced_table,
+     * referenced_column, update_rule, delete_rule, referenced_exists.
+     */
+    default Response getForeignKeyDetails(RuntimeConfigure configure, String database, String table)
+    {
+        String sql = "SELECT k.CONSTRAINT_NAME AS constraint_name, k.COLUMN_NAME AS column_name, k.ORDINAL_POSITION AS ordinal_position,\n"
+                + "    k.REFERENCED_TABLE_SCHEMA AS referenced_database, k.REFERENCED_TABLE_NAME AS referenced_table,\n"
+                + "    k.REFERENCED_COLUMN_NAME AS referenced_column, r.UPDATE_RULE AS update_rule, r.DELETE_RULE AS delete_rule,\n"
+                + "    IF(t.TABLE_NAME IS NULL, 0, 1) AS referenced_exists\n"
+                + "FROM information_schema.KEY_COLUMN_USAGE k\n"
+                + "JOIN information_schema.REFERENTIAL_CONSTRAINTS r\n"
+                + "    ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND r.TABLE_NAME = k.TABLE_NAME\n"
+                + "LEFT JOIN information_schema.TABLES t\n"
+                + "    ON t.TABLE_SCHEMA = k.REFERENCED_TABLE_SCHEMA AND t.TABLE_NAME = k.REFERENCED_TABLE_NAME\n"
+                + "WHERE k.TABLE_SCHEMA = " + sqlLiteral(database) + " AND k.TABLE_NAME = " + sqlLiteral(table) + " AND k.REFERENCED_TABLE_NAME IS NOT NULL\n"
+                + "ORDER BY k.CONSTRAINT_NAME, k.ORDINAL_POSITION";
+        Response response = this.execute(configure, sql);
+        if (response != null) {
+            response.setContent(sql);
+        }
+        return response;
+    }
+
+    default Response createForeignKey(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(definition.getForeignKeys().stream()
+                .map(key -> "ALTER TABLE " + sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(definition.getName()) + this.addForeignKeyClause(definition, key))
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    /**
+     * 修改或重建外键 | Change or rebuild a foreign key: MySQL only drops and adds a foreign key in one
+     * ALTER with ALGORITHM=INPLACE, which adding one with foreign key checks on does not allow, so it
+     * is dropped first and added in a second statement.
+     */
+    default Response alterForeignKey(RuntimeConfigure configure, TableDefinition definition)
+    {
+        String table = sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(definition.getName());
+        List<String> statements = Lists.newArrayList();
+        definition.getForeignKeys().forEach(key -> {
+            String original = key.getOriginalName() == null || key.getOriginalName().isEmpty() ? key.getName() : key.getOriginalName();
+            statements.add("ALTER TABLE " + table + " DROP FOREIGN KEY " + sqlIdentifier(original));
+            statements.add("ALTER TABLE " + table + this.addForeignKeyClause(definition, key));
+        });
+        return this.executeStatements(statements, configure, definition);
+    }
+
+    default Response dropForeignKey(RuntimeConfigure configure, TableDefinition definition)
+    {
+        String table = sqlIdentifier(definition.getDatabase()) + "." + sqlIdentifier(definition.getName());
+        return this.executeStatements(definition.getForeignKeys().stream()
+                .map(key -> "ALTER TABLE " + table + " DROP FOREIGN KEY " + sqlIdentifier(key.getName()))
+                .collect(Collectors.toList()), configure, definition);
+    }
+
+    /** The ADD CONSTRAINT part, laid out one clause per line as the prototype shows it. */
+    default String addForeignKeyClause(TableDefinition definition, ForeignKeyDefinition key)
+    {
+        String referencedDatabase = key.getReferencedDatabase() == null || key.getReferencedDatabase().isEmpty() ? definition.getDatabase() : key.getReferencedDatabase();
+        StringBuilder clause = new StringBuilder()
+                .append("\n    ADD CONSTRAINT ").append(sqlIdentifier(key.getName()))
+                .append("\n    FOREIGN KEY (").append(key.getColumns().stream().map(this::sqlIdentifier).collect(Collectors.joining(", "))).append(")")
+                .append("\n    REFERENCES ").append(sqlIdentifier(referencedDatabase)).append(".").append(sqlIdentifier(key.getReferencedTable()))
+                .append(" (").append(key.getReferencedColumns().stream().map(this::sqlIdentifier).collect(Collectors.joining(", "))).append(")");
+        String onUpdate = foreignKeyRule(key.getOnUpdate());
+        String onDelete = foreignKeyRule(key.getOnDelete());
+        if (!onUpdate.isEmpty()) {
+            clause.append("\n    ON UPDATE ").append(onUpdate);
+        }
+        if (!onDelete.isEmpty()) {
+            clause.append("\n    ON DELETE ").append(onDelete);
+        }
+        return clause.toString();
+    }
+
+    /** Only the referential actions InnoDB enforces; anything else falls back to the default. */
+    default String foreignKeyRule(String rule)
+    {
+        String value = rule == null ? "" : rule.trim().toUpperCase(java.util.Locale.ROOT).replaceAll("\\s+", " ");
+        return java.util.Arrays.asList("RESTRICT", "CASCADE", "SET NULL", "NO ACTION").contains(value) ? value : "";
     }
 
     default Response getPrimaryKeys(RuntimeConfigure configure, String database, String table)

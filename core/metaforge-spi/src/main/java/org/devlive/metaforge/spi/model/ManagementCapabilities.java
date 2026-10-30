@@ -65,6 +65,7 @@ public final class ManagementCapabilities
                     "engine:list", "datatype:list", "database:info", "table:info", "table:read", "table:statement",
                     "table:create", "table:drop", "table:truncate", "table:export", "table:auto-increment",
                     "column:create", "column:modify", "column:drop", "column:reorder", "index:create", "index:drop",
+                    "foreign-key:create", "foreign-key:drop",
                     "data:insert", "data:modify", "data:delete", "trigger:read",
                     "tab:data", "tab:info", "tab:statement", "tab:triggers", "tab:er-diagram"));
         }

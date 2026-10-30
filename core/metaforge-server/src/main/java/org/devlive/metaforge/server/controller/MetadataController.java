@@ -240,6 +240,33 @@ public class MetadataController
         return this.service.dropColumn(code, database, table, configure);
     }
 
+    @GetMapping(value = "{code}/{database}/{table}/foreign-key-details")
+    public CommonResponse<Response> fetchForeignKeyDetails(@PathVariable String code, @PathVariable String database, @PathVariable String table)
+    {
+        return this.service.getForeignKeyDetails(code, database, table);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/create-foreign-key")
+    public CommonResponse<Response> createForeignKey(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.createForeignKey(code, database, table, configure);
+    }
+
+    @PostMapping(value = "{code}/{database}/{table}/alter-foreign-key")
+    public CommonResponse<Response> alterForeignKey(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.alterForeignKey(code, database, table, configure);
+    }
+
+    @DeleteMapping(value = "{code}/{database}/{table}/drop-foreign-key")
+    public CommonResponse<Response> dropForeignKey(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestBody TableDefinition configure)
+    {
+        return this.service.dropForeignKey(code, database, table, configure);
+    }
+
     @GetMapping(value = "{code}/{database}/{table}/index-details")
     public CommonResponse<Response> fetchIndexDetails(
             @PathVariable String code,
