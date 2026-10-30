@@ -42,12 +42,6 @@
                 <MfInput :model-value="databaseName" disabled/>
               </MfFormItem>
             </div>
-            <MfFormItem name="comment" :label="$t('source.common.comment')">
-              <MfTextarea v-model="formState.comment" :rows="2" :maxlength="500"/>
-              <div class="mt-1 text-right text-[11px] text-content-tertiary">
-                {{ $t('source.structure.commentCounter', { count: (formState.comment || '').length }) }}
-              </div>
-            </MfFormItem>
           </section>
 
           <!-- 字段定义 -->
@@ -62,7 +56,8 @@
               </div>
             </div>
 
-            <MfTable :columns="fieldColumns" :data-source="formState.columns" row-key="__row" density="compact" :bordered="false" empty-text=" ">
+            <div class="max-h-[224px] overflow-y-auto">
+              <MfTable :columns="fieldColumns" :data-source="formState.columns" row-key="__row" density="compact" :bordered="false" empty-text=" ">
               <template #header-__check__>
                 <MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')"
                             @update:model-value="value => toggleAll(!!value)"/>
@@ -117,6 +112,7 @@
                 </div>
               </template>
             </MfTable>
+            </div>
           </section>
 
           <!-- 索引与约束 -->
@@ -449,7 +445,7 @@ const fieldColumns = [
   { title: t('source.create.autoIncCol'), dataIndex: 'autoIncrement', width: 60 },
   { title: t('source.create.uniqueCol'), dataIndex: 'unique', width: 60 },
   { title: t('source.structure.comment'), dataIndex: 'comment', width: 150 },
-  { title: t('common.action'), dataIndex: 'action', width: 170, fixed: 'right' as const }
+  { title: t('common.action'), dataIndex: 'action', fixed: 'right' as const }
 ]
 
 const indexColumns = [
@@ -459,7 +455,7 @@ const indexColumns = [
   { title: t('source.create.indexColumns'), dataIndex: 'columnsText' },
   { title: t('source.create.indexMethod'), dataIndex: 'method', width: 130 },
   { title: t('source.structure.comment'), dataIndex: 'comment', width: 150 },
-  { title: t('common.action'), dataIndex: '__action__', width: 140, fixed: 'right' as const }
+  { title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }
 ]
 
 const buildDefinition = () => ({
