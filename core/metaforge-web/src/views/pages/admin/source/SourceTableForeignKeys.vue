@@ -29,8 +29,9 @@
       </MfTable>
     </div>
 
-    <section v-if="detail" class="max-h-[55%] shrink-0 overflow-y-auto rounded-mf-md border border-line">
-      <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+    <!-- The header stays put; only the details below it scroll. -->
+    <section v-if="detail" class="flex max-h-[55%] shrink-0 flex-col overflow-hidden rounded-mf-md border border-line">
+      <header class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
         <div class="flex min-w-0 items-center gap-2">
           <h3 class="m-0 truncate text-lg font-semibold text-content">{{ detail.name }}</h3>
           <MfTag size="sm" :variant="detail.valid ? 'success' : 'danger'">{{ $t(detail.valid ? 'source.fk.valid' : 'source.fk.invalid') }}</MfTag>
@@ -41,39 +42,41 @@
           <MfButton v-if="can('foreign-key:drop')" size="sm" variant="danger" :disabled="saving" @click="requestDrop([detail])"><Trash2 :size="14"/>{{ $t('common.delete') }}</MfButton>
         </div>
       </header>
-      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
-        <div class="flex flex-col gap-4 border-line p-4 lg:border-r">
-          <div>
-            <h4 class="m-0 mb-3 text-sm font-semibold text-content">{{ $t('source.idx.basic') }}</h4>
-            <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 text-sm">
-              <template v-for="item in basics" :key="item.label">
-                <dt class="text-content-secondary">{{ item.label }}</dt><dd class="m-0 break-words" :class="item.tone || 'text-content'">{{ item.value }}</dd>
-              </template>
-            </dl>
-          </div>
-          <div>
-            <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.fk.mapping') }}</h4>
-            <div class="overflow-hidden rounded-mf-md border border-line">
-              <MfTable :columns="mappingHeaders" :data-source="mappingRows" row-key="key" density="compact" :bordered="false" :hoverable="false">
-                <template #cell-arrow><ArrowRight :size="14" class="text-content-tertiary"/></template>
-              </MfTable>
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
+          <div class="flex flex-col gap-4 border-line p-4 lg:border-r">
+            <div>
+              <h4 class="m-0 mb-3 text-sm font-semibold text-content">{{ $t('source.idx.basic') }}</h4>
+              <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 text-sm">
+                <template v-for="item in basics" :key="item.label">
+                  <dt class="text-content-secondary">{{ item.label }}</dt><dd class="m-0 break-words" :class="item.tone || 'text-content'">{{ item.value }}</dd>
+                </template>
+              </dl>
+            </div>
+            <div>
+              <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.fk.mapping') }}</h4>
+              <div class="overflow-hidden rounded-mf-md border border-line">
+                <MfTable :columns="mappingHeaders" :data-source="mappingRows" row-key="key" density="compact" :bordered="false" :hoverable="false">
+                  <template #cell-arrow><ArrowRight :size="14" class="text-content-tertiary"/></template>
+                </MfTable>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="flex min-w-0 flex-col gap-4 p-4">
-          <div>
-            <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.fk.diagram') }}</h4>
-            <SourceForeignKeyDiagram :table="table" :shape="localShape" :referenced-table="detail.referencedTable" :referenced-shape="shapeFor(detail.referencedDatabase, detail.referencedTable)"
-                                     :columns="detail.columns" :referenced-columns="detail.referencedColumns"/>
-          </div>
-          <div>
-            <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.idx.statement') }}</h4>
-            <div class="overflow-hidden rounded-mf-md bg-code-bg">
-              <div class="flex items-center justify-between bg-code-header px-3 py-1.5">
-                <span class="rounded-mf-sm bg-code-bg px-2 py-0.5 text-xs font-medium text-code-muted">SQL</span>
-                <button type="button" class="inline-flex items-center gap-1.5 rounded-mf-sm px-2 py-1 text-xs text-code-fg hover:bg-code-bg disabled:opacity-50" :disabled="!detailSql" @click="copy"><Copy :size="13"/>{{ $t('source.executed.copy') }}</button>
+          <div class="flex min-w-0 flex-col gap-4 p-4">
+            <div>
+              <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.fk.diagram') }}</h4>
+              <SourceForeignKeyDiagram :table="table" :shape="localShape" :referenced-table="detail.referencedTable" :referenced-shape="shapeFor(detail.referencedDatabase, detail.referencedTable)"
+                                       :columns="detail.columns" :referenced-columns="detail.referencedColumns"/>
+            </div>
+            <div>
+              <h4 class="m-0 mb-2 text-sm font-semibold text-content">{{ $t('source.idx.statement') }}</h4>
+              <div class="overflow-hidden rounded-mf-md bg-code-bg">
+                <div class="flex items-center justify-between bg-code-header px-3 py-1.5">
+                  <span class="rounded-mf-sm bg-code-bg px-2 py-0.5 text-xs font-medium text-code-muted">SQL</span>
+                  <button type="button" class="inline-flex items-center gap-1.5 rounded-mf-sm px-2 py-1 text-xs text-code-fg hover:bg-code-bg disabled:opacity-50" :disabled="!detailSql" @click="copy"><Copy :size="13"/>{{ $t('source.executed.copy') }}</button>
+                </div>
+                <pre class="m-0 whitespace-pre-wrap break-words px-4 py-3 font-mono text-xs leading-5 text-code-fg"><span v-for="(token, index) in statementTokens" :key="index" :class="CODE_CLASS[token.kind]">{{ token.text }}</span><span v-if="!detailSql" class="text-code-muted">-</span></pre>
               </div>
-              <pre class="m-0 whitespace-pre-wrap break-words px-4 py-3 font-mono text-xs leading-5 text-code-fg"><span v-for="(token, index) in statementTokens" :key="index" :class="CODE_CLASS[token.kind]">{{ token.text }}</span><span v-if="!detailSql" class="text-code-muted">-</span></pre>
             </div>
           </div>
         </div>
