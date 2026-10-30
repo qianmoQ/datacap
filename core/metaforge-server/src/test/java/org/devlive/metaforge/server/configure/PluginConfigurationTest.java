@@ -17,6 +17,7 @@ public class PluginConfigurationTest
     @TempDir
     private Path root;
 
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification = "JUnit injects the TempDir after construction")
     private Path manifest(String location)
             throws IOException
     {

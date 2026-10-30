@@ -53,6 +53,7 @@ public class PluginConfiguration
         return pluginManager;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE", justification = "findProjectRoot may report null; the method falls back to the installed plugins directory")
     Path pluginsDirectory(Path projectRoot, boolean development)
     {
         if (projectRoot == null) {
