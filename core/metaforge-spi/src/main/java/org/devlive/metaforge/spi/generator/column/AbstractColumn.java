@@ -123,15 +123,8 @@ public abstract class AbstractColumn
                 sql.append(" DEFAULT ").append(defaultValue);
             }
             else {
-                sql.append(" DEFAULT '").append(defaultValue).append("'");
+                sql.append(" DEFAULT '").append(defaultValue.replace("'", "''")).append("'");
             }
-        }
-
-        if (after != null) {
-            sql.append(" AFTER `").append(after).append("`");
-        }
-        else if (first) {
-            sql.append(" FIRST");
         }
 
         return sql;
