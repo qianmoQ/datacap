@@ -19,7 +19,7 @@ const sourceUrl = await local('model/source-column.ts')
 const hookUrl = await local('composables/useSourceTableStructure.ts', {
   'vue-router':routerUrl,'@/composables/useSourceManageRoute':routerUrl,'vue-i18n':moduleUrl('export const useI18n=()=>({t:key=>key})'),'metaforge-ui':uiUrl,
   '@/services/metadata':serviceUrl,'@/model/source-column':sourceUrl,
-  './useRowSelection':await local('composables/useRowSelection.ts'),'./usePanelState':await local('composables/usePanelState.ts'),
+  './useRowSelection':await local('composables/useRowSelection.ts'),'./useDragSort':await local('composables/useDragSort.ts'),'./usePanelState':await local('composables/usePanelState.ts'),
 })
 const {useSourceTableStructure} = await import(hookUrl)
 const {state} = await import(serviceUrl)
@@ -73,7 +73,7 @@ test('retrying a failed index never creates the already saved column twice',asyn
 test('moving a field preserves precision, empty default and charset',async()=>{
   const {host,hook}=mount()
   try{
-    await settle();await hook.onMoveByName('amount',1)
+    await settle();await hook.onMove(1)
     const payload=state.calls.find(call=>call.name==='changeColumn').args[3].columns[0]
     assert.deepEqual({precision:payload.precision,scale:payload.scale,defaultValue:payload.defaultValue,charset:payload.charset,collate:payload.collate,after:payload.after},{precision:12,scale:3,defaultValue:'',charset:'utf8mb4',collate:'utf8mb4_bin',after:'id'})
   }finally{host.unmount()}
@@ -99,7 +99,7 @@ test('unsupported operations never open an editor or send DDL requests',async()=
   const {host,hook}=mount(false)
   try{
     await settle();hook.openPanel('add');assert.equal(hook.panelVisible.value,false)
-    await hook.onMoveByName('amount',1)
+    await hook.onMove(1)
     hook.confirmDrop(['amount']);await hook.onDropFields()
     assert.equal(state.calls.length,0)
   }finally{host.unmount()}

@@ -11,13 +11,13 @@
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position >= columns.length" @click="onMove(1)"><ArrowDown :size="14"/>{{ $t('source.structure.moveDown') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !columns.length" @click="reorderVisible = true"><ArrowUpDown :size="14"/>{{ $t('source.structure.reorder') }}</MfButton>
         </div>
-        <MfTable fill :columns="fieldHeaders" :data-source="sortedColumns" row-key="name" density="compact" :bordered="false" :row-class="rowClass" :empty-text="$t('common.noData')" @row-click="selectDetail">
+        <MfTable fill :columns="fieldHeaders" :data-source="sortedColumns" row-key="name" density="compact" :bordered="false" :row-class="rowClass" @dragover="onRowDragOver" @drop="onRowDrop" @dragleave="sort.leave" :empty-text="$t('common.noData')" @row-click="selectDetail">
           <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.prototype.selectAll')" @update:model-value="checked => toggleAll(!!checked)"/></template>
           <template #header-name><button type="button" class="inline-flex items-center gap-1" @click="toggleNameSort">{{ $t('source.structure.fieldName') }}<ArrowUpDown :size="10" :class="nameSort ? 'text-primary' : 'text-content-tertiary'"/></button></template>
           <template #cell-__check__="{ record }">
-            <button type="button" :draggable="can('column:reorder') && !saving && !nameSort" class="flex size-4 cursor-grab items-center justify-center rounded text-content-secondary active:cursor-grabbing" :class="selectedNames.has(record.name) && 'bg-primary/15 text-primary'" :aria-label="$t('source.prototype.selectField', { name: record.name })" :aria-pressed="selectedNames.has(record.name)" @click.stop="toggleSelect(record.name, !selectedNames.has(record.name))" @dragstart="onDragStart(record.name, $event)" @dragend="draggedName = null"><GripVertical :size="14"/></button>
+            <button type="button" :draggable="can('column:reorder') && !saving && !nameSort" class="flex size-4 cursor-grab items-center justify-center rounded text-content-secondary active:cursor-grabbing" :class="selectedNames.has(record.name) && 'bg-primary/15 text-primary'" :aria-label="$t('source.prototype.selectField', { name: record.name })" :aria-pressed="selectedNames.has(record.name)" @click.stop="toggleSelect(record.name, !selectedNames.has(record.name))" @dragstart="sort.start(record.name, $event)" @dragend="sort.end"><GripVertical :size="14"/></button>
           </template>
-          <template #cell-name="{ record }"><div class="flex min-w-0 items-center gap-2" @dragover.prevent @drop.prevent="onDropBefore(record.name)"><EllipsisCell :text="record.name"/><KeyRound v-if="primaryNames.has(record.name)" :size="13" class="shrink-0 text-warning"/></div></template>
+          <template #cell-name="{ record }"><div class="flex min-w-0 items-center gap-2"><EllipsisCell :text="record.name"/><KeyRound v-if="primaryNames.has(record.name)" :size="13" class="shrink-0 text-warning"/></div></template>
           <template #cell-type="{ record }"><MfTag size="sm" :variant="typeTone(record.type)" :color="typeColor(record.type)">{{ record.type }}</MfTag></template>
           <template #cell-length="{ record }">{{ record.length || '-' }}</template>
           <template #cell-nullable="{ record }"><span :class="record.nullable === 'NO' && 'text-danger'">{{ $t(record.nullable === 'NO' ? 'common.no' : 'common.yes') }}</span></template>
@@ -53,11 +53,7 @@
       </section>
     </template>
     <SourceColumnEditor v-if="panelVisible" v-model="panelForm" v-model:more="moreOptionsOpen" :open="panelVisible" :can-create-index="can('index:create')" :width="fieldPanelWidth" :mode="panelMode" :anchor="panelAnchor" :saving="saving" :index-only="indexOnly" :container="fieldPanelHost" :issues="panelIssues" :columns="columns" :supported-types="dataTypes" :types-loading="typesLoading" :type-options="typeOptions" :default-mode-options="defaultModeOptions" :charset-options="charsetOptions" :collate-options="collateOptions" :index-type-options="indexTypeOptions" :composite-column-options="compositeColumnOptions" @close="closePanel()" @save="onSubmitPanel"/>
-    <MfModal v-model:open="reorderVisible" :title="$t('source.structure.reorderTitle')" width="440px">
-      <div class="flex flex-col gap-1">
-        <div v-for="(column, index) in columns" :key="column.name" class="flex items-center gap-2 rounded-mf-md px-3 py-2 hover:bg-surface-hover"><span class="w-6 text-xs text-content-tertiary">{{ index + 1 }}</span><span class="min-w-0 flex-1 truncate text-sm">{{ column.name }}</span><MfButton size="sm" :aria-label="$t('source.structure.moveUp')" :disabled="saving || index === 0" @click="onMoveByName(column.name, -1)"><ArrowUp :size="13"/></MfButton><MfButton size="sm" :aria-label="$t('source.structure.moveDown')" :disabled="saving || index === columns.length - 1" @click="onMoveByName(column.name, 1)"><ArrowDown :size="13"/></MfButton></div>
-      </div>
-    </MfModal>
+    <SourceColumnReorder v-model:open="reorderVisible" :columns="columns" :saving="saving" :type-tone="typeTone" :type-color="typeColor" @apply="onApplyOrder"/>
     <MfModal v-model:open="dropVisible" :title="$t('source.structure.dropTitle')" width="440px">
       <MfAlert variant="danger" :title="$t('source.structure.dropAlert1')"/>
       <p class="mt-3 break-words text-sm text-content-secondary">{{ $t('source.common.dropColumnInfo').replace('$VALUE', [...selectedNames].join(', ')) }}</p>
@@ -70,6 +66,7 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, GripVertical, KeyRound, ListPlus, Pencil, Plus, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SourceColumnEditor from './components/SourceColumnEditor.vue'
+import SourceColumnReorder from './components/SourceColumnReorder.vue'
 import { useSourceTableStructure } from '@/composables/useSourceTableStructure'
 defineOptions({ name: 'SourceTableStructure' })
 const { can, loading, columns, primaryNames, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
@@ -78,7 +75,10 @@ const { can, loading, columns, primaryNames, selectedNames, allSelected, partial
   charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs,
   detailIndexes, detailForeignKeys, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor,
   displayDefault, openPanel, closePanel, onInsertField, onSubmitPanel, confirmDrop, onRequestDrop, onDropFields,
-  onMove, onMoveByName, selectDetail, rowClass, onDragStart, onDropBefore, draggedName } = useSourceTableStructure()
+  onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop } = useSourceTableStructure()
+async function onApplyOrder(names: string[]) {
+  if (await applyOrder(names)) reorderVisible.value = false
+}
 </script>
 
 <style scoped>

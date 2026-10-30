@@ -3,9 +3,10 @@ import { useI18n } from 'vue-i18n'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
-import { mapSourceColumns, sourceColumnForm, sourceColumnPayload, type SourceColumn, type SourceColumnForm } from '@/model/source-column'
+import { mapSourceColumns, planColumnMoves, sourceColumnForm, sourceColumnPayload, type SourceColumn, type SourceColumnForm } from '@/model/source-column'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
+import { DROP_ROW_CLASS, useDragSort } from './useDragSort'
 
 export function useSourceTableStructure() {
   const { t } = useI18n()
@@ -28,7 +29,6 @@ export function useSourceTableStructure() {
   const moreOptionsOpen = ref(false)
   const reorderVisible = ref(false)
   const dropVisible = ref(false)
-  const draggedName = ref<string | null>(null)
   const dataTypes = ref<string[]>([])
   const typesLoading = ref(false)
   const editor = usePanelState<SourceColumn>()
@@ -239,37 +239,75 @@ export function useSourceTableStructure() {
     } catch (error) { if (alive && identity() === key) MfMessage.error(errorMessage(error)) }
     finally { saving.value = false }
   }
-  async function moveTo(name: string, targetIndex: number) {
-    const column = columns.value.find(item => item.name === name)
-    if (!column || saving.value || !can('column:reorder') || targetIndex < 0 || targetIndex >= columns.value.length) return
-    if (!dataTypes.value.includes(column.type)) { MfMessage.error(t('source.prototype.unsupportedType')); return }
-    const ordered = columns.value.filter(item => item.name !== name)
-    ordered.splice(targetIndex, 0, column)
+  function positionPayload(column: SourceColumn, previous: string | null) {
     const form: SourceColumnForm = { ...sourceColumnForm(), ...column, nullable: column.nullable !== 'NO',
       autoIncrement: column.autoincrement === 'YES', defaultMode: /^CURRENT_TIMESTAMP(?:\(\))?$/i.test(column.default || '') ? 'timestamp'
           : column.default !== null ? 'constant' : 'none', defaultValue: column.default || '' }
     const payload = sourceColumnPayload(form)
-    if (targetIndex === 0) payload.first = true
-    else payload.after = ordered[targetIndex - 1].name
+    if (previous === null) payload.first = true
+    else payload.after = previous
+    return payload
+  }
+  /** Moves columns into the given order with one ALTER per displaced column; resolves true when every move succeeded. */
+  function applyOrder(names: string[]): Promise<boolean> {
+    const current = columns.value.map(column => column.name)
+    if (names.length !== current.length || names.some(name => !current.includes(name))) return Promise.resolve(false)
+    return runMoves(planColumnMoves(current, names))
+  }
+  async function runMoves(planned: { name: string; previous: string | null }[]): Promise<boolean> {
+    if (saving.value || !can('column:reorder')) return false
+    if (!planned.length) return true
+    const moves = planned.map(move => ({ column: columns.value.find(column => column.name === move.name)!, previous: move.previous }))
+    if (moves.some(move => !dataTypes.value.includes(move.column.type))) { MfMessage.error(t('source.prototype.unsupportedType')); return false }
     const key = identity()
     saving.value = true
     try {
-      const response = await MetadataService.changeColumn(String(route.params.source), String(route.params.database), String(route.params.table), { name: String(route.params.table), columns: [payload] })
-      assertSuccess(response)
+      for (const move of moves) {
+        const response = await MetadataService.changeColumn(String(route.params.source), String(route.params.database), String(route.params.table),
+          { name: String(route.params.table), columns: [positionPayload(move.column, move.previous)] })
+        assertSuccess(response)
+      }
+      return true
+    } catch (error) {
+      if (alive && identity() === key) MfMessage.error(errorMessage(error))
+      return false
+    } finally {
+      saving.value = false
+      // Reload even after a partial failure so the table shows the order the database actually has.
       if (alive && identity() === key) { nameSort.value = false; await handleInitialize() }
-    } catch (error) { if (alive && identity() === key) MfMessage.error(errorMessage(error)) }
-    finally { saving.value = false }
+    }
   }
-  const onMoveByName = (name: string, direction: -1 | 1) => moveTo(name, columns.value.findIndex(column => column.name === name) + direction)
-  const onMove = (direction: -1 | 1) => detailColumn.value && onMoveByName(detailColumn.value.name, direction)
+  /** A single drag or arrow move always alters the column the user picked. */
+  function moveTo(name: string, targetIndex: number) {
+    if (targetIndex < 0 || targetIndex >= columns.value.length) return Promise.resolve(false)
+    const names = columns.value.map(column => column.name).filter(item => item !== name)
+    names.splice(targetIndex, 0, name)
+    return runMoves([{ name, previous: targetIndex ? names[targetIndex - 1] : null }])
+  }
+  const onMove = (direction: -1 | 1) => {
+    const name = detailColumn.value?.name
+    return name ? moveTo(name, columns.value.findIndex(column => column.name === name) + direction) : Promise.resolve(false)
+  }
   const selectDetail = (column: SourceColumn) => { detailName.value = column.name; detailTab.value = 'basic' }
-  const rowClass = (column: SourceColumn) => column.name === detailName.value ? 'bg-primary/5' : ''
+  const sort = useDragSort(() => columns.value.map(column => column.name))
+  const rowClass = (column: SourceColumn) => {
+    const side = sort.dropSide(column.name)
+    return side ? DROP_ROW_CLASS[side] : column.name === detailName.value ? 'bg-primary/5' : ''
+  }
   const toggleNameSort = () => { nameSort.value = !nameSort.value }
-  const onDragStart = (name: string, event: DragEvent) => { draggedName.value = name; event.dataTransfer?.setData('text/plain', name) }
-  const onDropBefore = (target: string) => {
-    const name = draggedName.value
-    draggedName.value = null
-    if (name && name !== target) moveTo(name, columns.value.findIndex(column => column.name === target))
+  // The whole row is the drop target: resolve it from the MfTable row key under the pointer.
+  const rowName = (event: DragEvent) => (event.target as HTMLElement | null)?.closest<HTMLElement>('tr[data-row-key]')?.dataset.rowKey
+  const onRowDragOver = (event: DragEvent) => {
+    const name = rowName(event)
+    if (!name || !sort.dragging.value) return
+    event.preventDefault()
+    sort.enter(name)
+  }
+  const onRowDrop = (event: DragEvent) => {
+    const target = rowName(event)
+    event.preventDefault()
+    const name = target ? sort.drop(target) : (sort.end(), null)
+    if (name && target) moveTo(name, columns.value.findIndex(column => column.name === target))
   }
   watch(panelVisible, value => { fieldPanelOpen.value = value }, { immediate: true })
   watch(() => panelForm.value.name, (value, previous) => {
@@ -297,5 +335,5 @@ export function useSourceTableStructure() {
     reorderVisible, nameSort, sortedColumns, toggleNameSort, typeOptions, dataTypes, typesLoading, defaultModeOptions,
     charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs, detailIndexes,
     detailForeignKeys, detailUnique, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor, displayDefault, openPanel, closePanel, onInsertField,
-    onSubmitPanel, confirmDrop, onRequestDrop, onDropFields, onMove, onMoveByName, selectDetail, rowClass, onDragStart, onDropBefore, draggedName }
+    onSubmitPanel, confirmDrop, onRequestDrop, onDropFields, onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop }
 }

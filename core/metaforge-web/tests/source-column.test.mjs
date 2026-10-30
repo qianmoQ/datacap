@@ -4,7 +4,7 @@ import test from 'node:test'
 import ts from 'typescript'
 const source = await readFile(new URL('../src/model/source-column.ts', import.meta.url), 'utf8')
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } })
-const { mapSourceColumns, sourceColumnForm, sourceColumnPayload } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const { mapSourceColumns, planColumnMoves, sourceColumnForm, sourceColumnPayload } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 
 test('metadata preserves zero defaults, decimal scale and column attributes', () => {
   const [row] = mapSourceColumns([
@@ -47,4 +47,20 @@ test('metadata position determines field order and JSON round-trips unchanged', 
   assert.deepEqual(rows.map(row => row.name), ['id', 'config'])
   assert.equal(rows[0].autoincrement, 'YES')
   assert.equal(sourceColumnPayload({ ...sourceColumnForm(), type: rows[1].type }).type, 'JSON')
+})
+
+test('column moves alter only displaced columns and replay to the target order', () => {
+  const replay = (current, moves) => moves.reduce((order, move) => {
+    const next = order.filter(name => name !== move.name)
+    next.splice(move.previous === null ? 0 : next.indexOf(move.previous) + 1, 0, move.name)
+    return next
+  }, current)
+  const current = ['id', 'a', 'b', 'c', 'd', 'e']
+  for (const target of [['id', 'a', 'b', 'c', 'd', 'e'], ['e', 'id', 'a', 'b', 'c', 'd'], ['id', 'c', 'a', 'b', 'e', 'd'], ['e', 'd', 'c', 'b', 'a', 'id']]) {
+    const moves = planColumnMoves(current, target)
+    assert.deepEqual(replay(current, moves), target)
+  }
+  assert.deepEqual(planColumnMoves(current, current), [])
+  assert.deepEqual(planColumnMoves(current, ['e', 'id', 'a', 'b', 'c', 'd']), [{ name: 'e', previous: null }])
+  assert.deepEqual(planColumnMoves(current, ['id', 'b', 'c', 'd', 'e', 'a']), [{ name: 'a', previous: 'e' }])
 })

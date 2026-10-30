@@ -70,3 +70,22 @@ export function sourceColumnPayload(form: SourceColumnForm): Record<string, unkn
     comment: form.comment || undefined, charset: form.charset || undefined, collate: form.collate || undefined,
   }
 }
+
+/**
+ * Plans the column moves that turn `current` into `target`. Columns on the longest run already in
+ * the right relative order stay put, so the fewest columns are altered; each move places a column
+ * right after its target predecessor (or first), applied in target order.
+ */
+export function planColumnMoves(current: string[], target: string[]): { name: string; previous: string | null }[] {
+  const positions = target.map(name => current.indexOf(name))
+  const length = positions.map(() => 1)
+  const parent = positions.map(() => -1)
+  positions.forEach((position, index) => {
+    for (let before = 0; before < index; before++) {
+      if (positions[before] < position && length[before] + 1 > length[index]) { length[index] = length[before] + 1; parent[index] = before }
+    }
+  })
+  const keep = new Set<number>()
+  for (let index = length.indexOf(Math.max(...length)); index >= 0; index = parent[index]) keep.add(index)
+  return target.flatMap((name, index) => keep.has(index) ? [] : [{ name, previous: index ? target[index - 1] : null }])
+}
