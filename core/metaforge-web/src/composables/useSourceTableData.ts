@@ -8,6 +8,7 @@ import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, fo
   type DataCondition, type DataField, type DataOperator, type FieldIssue, type FormValues } from '@/model/source-data'
 import { DEFAULT_TABLE_SETTINGS, defaultColumnView, EXPORT_LIMIT, INDEX_COLUMN, MAX_SORT_RULES, quickSorts, readColumnView, readDefaultSort, readTableSettings,
   type ColumnView, type ExportFormat, type SortRule, type TableSettings } from '@/model/source-data-view'
+import { useExecutedSql } from './useExecutedSql'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
@@ -112,6 +113,7 @@ export function useSourceTableData() {
   const jsonError = ref('')
   const continueAdding = ref(false)
   const sidePanel = ref<SidePanel | null>(null)
+  const executedSql = useExecutedSql()
   const editorMultiple = ref(false)
 
   const identity = () => [route.params.source, route.params.database, route.params.table].join('/')
@@ -272,9 +274,11 @@ export function useSourceTableData() {
     const target = editor.target.value
     if (editorMode.value === 'edit') {
       if (!target || !Object.keys(rowsToSave[0]).length) { closeEditor(); return }
-      await mutate(MetadataService.updateData(source, database, table, { preview: false, rows: [{ row: rowsToSave[0], original: plain(target) }] }), () => closeEditor(true))
+      await mutate(MetadataService.updateData(source, database, table, { preview: false, rows: [{ row: rowsToSave[0], original: plain(target) }] }), () => closeEditor(true),
+        { operation: 'source.executed.editRow', rows: 1 })
       return
     }
+    const operation = editorMode.value === 'copy' ? 'source.executed.copyRow' : 'source.executed.addRow'
     await mutate(MetadataService.insertData(source, database, table, { preview: false, rows: rowsToSave }), () => {
       // "Continue adding" keeps the panel open with a blank form for the next row.
       if (continueAdding.value && editorMode.value === 'add') {
@@ -282,28 +286,36 @@ export function useSourceTableData() {
         editorJson.value = JSON.stringify(formToJson(fields.value, editorValues.value), null, 2)
         editorIssues.value = {}
       } else closeEditor(true)
-    })
+    }, { operation, rows: rowsToSave.length })
   }
-  async function mutate(request: Promise<any>, onSuccess: () => void) {
+  /** Runs one data change, records the SQL it executed, then reloads the page on success. */
+  async function mutate(request: Promise<any>, onSuccess: () => void, info: { operation: string; rows: number }) {
     const key = identity()
+    const recorder = executedSql.record({ operation: t(info.operation), table: String(route.params.table), target: { label: t('source.executed.rows'), value: String(info.rows) } })
     saving.value = true
     try {
-      assertSuccess(await request)
+      assertSuccess(await recorder.run(request))
       if (!alive || identity() !== key) return
       MfMessage.success(t('source.tip.updateSuccess'))
       onSuccess()
       await load()
     } catch (error) {
+      recorder.fail(error)
       if (alive && identity() === key) MfMessage.error(errorMessage(error))
     } finally {
       saving.value = false
     }
   }
 
+
   // Delete goes through a confirm dialog that previews the generated SQL.
   const requestDelete = (targets: DataRow[]) => { if (targets.length && can('data:delete')) deleteTargets.value = targets }
   const deleteRows = computed(() => deleteTargets.value.map(plain))
   function closeDelete() { deleteTargets.value = []; load() }
+  /** The delete dialog runs the statement itself; this records what it executed. */
+  const trackDelete = (request: Promise<any>) => executedSql.record({
+    operation: t('source.executed.deleteRow'), table: String(route.params.table), target: { label: t('source.executed.rows'), value: String(deleteTargets.value.length) },
+  }).run(request)
 
   /**
    * Exports the selected rows, or every row the query matches (the current filters only when the
@@ -375,6 +387,6 @@ export function useSourceTableData() {
     onPageChange, applyOrders, quickSortRules: computed(() => quickSorts(fields.value, primaryKeys.value)), selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
     openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-    deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh: load,
+    deleteTargets, deleteRows, requestDelete, closeDelete, trackDelete, executed: executedSql.executed, executedVisible: executedSql.visible, exportRows, refresh: load,
   }
 }

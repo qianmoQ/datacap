@@ -19,7 +19,7 @@ const sourceUrl = await local('model/source-column.ts')
 const hookUrl = await local('composables/useSourceTableStructure.ts', {
   'vue-router':routerUrl,'@/composables/useSourceManageRoute':routerUrl,'vue-i18n':moduleUrl('export const useI18n=()=>({t:key=>key})'),'metaforge-ui':uiUrl,
   '@/services/metadata':serviceUrl,'@/model/source-column':sourceUrl,
-  './useRowSelection':await local('composables/useRowSelection.ts'),'./useDragSort':await local('composables/useDragSort.ts'),'./usePanelState':await local('composables/usePanelState.ts'),
+  './useRowSelection':await local('composables/useRowSelection.ts'),'./useDragSort':await local('composables/useDragSort.ts'),'./useExecutedSql':await local('composables/useExecutedSql.ts',{'@/model/executed-sql':await local('model/executed-sql.ts')}),'./usePanelState':await local('composables/usePanelState.ts'),
 })
 const {useSourceTableStructure} = await import(hookUrl)
 const {state} = await import(serviceUrl)
@@ -74,6 +74,8 @@ test('moving a field preserves precision, empty default and charset',async()=>{
   const {host,hook}=mount()
   try{
     await settle();await hook.onMove(1)
+    assert.equal(hook.executed.value.operation,'source.executed.reorderField')
+    assert.equal(hook.executed.value.target.value,'amount')
     const payload=state.calls.find(call=>call.name==='changeColumn').args[3].columns[0]
     assert.deepEqual({precision:payload.precision,scale:payload.scale,defaultValue:payload.defaultValue,charset:payload.charset,collate:payload.collate,after:payload.after},{precision:12,scale:3,defaultValue:'',charset:'utf8mb4',collate:'utf8mb4_bin',after:'id'})
   }finally{host.unmount()}

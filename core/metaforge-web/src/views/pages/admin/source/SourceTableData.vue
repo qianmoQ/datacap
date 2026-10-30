@@ -23,6 +23,9 @@
         </MfDropdown>
       </div>
       <div class="flex items-center gap-2">
+        <MfButton v-if="executed" size="sm" @click="executedVisible = true">
+          <CircleCheck v-if="executed.success" :size="14" class="text-success"/><CircleX v-else :size="14" class="text-danger"/>{{ $t('source.executed.view') }}
+        </MfButton>
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('columns')"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('sort')">
           <ArrowUpDown :size="14"/>{{ orders.length ? $t('source.data.sortCount', { count: orders.length }) : $t('source.data.sort') }}<ChevronDown :size="12"/>
@@ -69,16 +72,18 @@
                         :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyOrders"/>
     <SourceTableSettings v-if="sidePanel === 'settings'" :open="sidePanel === 'settings'" :settings="settings" :bordered="columnView.bordered" :default-sort="defaultSort"
                          :quick="quickSortRules" :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applySettings"/>
-    <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
+    <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" :track="trackDelete" @close="closeDelete"/>
+    <ExecutedSqlDialog v-model:open="executedVisible" :executed="executed"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowUpDown, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
+import { ArrowUpDown, CircleCheck, CircleX, ChevronDown, Columns3, Copy, Download, Pencil, Plus, Settings, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import TableRowDelete from './components/TableRowDelete.vue'
+import ExecutedSqlDialog from '@/views/components/sql/ExecutedSqlDialog.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
 import SourceColumnSettings from './components/SourceColumnSettings.vue'
@@ -95,7 +100,7 @@ const {
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, applyOrders, quickSortRules, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-  deleteTargets, deleteRows, requestDelete, closeDelete, exportRows,
+  deleteTargets, deleteRows, requestDelete, closeDelete, trackDelete, executed, executedVisible, exportRows,
 } = useSourceTableData()
 
 // Columns follow the applied column settings: order, visibility, width, alignment and pinning.

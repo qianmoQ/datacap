@@ -10,6 +10,7 @@
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position <= 1" @click="onMove(-1)"><ArrowUp :size="14"/>{{ $t('source.structure.moveUp') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !detailColumn || detailColumn.position >= columns.length" @click="onMove(1)"><ArrowDown :size="14"/>{{ $t('source.structure.moveDown') }}</MfButton>
           <MfButton v-if="can('column:reorder')" size="sm" :disabled="saving || !columns.length" @click="reorderVisible = true"><ArrowUpDown :size="14"/>{{ $t('source.structure.reorder') }}</MfButton>
+          <MfButton v-if="executed" size="sm" @click="executedVisible = true"><CircleCheck v-if="executed.success" :size="14" class="text-success"/><CircleX v-else :size="14" class="text-danger"/>{{ $t('source.executed.view') }}</MfButton>
         </div>
         <MfTable fill :columns="fieldHeaders" :data-source="sortedColumns" row-key="name" density="compact" :bordered="false" :row-class="rowClass" @dragover="onRowDragOver" @drop="onRowDrop" @dragleave="sort.leave" :empty-text="$t('common.noData')" @row-click="selectDetail">
           <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.prototype.selectAll')" @update:model-value="checked => toggleAll(!!checked)"/></template>
@@ -53,6 +54,7 @@
       </section>
     </template>
     <SourceColumnEditor v-if="panelVisible" v-model="panelForm" v-model:more="moreOptionsOpen" :open="panelVisible" :can-create-index="can('index:create')" :width="fieldPanelWidth" :mode="panelMode" :anchor="panelAnchor" :saving="saving" :index-only="indexOnly" :container="fieldPanelHost" :issues="panelIssues" :columns="columns" :supported-types="dataTypes" :types-loading="typesLoading" :type-options="typeOptions" :default-mode-options="defaultModeOptions" :charset-options="charsetOptions" :collate-options="collateOptions" :index-type-options="indexTypeOptions" :composite-column-options="compositeColumnOptions" @close="closePanel()" @save="onSubmitPanel"/>
+    <ExecutedSqlDialog v-model:open="executedVisible" :executed="executed"/>
     <SourceColumnReorder v-model:open="reorderVisible" :columns="columns" :saving="saving" :type-tone="typeTone" :type-color="typeColor" @apply="onApplyOrder"/>
     <MfModal v-model:open="dropVisible" :title="$t('source.structure.dropTitle')" width="440px">
       <MfAlert variant="danger" :title="$t('source.structure.dropAlert1')"/>
@@ -63,10 +65,11 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, GripVertical, KeyRound, ListPlus, Pencil, Plus, Trash2 } from '@lucide/vue'
+import { ArrowDown, ArrowUp, ArrowUpDown, CircleCheck, CircleX, Columns3, GripVertical, KeyRound, ListPlus, Pencil, Plus, Trash2 } from '@lucide/vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SourceColumnEditor from './components/SourceColumnEditor.vue'
 import SourceColumnReorder from './components/SourceColumnReorder.vue'
+import ExecutedSqlDialog from '@/views/components/sql/ExecutedSqlDialog.vue'
 import { useSourceTableStructure } from '@/composables/useSourceTableStructure'
 defineOptions({ name: 'SourceTableStructure' })
 const { can, loading, columns, primaryNames, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
@@ -75,7 +78,7 @@ const { can, loading, columns, primaryNames, selectedNames, allSelected, partial
   charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs,
   detailIndexes, detailForeignKeys, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor,
   displayDefault, openPanel, closePanel, onInsertField, onSubmitPanel, confirmDrop, onRequestDrop, onDropFields,
-  onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop } = useSourceTableStructure()
+  onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop, executed, executedVisible } = useSourceTableStructure()
 async function onApplyOrder(names: string[]) {
   if (await applyOrder(names)) reorderVisible.value = false
 }

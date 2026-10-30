@@ -32,7 +32,12 @@ import AceEditor from '@/views/components/editor/AceEditor.vue'
 
 defineOptions({ name: 'TableRowDelete' })
 
-const props = withDefaults(defineProps<{ isVisible?: boolean; columns?: any[] }>(), { isVisible: false })
+const props = withDefaults(defineProps<{
+  isVisible?: boolean
+  columns?: any[]
+  /** Wraps the real delete request, e.g. to record the executed SQL; previews are never passed. */
+  track?: (request: Promise<any>) => Promise<any>
+}>(), { isVisible: false })
 const emit = defineEmits<{ (e: 'close', value: boolean): void }>()
 
 const route = useRoute()
@@ -66,7 +71,8 @@ const onChange = (preview: boolean) => {
       preview: preview,
       columns: columns
     }
-    MetadataService.deleteData(code, database, table, configure)
+    const request = MetadataService.deleteData(code, database, table, configure)
+    ;(preview || !props.track ? request : props.track(request))
                    .then((response) => {
                      if (response.status && response.data && response.data.isSuccessful) {
                        if (preview) {

@@ -6,6 +6,7 @@ import MetadataService from '@/services/metadata'
 import { mapSourceColumns, planColumnMoves, sourceColumnForm, sourceColumnPayload, type SourceColumn, type SourceColumnForm } from '@/model/source-column'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
+import { useExecutedSql } from './useExecutedSql'
 import { DROP_ROW_CLASS, useDragSort } from './useDragSort'
 
 export function useSourceTableStructure() {
@@ -38,6 +39,7 @@ export function useSourceTableStructure() {
   const panelForm = ref<SourceColumnForm>(sourceColumnForm())
   const panelIssues = ref<Record<string, string>>({})
   const indexOnly = ref(false)
+  const executedSql = useExecutedSql()
   let revision = 0
   let typeRevision = 0
   let alive = true
@@ -187,19 +189,23 @@ export function useSourceTableStructure() {
     const column = sourceColumnPayload(form)
     if (panelMode.value === 'insert' && panelAnchor.value) column.after = panelAnchor.value
     let columnSaved = indexOnly.value
+    const recorder = executedSql.record(indexOnly.value
+        ? { operation: t('source.executed.createIndex'), table, target: { label: t('source.executed.index'), value: form.indexName.trim() } }
+        : { operation: t(panelMode.value === 'edit' ? 'source.executed.editField' : panelMode.value === 'insert' ? 'source.executed.insertField' : 'source.executed.addField'),
+          table, target: { label: t('source.executed.field'), value: form.name.trim() } })
     saving.value = true
     try {
       if (!indexOnly.value) {
-        const response = panelMode.value === 'edit'
-            ? await MetadataService.changeColumn(source, database, table, { name: table, columns: [column] })
-            : await MetadataService.createColumn(source, database, table, { name: table, columns: [column] })
+        const response = await recorder.run(panelMode.value === 'edit'
+            ? MetadataService.changeColumn(source, database, table, { name: table, columns: [column] })
+            : MetadataService.createColumn(source, database, table, { name: table, columns: [column] }))
         assertSuccess(response)
         columnSaved = true
       }
       if (form.createIndex) {
-        const response = await MetadataService.createIndex(source, database, table, { name: table, indexes: [{
+        const response = await recorder.run(MetadataService.createIndex(source, database, table, { name: table, indexes: [{
           name: form.indexName.trim(), columns: [form.name.trim(), ...(form.compositeIndex ? form.compositeColumns : [])], unique: form.indexType === 'unique',
-        }] })
+        }] }))
         assertSuccess(response)
       }
       if (!alive || identity() !== key) return
@@ -207,6 +213,7 @@ export function useSourceTableStructure() {
       closePanel(true)
       await handleInitialize()
     } catch (error) {
+      recorder.fail(error)
       if (!alive || identity() !== key) return
       if (columnSaved && form.createIndex) {
         indexOnly.value = true
@@ -226,17 +233,22 @@ export function useSourceTableStructure() {
   async function onDropFields() {
     if (!selectedNames.value.size || saving.value || !can('column:drop')) return
     const key = identity()
+    const names = [...selectedNames.value]
+    const recorder = executedSql.record({ operation: t('source.executed.dropField'), table: String(route.params.table), target: { label: t('source.executed.fields'), value: names.join(', ') } })
     saving.value = true
     try {
-      const response = await MetadataService.dropColumn(String(route.params.source), String(route.params.database), String(route.params.table), {
-        name: String(route.params.table), columns: [...selectedNames.value].map(name => ({ name })),
-      })
+      const response = await recorder.run(MetadataService.dropColumn(String(route.params.source), String(route.params.database), String(route.params.table), {
+        name: String(route.params.table), columns: names.map(name => ({ name })),
+      }))
       assertSuccess(response)
       if (!alive || identity() !== key) return
       MfMessage.success(t('source.structure.dropSuccess'))
       dropVisible.value = false
       await handleInitialize()
-    } catch (error) { if (alive && identity() === key) MfMessage.error(errorMessage(error)) }
+    } catch (error) {
+      recorder.fail(error)
+      if (alive && identity() === key) MfMessage.error(errorMessage(error))
+    }
     finally { saving.value = false }
   }
   function positionPayload(column: SourceColumn, previous: string | null) {
@@ -260,15 +272,18 @@ export function useSourceTableStructure() {
     const moves = planned.map(move => ({ column: columns.value.find(column => column.name === move.name)!, previous: move.previous }))
     if (moves.some(move => !dataTypes.value.includes(move.column.type))) { MfMessage.error(t('source.prototype.unsupportedType')); return false }
     const key = identity()
+    const recorder = executedSql.record({ operation: t('source.executed.reorderField'), table: String(route.params.table),
+      target: { label: t('source.executed.fields'), value: moves.map(move => move.column.name).join(', ') } })
     saving.value = true
     try {
       for (const move of moves) {
-        const response = await MetadataService.changeColumn(String(route.params.source), String(route.params.database), String(route.params.table),
-          { name: String(route.params.table), columns: [positionPayload(move.column, move.previous)] })
+        const response = await recorder.run(MetadataService.changeColumn(String(route.params.source), String(route.params.database), String(route.params.table),
+          { name: String(route.params.table), columns: [positionPayload(move.column, move.previous)] }))
         assertSuccess(response)
       }
       return true
     } catch (error) {
+      recorder.fail(error)
       if (alive && identity() === key) MfMessage.error(errorMessage(error))
       return false
     } finally {
@@ -335,5 +350,6 @@ export function useSourceTableStructure() {
     reorderVisible, nameSort, sortedColumns, toggleNameSort, typeOptions, dataTypes, typesLoading, defaultModeOptions,
     charsetOptions, collateOptions, indexTypeOptions, compositeColumnOptions, detailColumn, detailTab, detailTabs, detailIndexes,
     detailForeignKeys, detailUnique, detailBasics, detailConstraints, detailAdditional, fieldHeaders, typeTone, typeColor, displayDefault, openPanel, closePanel, onInsertField,
-    onSubmitPanel, confirmDrop, onRequestDrop, onDropFields, onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop }
+    onSubmitPanel, confirmDrop, onRequestDrop, onDropFields, onMove, applyOrder, selectDetail, rowClass, sort, onRowDragOver, onRowDrop,
+    executed: executedSql.executed, executedVisible: executedSql.visible }
 }
