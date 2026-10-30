@@ -34,7 +34,7 @@
         </div>
 
         <div v-if="originalTable && profile?.kind === 'relational'" class="mb-1.5 flex shrink-0 items-start gap-3 pt-1">
-          <Table2 :size="32" class="mt-1 shrink-0 text-content-secondary"/>
+          <Table2 :size="16" class="mt-1.5 shrink-0 text-content-secondary"/>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <h1 class="m-0 truncate text-xl font-semibold tracking-tight text-content">{{ tableName }}</h1>
