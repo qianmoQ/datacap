@@ -55,6 +55,9 @@ public class PluginConfiguration
 
     Path pluginsDirectory(Path projectRoot, boolean development)
     {
+        if (projectRoot == null) {
+            return Path.of("plugins");
+        }
         if (development) {
             for (String property : new String[] {"spring.config.additional-location", "spring.config.location"}) {
                 String locations = environment.getProperty(property, "");

@@ -6,6 +6,7 @@ import org.springframework.mock.env.MockEnvironment;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Objects;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +20,7 @@ public class PluginConfigurationTest
     private Path manifest(String location)
             throws IOException
     {
+        Objects.requireNonNull(root, "TempDir root should be injected");
         Path path = root.resolve(location);
         Files.createDirectories(path.getParent());
         Files.writeString(path, "metaforge-executor-local=executor/metaforge-executor-local/pom.xml\n");
