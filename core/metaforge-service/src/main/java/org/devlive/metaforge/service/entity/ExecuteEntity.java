@@ -20,4 +20,7 @@ public class ExecuteEntity
     private String format = "JsonConvert";
     private int limit = 1000;
     private QueryMode mode;
+    // Table scope from a table's workbench: the statement may only use this table, and runs against this database.
+    private String database;
+    private String table;
 }
