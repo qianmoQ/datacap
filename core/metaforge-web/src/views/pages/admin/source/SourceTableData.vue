@@ -22,15 +22,7 @@
         </MfDropdown>
       </div>
       <div class="flex items-center gap-2">
-        <MfDropdown trigger="click" placement="bottomRight">
-          <MfButton size="sm" :disabled="!columnNames.length"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
-          <template #overlay>
-            <div class="flex max-h-80 min-w-48 flex-col gap-1 overflow-y-auto p-2" @click.stop>
-              <MfCheckbox v-for="name in columnNames" :key="name" :model-value="!hidden.has(name)"
-                          :disabled="!hidden.has(name) && visibleColumns.length === 1" @update:model-value="value => toggleColumn(name, !!value)">{{ name }}</MfCheckbox>
-            </div>
-          </template>
-        </MfDropdown>
+        <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('columns')"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
         <MfDropdown trigger="click" placement="bottomRight">
           <MfButton size="sm" :disabled="!columnNames.length"><ArrowUpDown :size="14"/>{{ order ? `${order.name} ${order.order.toUpperCase()}` : $t('source.data.sort') }}<ChevronDown :size="12"/></MfButton>
           <template #overlay>
@@ -55,15 +47,15 @@
       </div>
     </div>
 
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-md border border-line">
-      <MfTable fill :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="false" :loading="loading" :empty-text="$t('common.noData')"
+    <div class="flex min-h-0 flex-1 flex-col rounded-mf-md border border-line" :class="columnView.stickyHeader ? 'overflow-hidden' : 'overflow-auto'">
+      <MfTable :fill="columnView.stickyHeader" :columns="tableColumns" :data-source="rows" row-key="__key" density="compact" :bordered="columnView.bordered" :loading="loading" :empty-text="$t('common.noData')"
                :row-class="rowClass" class="cursor-default" @row-click="onRowClick" @mousedown="onTableMouseDown">
         <template #header-__check__><MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')" @update:model-value="value => toggleAll(!!value)"/></template>
         <template #cell-__check__="{ record, index }"><span class="inline-flex" @click.stop><MfCheckbox :model-value="selected.has(record.__key)" :aria-label="$t('source.data.selectRow')" @update:model-value="value => onCheck(record, index, !!value)"/></span></template>
         <template #cell-__index__="{ index }"><span class="tabular-nums text-content-secondary">{{ (page - 1) * size + index + 1 }}</span></template>
         <template v-for="name in visibleColumns" :key="name" #[`cell-${name}`]="{ record }">
           <span v-if="record[name] === null || record[name] === undefined" class="text-content-tertiary">NULL</span>
-          <div v-else class="max-w-72"><EllipsisCell :text="cellText(record[name])"/></div>
+          <div v-else :class="columnView.autoWidth && 'max-w-72'"><EllipsisCell :text="cellText(record[name])"/></div>
         </template>
         <template #cell-__action__="{ record }">
           <div class="flex items-center gap-4 text-xs" @click.stop>
@@ -86,6 +78,8 @@
     <SourceRowEditor v-if="editorVisible" v-model="editorValues" v-model:json="editorJson" v-model:continue-adding="continueAdding" :open="editorVisible"
                      :mode="editorMode" :tab="editorTab" :form-disabled="editorMultiple" :fields="fields" :issues="editorIssues" :json-error="jsonError" :saving="saving"
                      :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @tab="setEditorTab" @save="submitEditor"/>
+    <SourceColumnSettings v-if="sidePanel === 'columns'" :open="sidePanel === 'columns'" :view="columnView" :defaults="defaultView"
+                          :width="fieldPanelWidth" :container="fieldPanelHost" @close="closePanel" @apply="applyColumnView"/>
     <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
     <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
   </div>
@@ -100,24 +94,38 @@ import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import TableRowDelete from './components/TableRowDelete.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
+import SourceColumnSettings from './components/SourceColumnSettings.vue'
+import { INDEX_COLUMN } from '@/model/source-data-view'
 import { useSourceTableData } from '@/composables/useSourceTableData'
 
 defineOptions({ name: 'SourceTableData' })
 const { t } = useI18n()
 const {
-  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
+  can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, order, typeOf,
+  sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-  onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
+  onPageChange, setOrder, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
   editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
   deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh,
 } = useSourceTableData()
 
-const tableColumns = computed(() => [
-  { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const },
-  { title: '#', dataIndex: '__index__', width: 56 },
-  ...visibleColumns.value.map(name => ({ title: name, dataIndex: name })),
-  ...(can('data:modify') || can('data:delete') ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
-])
+// Columns follow the applied column settings: order, visibility, width, alignment and pinning.
+const tableColumns = computed(() => {
+  const view = columnView.value
+  const configured = view.columns.filter(column => column.visible).map(column => ({
+    title: column.name === INDEX_COLUMN ? '#' : column.name,
+    dataIndex: column.name === INDEX_COLUMN ? '__index__' : column.name,
+    width: view.autoWidth ? undefined : column.width,
+    align: column.align,
+    fixed: column.fixed ? 'left' as const : undefined,
+    ellipsis: !view.autoWidth && column.name !== INDEX_COLUMN,
+  }))
+  return [
+    { title: '', dataIndex: '__check__', width: 44, fixed: 'left' as const },
+    ...configured,
+    ...(can('data:modify') || can('data:delete') ? [{ title: t('common.action'), dataIndex: '__action__', fixed: 'right' as const }] : []),
+  ]
+})
 const cellText = (value: unknown) => typeof value === 'object' ? JSON.stringify(value) : String(value)
 // Shift-click extends the row selection; keep the browser from selecting text across rows.
 const onTableMouseDown = (event: MouseEvent) => { if (event.shiftKey) event.preventDefault() }

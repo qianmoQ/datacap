@@ -6,11 +6,13 @@ import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageR
 import { mapSourceColumns } from '@/model/source-column'
 import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, formToJson, formToRow, jsonToRow, rowToForm, toCsv, toJson, validateForm,
   type DataCondition, type DataField, type DataOperator, type FieldIssue, type FormValues } from '@/model/source-data'
+import { defaultColumnView, INDEX_COLUMN, readColumnView, type ColumnView } from '@/model/source-data-view'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
 export type DataRow = Record<string, unknown> & { __key: string }
 export type RowEditorMode = 'add' | 'edit' | 'copy'
+export type SidePanel = 'columns' | 'sort' | 'settings'
 
 /** Data preview of one table: server-side filters, sort and paging, plus row insert/update/delete. */
 export function useSourceTableData() {
@@ -30,7 +32,6 @@ export function useSourceTableData() {
   const page = ref(1)
   const size = ref(10)
   const sql = ref('')
-  const hidden = ref(new Set<string>())
   const order = ref<{ name: string; order: 'asc' | 'desc' } | null>(null)
   let nextConditionId = 1
   const conditions = ref<DataCondition[]>([])
@@ -44,7 +45,15 @@ export function useSourceTableData() {
   const typeOf = (name: string) => columnMeta.value.find(column => column.name === name)?.type || ''
   /** Columns known from metadata keep their table order; the query headers fill in when metadata is unavailable. */
   const columnNames = computed(() => columnMeta.value.length ? columnMeta.value.map(column => column.name) : headers.value)
-  const visibleColumns = computed(() => columnNames.value.filter(name => !hidden.value.has(name)))
+  // Column layout (order, visibility, width, alignment, pinning) is a per-viewer preference per table.
+  const columnView = ref<ColumnView>(defaultColumnView([]))
+  const viewKey = () => `MetaForgeDataView:${identity()}`
+  const visibleColumns = computed(() => columnView.value.columns.filter(column => column.visible && column.name !== INDEX_COLUMN).map(column => column.name))
+  function applyColumnView(view: ColumnView) {
+    columnView.value = view
+    try { localStorage.setItem(viewKey(), JSON.stringify(view)) } catch { /* Preferences are optional. */ }
+    sidePanel.value = null
+  }
   const selection = useRowSelection(() => rows.value, row => row.__key)
   const { selected, allSelected, partialSelected, toggleAll, toggle, select } = selection
   const selectedRows = computed(() => rows.value.filter(row => selected.value.has(row.__key)))
@@ -74,6 +83,7 @@ export function useSourceTableData() {
   const editorIssues = ref<Record<string, FieldIssue>>({})
   const jsonError = ref('')
   const continueAdding = ref(false)
+  const sidePanel = ref<SidePanel | null>(null)
   const editorMultiple = ref(false)
 
   const identity = () => [route.params.source, route.params.database, route.params.table].join('/')
@@ -149,11 +159,6 @@ export function useSourceTableData() {
     page.value = 1
     load()
   }
-  function toggleColumn(name: string, visible: boolean) {
-    const next = new Set(hidden.value)
-    if (visible) next.delete(name); else next.add(name)
-    hidden.value = next
-  }
 
   // Row editor: a typed form or raw JSON, kept in sync when the user switches between them.
   const fields = computed<DataField[]>(() => {
@@ -178,6 +183,7 @@ export function useSourceTableData() {
     editorJson.value = JSON.stringify(editorMultiple.value ? forms.map(form => formToJson(fields.value, form)) : formToJson(fields.value, forms[0]), null, 2)
     editorIssues.value = {}
     jsonError.value = ''
+    sidePanel.value = null
     editor.open(mode === 'edit' ? source[0] : null)
   }
   const closeEditor = (force = false) => { if (!saving.value || force) editor.close() }
@@ -282,10 +288,22 @@ export function useSourceTableData() {
     URL.revokeObjectURL(url)
   }
 
-  watch(editor.visible, value => { fieldPanelOpen.value = value }, { immediate: true })
+  /** The editor and the settings panels share the docked right pane; opening one closes the other. */
+  function openPanel(panel: SidePanel) {
+    if (saving.value) return
+    closeEditor(true)
+    sidePanel.value = panel
+  }
+  const closePanel = () => { sidePanel.value = null }
+  watch(() => editor.visible.value || sidePanel.value !== null, value => { fieldPanelOpen.value = value }, { immediate: true })
+  watch(() => [identity(), fields.value.map(field => field.name).join('\u0000')], () => {
+    let saved: string | null = null
+    try { saved = localStorage.getItem(viewKey()) } catch { /* Preferences are optional. */ }
+    columnView.value = readColumnView(saved, fields.value)
+  }, { immediate: true })
   watch(identity, () => {
     closeEditor(true)
-    hidden.value = new Set()
+    sidePanel.value = null
     order.value = null
     conditions.value = []
     addCondition()
@@ -296,9 +314,10 @@ export function useSourceTableData() {
   onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
 
   return {
-    can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
+    can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, order, typeOf,
+    sidePanel, openPanel, closePanel, columnView, applyColumnView, defaultView: computed(() => defaultColumnView(fields.value)),
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
-    onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
+    onPageChange, setOrder, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
     editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
     openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
     deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh: load,

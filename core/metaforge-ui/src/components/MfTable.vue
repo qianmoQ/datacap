@@ -129,6 +129,26 @@ function syncScroll(): void {
     if (headScroller.value && bodyScroller.value) headScroller.value.scrollLeft = bodyScroller.value.scrollLeft
 }
 
+// Several pinned columns stack: each one sticks after the pinned columns before it (or after it, on the right).
+const stickyOffsets = computed(() => {
+    const widthOf = (index: number) => headWidths.value[index] ?? (typeof props.columns[index].width === 'number' ? props.columns[index].width as number : 0)
+    const offsets: Record<number, { left?: string; right?: string }> = {}
+    let left = 0
+    props.columns.forEach((column, index) => {
+        if (column.fixed !== 'left') return
+        offsets[index] = { left: `${left}px` }
+        left += widthOf(index)
+    })
+    let right = 0
+    for (let index = props.columns.length - 1; index >= 0; index--) {
+        if (props.columns[index].fixed !== 'right') continue
+        offsets[index] = { right: `${right}px` }
+        right += widthOf(index)
+    }
+    return offsets
+})
+const stickyStyle = (index: number) => stickyOffsets.value[index] ?? {}
+
 let observer: ResizeObserver | undefined
 onMounted(() => {
     if (!props.fill || typeof ResizeObserver === 'undefined') return
@@ -151,7 +171,7 @@ onBeforeUnmount(() => observer?.disconnect())
                     </colgroup>
                     <thead>
                         <tr>
-                            <th v-for="column in columns" :key="colKey(column)" :class="thClass(column)" :style="widthStyle(column)">
+                            <th v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="thClass(column)" :style="[widthStyle(column), stickyStyle(columnIndex)]">
                                 <slot :name="`header-${colKey(column)}`" :column="column">{{ column.title }}</slot>
                             </th>
                         </tr>
@@ -164,7 +184,7 @@ onBeforeUnmount(() => observer?.disconnect())
             <table ref="bodyTable" class="w-full shrink-0 border-collapse text-sm" :style="{ marginTop: `-${headHeight}px` }">
                 <thead class="invisible" aria-hidden="true">
                     <tr>
-                        <th v-for="column in columns" :key="colKey(column)" :class="thClass(column)" :style="widthStyle(column)">
+                        <th v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="thClass(column)" :style="[widthStyle(column), stickyStyle(columnIndex)]">
                             <slot :name="`header-${colKey(column)}`" :column="column">{{ column.title }}</slot>
                         </th>
                     </tr>
@@ -178,7 +198,7 @@ onBeforeUnmount(() => observer?.disconnect())
                         :class="rowClasses(record, index)"
                         @click="$emit('rowClick', record, index, $event)"
                     >
-                        <td v-for="column in columns" :key="colKey(column)" :class="tdClass(column, index)">
+                        <td v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="tdClass(column, index)" :style="stickyStyle(columnIndex)">
                             <slot :name="`cell-${colKey(column)}`" :record="record" :column="column" :index="index" :text="display(record, column)">
                                 {{ display(record, column) ?? column.placeholder ?? '--' }}
                             </slot>
@@ -200,7 +220,7 @@ onBeforeUnmount(() => observer?.disconnect())
         <table class="w-full border-collapse text-sm" :class="bordered && 'border border-line rounded-mf-lg'">
             <thead>
                 <tr class="bg-surface-hover">
-                    <th v-for="column in columns" :key="colKey(column)" :class="thClass(column)" :style="widthStyle(column)">
+                    <th v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="thClass(column)" :style="[widthStyle(column), stickyStyle(columnIndex)]">
                         <slot :name="`header-${colKey(column)}`" :column="column">{{ column.title }}</slot>
                     </th>
                 </tr>
@@ -214,7 +234,7 @@ onBeforeUnmount(() => observer?.disconnect())
                     :class="rowClasses(record, index)"
                     @click="$emit('rowClick', record, index, $event)"
                 >
-                    <td v-for="column in columns" :key="colKey(column)" :class="tdClass(column, index)">
+                    <td v-for="(column, columnIndex) in columns" :key="colKey(column)" :class="tdClass(column, index)" :style="stickyStyle(columnIndex)">
                         <slot :name="`cell-${colKey(column)}`" :record="record" :column="column" :index="index" :text="display(record, column)">
                             {{ display(record, column) ?? column.placeholder ?? '--' }}
                         </slot>
