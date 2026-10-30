@@ -56,7 +56,7 @@
               </div>
             </div>
 
-            <div class="max-h-[224px] overflow-y-auto">
+            <div class="max-h-[224px] overflow-y-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-20">
               <MfTable :columns="fieldColumns" :data-source="formState.columns" row-key="__row" density="compact" :bordered="false" empty-text=" ">
               <template #header-__check__>
                 <MfCheckbox :model-value="allSelected" :indeterminate="partialSelected" :aria-label="$t('source.data.selectAll')"
