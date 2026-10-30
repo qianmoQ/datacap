@@ -16,7 +16,7 @@
           <span v-else class="text-sm font-medium text-content-secondary">{{ $t('source.manage.kind.' + (profile?.kind || 'unknown')) }}</span>
           <div class="flex shrink-0 items-center gap-2">
             <MfButton size="sm" @click="onRefresh"><RefreshCw :size="14"/>{{ $t('common.refresh') }}</MfButton>
-            <MfButton v-if="can('column:read')" size="sm" :disabled="!originalTable" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}<ChevronDown :size="12"/></MfButton>
+            <MfButton v-if="can('column:read')" size="sm" :disabled="!originalTable" @click="onStructureCompare"><GitCompare :size="14"/>{{ $t('source.common.structureCompare') }}</MfButton>
             <MfDropdown v-if="can('table:create') || can('table:export') || can('table:drop') || can('table:truncate') || can('tab:er-diagram')" trigger="click" placement="bottomRight">
               <MfButton size="sm">{{ $t('source.common.moreActions') }}<ChevronDown :size="12"/></MfButton>
               <template #overlay>

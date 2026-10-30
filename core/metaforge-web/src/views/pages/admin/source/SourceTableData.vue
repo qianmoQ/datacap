@@ -28,7 +28,7 @@
         </MfButton>
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('columns')"><Columns3 :size="14"/>{{ $t('source.data.columnSettings') }}</MfButton>
         <MfButton size="sm" :disabled="!columnNames.length || saving" @click="openPanel('sort')">
-          <ArrowUpDown :size="14"/>{{ orders.length ? $t('source.data.sortCount', { count: orders.length }) : $t('source.data.sort') }}<ChevronDown :size="12"/>
+          <ArrowUpDown :size="14"/>{{ orders.length ? $t('source.data.sortCount', { count: orders.length }) : $t('source.data.sort') }}
         </MfButton>
         <MfButton size="sm" :disabled="saving" :aria-label="$t('source.data.settings')" @click="openPanel('settings')"><Settings :size="14"/></MfButton>
       </div>
