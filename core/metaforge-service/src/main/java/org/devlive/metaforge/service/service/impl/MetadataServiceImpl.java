@@ -4,7 +4,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.devlive.metaforge.common.response.CommonResponse;
 import org.devlive.metaforge.plugin.PluginManager;
+import org.devlive.metaforge.service.entity.PageEntity;
+import org.devlive.metaforge.service.entity.SourceDdlHistoryEntity;
+import org.devlive.metaforge.service.entity.UserEntity;
+import org.devlive.metaforge.service.repository.SourceDdlHistoryRepository;
 import org.devlive.metaforge.service.repository.SourceRepository;
+import org.devlive.metaforge.service.security.UserDetailsService;
 import org.devlive.metaforge.service.service.MetadataService;
 import org.devlive.metaforge.spi.PluginService;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
@@ -15,8 +20,10 @@ import org.devlive.metaforge.spi.model.ManagementPage;
 import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Response;
 import org.devlive.metaforge.spi.model.RuntimeConfigure;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,11 +37,13 @@ public class MetadataServiceImpl
 {
     private final PluginManager pluginManager;
     private final SourceRepository repository;
+    private final SourceDdlHistoryRepository ddlHistoryRepository;
 
-    public MetadataServiceImpl(PluginManager pluginManager, SourceRepository repository)
+    public MetadataServiceImpl(PluginManager pluginManager, SourceRepository repository, SourceDdlHistoryRepository ddlHistoryRepository)
     {
         this.pluginManager = pluginManager;
         this.repository = repository;
+        this.ddlHistoryRepository = ddlHistoryRepository;
     }
 
     private <T> CommonResponse<T> nativeOperation(String code, ManagementRequest request, Set<String> capabilities,
@@ -236,6 +245,34 @@ public class MetadataServiceImpl
         catch (IllegalArgumentException error) {
             return CommonResponse.failure(error.getMessage());
         }
+    }
+
+    @Override
+    public CommonResponse<Response> generateTableDdl(String code, String database, String table, String kind)
+    {
+        CommonResponse<Response> response = getTableDdl(code, database, table, kind);
+        Response data = response.getData();
+        if (Boolean.TRUE.equals(response.getStatus()) && data != null && Boolean.TRUE.equals(data.getIsSuccessful())) {
+            UserEntity user = UserDetailsService.getUser();
+            ddlHistoryRepository.save(SourceDdlHistoryEntity.builder()
+                    .sourceCode(code)
+                    .databaseName(database)
+                    .tableName(table)
+                    .kind(kind)
+                    .content(data.getContent())
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .createTime(new Date())
+                    .build());
+        }
+        return response;
+    }
+
+    @Override
+    public CommonResponse<PageEntity<SourceDdlHistoryEntity>> getTableDdlHistory(String code, String database, String table, int page, int size)
+    {
+        PageRequest request = PageRequest.of(Math.max(page, 1) - 1, Math.min(Math.max(size, 1), 100));
+        return CommonResponse.success(PageEntity.build(ddlHistoryRepository.findAllBySourceCodeAndDatabaseNameAndTableNameOrderByCreateTimeDescIdDesc(code, database, table, request)));
     }
 
     @Override

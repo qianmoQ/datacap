@@ -1,6 +1,8 @@
 package org.devlive.metaforge.service.service;
 
 import org.devlive.metaforge.common.response.CommonResponse;
+import org.devlive.metaforge.service.entity.PageEntity;
+import org.devlive.metaforge.service.entity.SourceDdlHistoryEntity;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
 import org.devlive.metaforge.spi.model.ManagementCapabilities;
 import org.devlive.metaforge.spi.model.ManagementDetail;
@@ -38,6 +40,11 @@ public interface MetadataService
     CommonResponse<Response> getTableStatement(String code, String database, String table);
 
     CommonResponse<Response> getTableDdl(String code, String database, String table, String kind);
+
+    /** Generates the DDL like {@link #getTableDdl} and keeps it in the table's DDL history. */
+    CommonResponse<Response> generateTableDdl(String code, String database, String table, String kind);
+
+    CommonResponse<PageEntity<SourceDdlHistoryEntity>> getTableDdlHistory(String code, String database, String table, int page, int size);
 
     CommonResponse<Response> updateAutoIncrement(String code, TableDefinition configure, String database, String table);
 

@@ -2,6 +2,8 @@ package org.devlive.metaforge.server.controller;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.devlive.metaforge.common.response.CommonResponse;
+import org.devlive.metaforge.service.entity.PageEntity;
+import org.devlive.metaforge.service.entity.SourceDdlHistoryEntity;
 import org.devlive.metaforge.service.service.MetadataService;
 import org.devlive.metaforge.spi.generator.definition.TableDefinition;
 import org.devlive.metaforge.spi.model.ManagementCapabilities;
@@ -106,6 +108,22 @@ public class MetadataController
             @RequestParam(value = "kind", defaultValue = "create") String kind)
     {
         return this.service.getTableDdl(code, database, table, kind);
+    }
+
+    /** Generates one kind of DDL on request from the DDL tab and records it in the table's DDL history. */
+    @PostMapping(value = "{code}/{database}/{table}/ddl")
+    public CommonResponse<Response> generateTableDdl(@PathVariable String code, @PathVariable String database, @PathVariable String table,
+            @RequestParam(value = "kind", defaultValue = "create") String kind)
+    {
+        return this.service.generateTableDdl(code, database, table, kind);
+    }
+
+    /** DDL generated for the table, newest first. */
+    @GetMapping(value = "{code}/{database}/{table}/ddl-history")
+    public CommonResponse<PageEntity<SourceDdlHistoryEntity>> fetchTableDdlHistory(@PathVariable String code, @PathVariable String database,
+            @PathVariable String table, @RequestParam(value = "page", defaultValue = "1") int page, @RequestParam(value = "size", defaultValue = "10") int size)
+    {
+        return this.service.getTableDdlHistory(code, database, table, page, size);
     }
 
     @PutMapping(value = "{code}/{database}/{table}/auto-increment")
