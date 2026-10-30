@@ -34,6 +34,11 @@ import org.devlive.metaforge.spi.generator.table.InsertTable;
 import org.devlive.metaforge.spi.generator.table.SelectTable;
 import org.devlive.metaforge.spi.generator.table.TruncateTable;
 import org.devlive.metaforge.spi.generator.table.UpdateTable;
+import org.devlive.metaforge.spi.model.ManagementCapabilities;
+import org.devlive.metaforge.spi.model.ManagementDetail;
+import org.devlive.metaforge.spi.model.ManagementDownload;
+import org.devlive.metaforge.spi.model.ManagementPage;
+import org.devlive.metaforge.spi.model.ManagementRequest;
 import org.devlive.metaforge.spi.model.Pagination;
 import org.devlive.metaforge.spi.model.Response;
 import org.devlive.metaforge.spi.model.RuntimeConfigure;
@@ -55,6 +60,31 @@ public interface PluginService
 {
     ThreadLocal<Connection> local = new ThreadLocal<>();
     Logger log = LoggerFactory.getLogger(PluginService.class);
+
+    default ManagementCapabilities managementCapabilities()
+    {
+        return ManagementCapabilities.forJdbc(connectType());
+    }
+
+    default ManagementPage managementNamespaces(RuntimeConfigure configure, ManagementRequest request)
+    {
+        throw new UnsupportedOperationException("Namespace browsing is not supported");
+    }
+
+    default ManagementPage managementList(RuntimeConfigure configure, ManagementRequest request)
+    {
+        throw new UnsupportedOperationException("Native browsing is not supported");
+    }
+
+    default ManagementDetail managementDetail(RuntimeConfigure configure, ManagementRequest request)
+    {
+        throw new UnsupportedOperationException("Native details are not supported");
+    }
+
+    default ManagementDownload managementDownload(RuntimeConfigure configure, ManagementRequest request)
+    {
+        throw new UnsupportedOperationException("Native downloads are not supported");
+    }
 
     default String validator()
     {
@@ -478,7 +508,11 @@ public interface PluginService
      */
     default Response getColumns(RuntimeConfigure configure, String database, String table)
     {
-        String sql = "SELECT detail.*\n" +
+        String sql = "SELECT detail.*,\n" +
+                "    COALESCE(meta.CHARACTER_MAXIMUM_LENGTH, meta.NUMERIC_PRECISION, 0) AS object_length,\n" +
+                "    CASE WHEN meta.EXTRA LIKE '%auto_increment%' THEN 'YES' ELSE 'NO' END AS object_autoincrement,\n" +
+                "    meta.CHARACTER_SET_NAME AS object_charset,\n" +
+                "    meta.COLLATION_NAME AS object_collation\n" +
                 "FROM (\n" +
                 "    -- 列信息\n" +
                 "    SELECT\n" +
@@ -570,6 +604,9 @@ public interface PluginService
                 "        EVENT_OBJECT_SCHEMA = '{0}'\n" +
                 "        AND EVENT_OBJECT_TABLE = '{1}'\n" +
                 ") detail\n" +
+                "LEFT JOIN information_schema.COLUMNS meta\n" +
+                "    ON detail.type_name = 'column' AND meta.TABLE_SCHEMA = '{0}'\n" +
+                "    AND meta.TABLE_NAME = '{1}' AND meta.COLUMN_NAME = detail.object_name\n" +
                 "ORDER BY\n" +
                 "    FIELD(type_name, 'column', 'primary', 'index', 'trigger'),\n" +
                 "    object_position,\n" +
@@ -609,9 +646,10 @@ public interface PluginService
                 "object_position",
                 "object_definition",
                 "object_length",
-                "object_autoincrement"));
+                "object_autoincrement",
+                "object_scale"));
         response.setTypes(Lists.newArrayList(
-                "String", "String", "String", "String", "String", "String", "Integer", "String", "Integer", "String"));
+                "String", "String", "String", "String", "String", "String", "Integer", "String", "Integer", "String", "Integer"));
         List<Object> rows = Lists.newArrayList();
         response.setColumns(rows);
         try {
@@ -627,17 +665,25 @@ public interface PluginService
                     catch (SQLException ignored) {
                         columnSize = 0;
                     }
+                    int decimalDigits;
+                    try {
+                        decimalDigits = resultSet.getInt("DECIMAL_DIGITS");
+                    }
+                    catch (SQLException ignored) {
+                        decimalDigits = 0;
+                    }
                     rows.add(Lists.newArrayList(
                             "column",
                             resultSet.getString("COLUMN_NAME"),
                             resultSet.getString("TYPE_NAME"),
                             resultSet.getInt("NULLABLE") == java.sql.ResultSetMetaData.columnNullable ? "YES" : "NO",
-                            defaultValue == null ? "" : defaultValue,
+                            defaultValue,
                             comment == null ? "" : comment,
                             resultSet.getInt("ORDINAL_POSITION"),
                             "",
                             columnSize,
-                            resultSet.getString("IS_AUTOINCREMENT")));
+                            resultSet.getString("IS_AUTOINCREMENT"),
+                            decimalDigits));
                 }
             }
             try (ResultSet resultSet = metaData.getPrimaryKeys(null, database, table)) {
@@ -651,7 +697,8 @@ public interface PluginService
                             primaryColumn,
                             "", "", "", "",
                             0,
-                            "PRIMARY KEY on (" + String.join(", ", primaryColumns) + ")"));
+                            "PRIMARY KEY on (" + String.join(", ", primaryColumns) + ")",
+                            0, "NO", 0));
                 }
             }
             response.setIsConnected(true);
@@ -1615,8 +1662,15 @@ public interface PluginService
         CreateColumn column = CreateColumn.create(col.getName(), col.getType());
 
         column.comment(col.getComment())
-                .length(col.getLength())
                 .defaultValue(col.getDefaultValue());
+
+        if (col.getLength() != null) {
+            column.length(col.getLength());
+        }
+
+        if (col.getPrecision() != null) {
+            column.precision(col.getPrecision(), col.getScale() == null ? 0 : col.getScale());
+        }
 
         if (StringUtils.isNotEmpty(col.getCharset())) {
             column.charset(col.getCharset());
