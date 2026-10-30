@@ -45,35 +45,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import { RefreshCw, WifiOff } from '@lucide/vue'
 import BaseLayout from '@/views/layouts/base/BaseLayout.vue'
 import SetupService from '@/services/setup'
+import { useRouteRedirect } from '@/composables/useRouteRedirect'
 
 defineOptions({ name: 'NotNetwork' })
 
 const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
+const { restore } = useRouteRedirect()
 
-const targetPath = String(route.query.redirect || '/home')
 const checking = ref(false)
 
 // HttpUtils resolves transport failures with code 0; any other response means the server answered.
-const onRetry = () => {
+// 恢复后 replace 回断网前的原地址，避免历史里残留中间页。
+const reconnect = (silent: boolean) => {
+  if (checking.value) return
   checking.value = true
   SetupService.getStatus()
                .then(response => {
                  if (response && response.code !== 0) {
-                   router.push(targetPath)
+                   restore()
                  }
-                 else {
+                 else if (!silent) {
                    MfMessage.error(t('common.network.reconnectFailed'))
                  }
                })
                .finally(() => (checking.value = false))
 }
+
+const onRetry = () => reconnect(false)
+// 系统网络恢复时自动探测服务端，连通即回原地址；探测失败不打扰用户。
+const onOnline = () => reconnect(true)
+
+onMounted(() => window.addEventListener('online', onOnline))
+onBeforeUnmount(() => window.removeEventListener('online', onOnline))
 </script>

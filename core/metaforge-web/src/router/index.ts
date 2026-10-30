@@ -6,6 +6,7 @@ import { createHttpRoute } from '@/router/http'
 import { createSetupRoute } from '@/router/setup'
 import SetupService from '@/services/setup'
 import { TokenUtils } from '@/utils/token'
+import { interimLocation, trackPendingNavigation } from '@/composables/useRouteRedirect'
 import { pageAccess } from './navigation'
 
 const routes: Array<RouteRecordRaw> = []
@@ -15,6 +16,7 @@ const router = createRouter({
     routes
 })
 
+trackPendingNavigation(router)
 createHttpRoute(router)
 createAuthRoute(router)
 createSetupRoute(router)
@@ -31,11 +33,16 @@ function ensureSetupChecked(): Promise<boolean | 'unknown'> {
         setupChecked = SetupService.getStatus()
             .then(response => {
                 if (!response || response.code === 0) {
-                    return 'unknown'
+                    return 'unknown' as const
                 }
                 return (response.status && response.data?.installed) ? true : false
             })
-            .catch(() => 'unknown')
+            .catch(() => 'unknown' as const)
+            .then(installed => {
+                // 状态未知不缓存：网络恢复后的下一次导航重新检查，未安装时才能被带去 /setup。
+                if (installed === 'unknown') setupChecked = undefined
+                return installed
+            })
     }
     return setupChecked
 }
@@ -54,8 +61,10 @@ router.afterEach(to => {
 })
 
 router.beforeEach(async (_to, _from, _next) => {
+    // 404 的"返回"回到跳转前所在的页面；不存在的地址本身回跳只会再次 404。
+    const previous = _from.matched.length ? _from : undefined
     if (_to.matched.length === 0) {
-        _next('/common/404')
+        _next(interimLocation('/common/404', previous))
         return
     }
     const installed = await ensureSetupChecked()
@@ -64,14 +73,15 @@ router.beforeEach(async (_to, _from, _next) => {
         return
     }
     if (!installed && _to.path !== '/setup') {
-        _next('/setup')
+        _next(interimLocation('/setup', _to))
     }
     else if (installed && _to.path === '/setup') {
-        _next('/auth/signin')
+        _next(interimLocation('/auth/signin', _to))
     }
     else {
         const access = pageAccess(_to, TokenUtils.getAuthUser())
         if (access === true) _next()
+        else if (access.path === '/common/403') _next(interimLocation('/common/403', previous))
         else _next(access)
     }
 })

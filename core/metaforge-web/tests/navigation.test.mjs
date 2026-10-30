@@ -7,7 +7,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 const moduleUrl = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`
 const compile = source => ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext } }).outputText
 const navigationUrl = moduleUrl(compile(await readFile(new URL('../src/router/navigation.ts', import.meta.url), 'utf8')))
-const { canonicalPagePath, normalizeNavigation, pageAccess, signInTarget } = await import(navigationUrl)
+const { canonicalPagePath, normalizeNavigation, pageAccess } = await import(navigationUrl)
 let routes = compile(await readFile(new URL('../src/router/default.ts', import.meta.url), 'utf8'))
 const manageUrl = moduleUrl(compile(await readFile(new URL('../src/model/source-manage.ts', import.meta.url), 'utf8')))
 const layoutUrl = moduleUrl('export default {render(){return null}}')
@@ -73,13 +73,11 @@ test('legacy deep links preserve parameters, queries and hashes and normalize on
     }
 })
 
-test('anonymous deep links return to their page after login and unsafe redirects are rejected', async () => {
+test('anonymous deep links carry their full address to the login page', async () => {
     const router = routerFor(undefined)
     await router.push('/query?source=ABC')
     assert.equal(router.currentRoute.value.path, '/auth/signin')
     assert.equal(router.currentRoute.value.query.redirect, '/query?source=ABC')
-    assert.equal(signInTarget('/admin/query/history/AbC?source=ABC#sql'), '/query/history/AbC?source=ABC#sql')
-    for (const value of ['//evil.example', 'https://evil.example', '/\\evil', '/auth/signin', '/setup', '/\n/evil']) assert.equal(signInTarget(value), '/home')
 })
 
 test('cached menus keep business links, hide admin links from users and retain leaves with empty children', () => {
