@@ -8,9 +8,9 @@
       <div class="flex flex-wrap items-center gap-2">
         <span class="mr-2 text-sm text-content-tertiary">{{ $t('source.data.total', { count: total.toLocaleString() }) }}</span>
         <MfButton v-if="can('data:insert')" size="sm" :disabled="saving" @click="openEditor('add')"><Plus :size="14"/>{{ $t('source.data.add') }}</MfButton>
-        <MfButton v-if="can('data:modify')" size="sm" :disabled="saving || selectedRows.length !== 1" @click="openEditor('edit', selectedRows[0])"><Pencil :size="14"/>{{ $t('common.edit') }}</MfButton>
+        <MfButton v-if="can('data:modify')" size="sm" :disabled="saving || selectedRows.length !== 1" @click="openEditor('edit', selectedRows)"><Pencil :size="14"/>{{ $t('common.edit') }}</MfButton>
         <MfButton v-if="can('data:delete')" size="sm" variant="danger" :disabled="saving || !selectedRows.length" @click="requestDelete(selectedRows)"><Trash2 :size="14"/>{{ $t('common.delete') }}</MfButton>
-        <MfButton v-if="can('data:insert')" size="sm" :disabled="saving || !selectedRows.length" @click="requestCopy"><Copy :size="14"/>{{ $t('source.data.copy') }}</MfButton>
+        <MfButton v-if="can('data:insert')" size="sm" :disabled="saving || !selectedRows.length" @click="openEditor('copy', selectedRows)"><Copy :size="14"/>{{ $t('source.data.copy') }}</MfButton>
         <MfDropdown trigger="click">
           <MfButton size="sm" :disabled="!rows.length"><Download :size="14"/>{{ $t('source.data.export') }}<ChevronDown :size="12"/></MfButton>
           <template #overlay>
@@ -67,7 +67,7 @@
         </template>
         <template #cell-__action__="{ record }">
           <div class="flex items-center gap-4 text-xs" @click.stop>
-            <button v-if="can('data:modify')" type="button" class="text-primary hover:underline disabled:opacity-50" :disabled="saving" @click="openEditor('edit', record)">{{ $t('common.edit') }}</button>
+            <button v-if="can('data:modify')" type="button" class="text-primary hover:underline disabled:opacity-50" :disabled="saving" @click="openEditor('edit', [record])">{{ $t('common.edit') }}</button>
             <button v-if="can('data:delete')" type="button" class="text-danger hover:underline disabled:opacity-50" :disabled="saving" @click="requestDelete([record])">{{ $t('common.delete') }}</button>
           </div>
         </template>
@@ -84,10 +84,9 @@
     </div>
 
     <SourceRowEditor v-if="editorVisible" v-model="editorValues" v-model:json="editorJson" v-model:continue-adding="continueAdding" :open="editorVisible"
-                     :mode="editorMode" :tab="editorTab" :fields="fields" :issues="editorIssues" :json-error="jsonError" :saving="saving"
+                     :mode="editorMode" :tab="editorTab" :form-disabled="editorMultiple" :fields="fields" :issues="editorIssues" :json-error="jsonError" :saving="saving"
                      :width="fieldPanelWidth" :container="fieldPanelHost" @close="closeEditor()" @tab="setEditorTab" @save="submitEditor"/>
     <TableRowDelete v-if="deleteTargets.length" :is-visible="!!deleteTargets.length" :columns="deleteRows" @close="closeDelete"/>
-    <TableCellInfo v-if="copyTargets.length" :is-visible="!!copyTargets.length" :columns="copyRows" @close="closeCopy"/>
     <SqlInfo v-if="sqlVisible" :is-visible="sqlVisible" :content="sql" @close="sqlVisible = false"/>
   </div>
 </template>
@@ -99,7 +98,6 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Columns3, Copy, Download,
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import SqlInfo from '@/views/components/sql/SqlInfo.vue'
 import TableRowDelete from './components/TableRowDelete.vue'
-import TableCellInfo from './components/TableCellInfo.vue'
 import SourceDataFilter from './components/SourceDataFilter.vue'
 import SourceRowEditor from './components/SourceRowEditor.vue'
 import { useSourceTableData } from '@/composables/useSourceTableData'
@@ -110,8 +108,8 @@ const {
   can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
   conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
   onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
-  editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-  deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh,
+  editorVisible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields, openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
+  deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh,
 } = useSourceTableData()
 
 const tableColumns = computed(() => [

@@ -1096,6 +1096,7 @@
   "source.data.conditionActions": "条件操作",
   "source.data.continueAdding": "继续新增",
   "source.data.copy": "复制",
+  "source.data.copyRow": "复制数据",
   "source.data.editRow": "编辑数据",
   "source.data.endDate": "结束日期",
   "source.data.export": "导出",

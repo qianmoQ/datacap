@@ -1096,6 +1096,7 @@
   "source.data.conditionActions": "Condition actions",
   "source.data.continueAdding": "Keep adding",
   "source.data.copy": "Copy",
+  "source.data.copyRow": "Copy rows",
   "source.data.editRow": "Edit row",
   "source.data.endDate": "End date",
   "source.data.export": "Export",

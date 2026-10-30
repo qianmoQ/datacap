@@ -10,7 +10,7 @@ import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
 
 export type DataRow = Record<string, unknown> & { __key: string }
-export type RowEditorMode = 'add' | 'edit'
+export type RowEditorMode = 'add' | 'edit' | 'copy'
 
 /** Data preview of one table: server-side filters, sort and paging, plus row insert/update/delete. */
 export function useSourceTableData() {
@@ -37,7 +37,6 @@ export function useSourceTableData() {
   let applied: DataCondition[] = []
   const sqlVisible = ref(false)
   const deleteTargets = ref<DataRow[]>([])
-  const copyTargets = ref<DataRow[]>([])
   let revision = 0
   let alive = true
 
@@ -75,6 +74,7 @@ export function useSourceTableData() {
   const editorIssues = ref<Record<string, FieldIssue>>({})
   const jsonError = ref('')
   const continueAdding = ref(false)
+  const editorMultiple = ref(false)
 
   const identity = () => [route.params.source, route.params.database, route.params.table].join('/')
   const errorMessage = (error: unknown) => error instanceof Error ? error.message : String(error)
@@ -160,15 +160,25 @@ export function useSourceTableData() {
     const list = dataFields(sharedRows.value || [])
     return list.length ? list : headers.value.map(name => ({ name, type: '', kind: 'text' as const, options: [], nullable: true, hasDefault: false, autoIncrement: false, required: false }))
   })
-  function openEditor(mode: RowEditorMode, row: DataRow | null = null) {
+  /**
+   * Opens the editor for a new row, one row to edit, or rows to copy. Copies drop generated keys;
+   * several copied rows can only be edited as JSON.
+   */
+  function openEditor(mode: RowEditorMode, source: DataRow[] = []) {
     if (saving.value || !can(mode === 'edit' ? 'data:modify' : 'data:insert')) return
+    if (mode !== 'add' && !source.length) return
+    const generated = (values: FormValues) => mode === 'copy'
+        ? { ...values, ...Object.fromEntries(fields.value.filter(field => field.autoIncrement).map(field => [field.name, null])) } : values
+    const forms = mode === 'add' ? [rowToForm(fields.value, null)] : source.map(row => generated(rowToForm(fields.value, row)))
     editorMode.value = mode
-    editorTab.value = 'form'
-    editorValues.value = rowToForm(fields.value, row)
-    editorOriginal.value = { ...editorValues.value }
+    editorValues.value = forms[0]
+    editorOriginal.value = { ...forms[0] }
+    editorMultiple.value = forms.length > 1
+    editorTab.value = editorMultiple.value ? 'json' : 'form'
+    editorJson.value = JSON.stringify(editorMultiple.value ? forms.map(form => formToJson(fields.value, form)) : formToJson(fields.value, forms[0]), null, 2)
     editorIssues.value = {}
     jsonError.value = ''
-    editor.open(row)
+    editor.open(mode === 'edit' ? source[0] : null)
   }
   const closeEditor = (force = false) => { if (!saving.value || force) editor.close() }
   /** Parses the JSON editor into row objects; a single object or an array of objects. */
@@ -255,13 +265,10 @@ export function useSourceTableData() {
     }
   }
 
-  // Delete and copy go through confirm dialogs that preview the generated SQL.
+  // Delete goes through a confirm dialog that previews the generated SQL.
   const requestDelete = (targets: DataRow[]) => { if (targets.length && can('data:delete')) deleteTargets.value = targets }
-  const requestCopy = () => { if (selectedRows.value.length && can('data:insert')) copyTargets.value = selectedRows.value }
   const deleteRows = computed(() => deleteTargets.value.map(plain))
-  const copyRows = computed(() => copyTargets.value.map(plain))
   function closeDelete() { deleteTargets.value = []; load() }
-  function closeCopy() { copyTargets.value = []; load() }
 
   // Export the rows on screen with the visible columns.
   function exportRows(format: 'csv' | 'json') {
@@ -292,8 +299,8 @@ export function useSourceTableData() {
     can, loading, saving, rows, total, page, size, sql, sqlVisible, columnNames, visibleColumns, hidden, order, typeOf,
     conditions, addCondition, changeColumn, changeOperator, removeCondition, clearConditions, onSearch, onReset,
     onPageChange, setOrder, toggleColumn, selected, selectedRows, allSelected, partialSelected, toggleAll, onRowClick, onCheck, rowClass,
-    editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, fields,
+    editorVisible: editor.visible, editorMode, editorValues, editorTab, editorJson, editorIssues, jsonError, continueAdding, editorMultiple, fields,
     openEditor, closeEditor, setEditorTab, submitEditor, fieldPanelHost, fieldPanelWidth,
-    deleteTargets, deleteRows, requestDelete, closeDelete, copyTargets, copyRows, requestCopy, closeCopy, exportRows, refresh: load,
+    deleteTargets, deleteRows, requestDelete, closeDelete, exportRows, refresh: load,
   }
 }
