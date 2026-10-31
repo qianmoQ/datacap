@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { isSourceManagementRoute } from '@/model/source-manage'
+import { isSourceManagementRoute, isSourceWorkbenchRoute } from '@/model/source-manage'
 import { computed, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import LayoutHeader from '@/views/layouts/common/components/LayoutHeader.vue'
@@ -45,7 +45,7 @@ const { loadLocale, loadingState, loadingText } = provideI18nHandler()
 const route = useRoute()
 const workspaceMode = computed(() => route.meta.workspace === true)
 const sourceWorkspace = computed(() => isSourceManagementRoute(route))
-const workbenchMode = sourceWorkspace
+const workbenchMode = computed(() => isSourceWorkbenchRoute(route))
 
 onBeforeMount(async () => {
   try {

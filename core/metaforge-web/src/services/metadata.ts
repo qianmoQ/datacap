@@ -59,6 +59,24 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/database-tables`)
     }
 
+    /** Column differences between two tables of the source. */
+    compareStructure(code: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/compare/structure`, configure)
+    }
+
+    /** Row differences between two tables of the source, paired by key. */
+    compareData(code: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/compare/data`, configure)
+    }
+
+    /** Sync statements or a CSV report of a comparison, as a file. */
+    compareExport(code: string, configure: any)
+    {
+        return new HttpUtils().download(`${ DEFAULT_PATH }/${ code }/compare/export`, configure)
+    }
+
     /** The first rows of an export as the file would hold them, and the table's row count. */
     previewExport(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
