@@ -91,7 +91,7 @@
         <div class="flex shrink-0 items-center justify-between gap-2 border-b border-line pr-3">
           <MfTabs v-model:active-key="panel" class="export-tabs">
             <MfTabPane item-key="preview" :tab="$t('source.export.preview')"/>
-            <MfTabPane item-key="about" :tab="$t('source.export.about')"/>
+            <MfTabPane item-key="about" :tab="$t('source.export.aboutTab')"/>
           </MfTabs>
           <span v-if="panel === 'preview'" class="shrink-0 rounded-mf-sm bg-surface-hover px-2 py-1 text-xs text-content-secondary">{{ $t('source.export.previewRows') }}</span>
         </div>
