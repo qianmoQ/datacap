@@ -167,11 +167,6 @@ class MetadataService
         return new HttpUtils().put(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/update-data`, configure)
     }
 
-    exportData(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
-    {
-        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/export-data`, configure)
-    }
-
     createColumn(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
     {
         return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/create-column`, configure)
