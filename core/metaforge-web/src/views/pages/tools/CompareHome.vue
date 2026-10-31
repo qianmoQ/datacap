@@ -55,31 +55,26 @@
         <MfEmpty v-else-if="!ready" class="flex-1" :title="$t('compare.chooseBoth')"/>
         <!-- Each table scrolls on its own; the page keeps to the viewport. -->
         <div v-else class="grid min-h-72 flex-1 grid-cols-1 grid-rows-2 gap-3 lg:grid-cols-2 lg:grid-rows-1" :class="structureLoading && 'opacity-60'">
-          <div v-for="side in (['source', 'target'] as const)" :key="side" class="flex min-h-0 min-w-0 flex-col overflow-auto rounded-mf-md border border-line">
-            <MfEmpty v-if="!sides[side].length" class="flex-1" :title="$t(onlyDifferent ? 'compare.noDifference' : 'compare.noRows')"/>
-            <table v-else class="w-full border-collapse text-sm">
-              <thead class="sticky top-0 z-[1] bg-surface-hover text-left text-content-secondary">
-                <tr><th v-for="column in STRUCTURE_COLUMNS" :key="column" class="whitespace-nowrap px-3 py-2 font-medium">{{ $t(`compare.column.${column}`) }}</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in sides[side]" :key="row.name" class="border-t border-line" :class="rowTone(side, row.status)">
-                  <td class="whitespace-nowrap px-3 py-2">
-                    <span class="inline-flex items-center gap-2" :class="markTone(side, row.status)">
-                      <component :is="markIcon(side, row.status)" v-if="markIcon(side, row.status)" :size="15"/>
-                      <span :class="!markIcon(side, row.status) && 'pl-[23px]'">{{ row.name }}</span>
-                    </span>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-2" :class="cellTone(side, row, 'type')">{{ row.column.type }}</td>
-                  <td class="whitespace-nowrap px-3 py-2" :class="[cellTone(side, row, 'nullable'), !row.column.nullable && !cellTone(side, row, 'nullable') && 'text-danger']">
-                    {{ row.column.nullable ? 'YES' : 'NO' }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-2" :class="cellTone(side, row, 'defaultValue')">{{ row.column.defaultValue ?? (row.column.nullable ? 'NULL' : '-') }}</td>
-                  <td class="px-3 py-2" :class="cellTone(side, row, 'comment')">
-                    {{ row.column.comment || '-' }}<span v-if="onlyHere(side, row.status)">（{{ $t(`compare.only.${side}`) }}）</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div v-for="side in (['source', 'target'] as const)" :key="side" class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-mf-md border border-line">
+            <MfTable fill :columns="structureColumns" :data-source="sides[side]" row-key="name" density="compact" :bordered="false"
+                     :empty-text="$t(onlyDifferent ? 'compare.noDifference' : 'compare.noRows')" :row-class="(row: StructureSideRow) => rowTone(side, row.status)">
+              <template #cell-name="{ record }">
+                <span class="inline-flex min-w-0 items-center gap-2" :class="markTone(side, record.status)">
+                  <component :is="markIcon(side, record.status)" v-if="markIcon(side, record.status)" :size="15" class="shrink-0"/>
+                  <span class="truncate" :class="!markIcon(side, record.status) && 'pl-[23px]'">{{ record.name }}</span>
+                </span>
+              </template>
+              <template #cell-type="{ record }"><span :class="cellTone(side, record, 'type')">{{ record.column.type }}</span></template>
+              <template #cell-nullable="{ record }">
+                <span :class="cellTone(side, record, 'nullable') === 'text-content' && !record.column.nullable ? 'text-danger' : cellTone(side, record, 'nullable')">{{ record.column.nullable ? 'YES' : 'NO' }}</span>
+              </template>
+              <template #cell-defaultValue="{ record }">
+                <span :class="cellTone(side, record, 'defaultValue')"><EllipsisCell :text="record.column.defaultValue ?? (record.column.nullable ? 'NULL' : '-')"/></span>
+              </template>
+              <template #cell-comment="{ record }">
+                <span :class="cellTone(side, record, 'comment')"><EllipsisCell :text="(record.column.comment || '-') + (onlyHere(side, record.status) ? `（${$t(`compare.only.${side}`)}）` : '')"/></span>
+              </template>
+            </MfTable>
           </div>
         </div>
 
@@ -148,38 +143,26 @@
           <div v-if="dataLoading && !dataResult" class="flex flex-1 items-center justify-center"><MfSpinner/></div>
           <MfAlert v-else-if="dataError" variant="danger" class="shrink-0" :title="dataError"/>
           <MfEmpty v-else-if="!dataResult" class="flex-1" :title="$t(ready ? 'compare.startHint' : 'compare.chooseBoth')"/>
-          <MfEmpty v-else-if="!dataResult.rows.length" class="flex-1" :title="$t('compare.noDifference')"/>
           <template v-else>
-            <div class="min-h-0 flex-1 overflow-auto rounded-mf-md border border-line" :class="dataLoading && 'opacity-60'">
-              <table class="w-full border-collapse text-sm">
-                <thead class="sticky top-0 z-[1] bg-surface-hover text-left text-content-secondary">
-                  <tr>
-                    <th class="px-3 py-2 font-medium">#</th>
-                    <th class="whitespace-nowrap px-3 py-2 font-medium">{{ $t('compare.diffType') }}</th>
-                    <th v-for="column in dataResult.columns" :key="column" class="whitespace-nowrap px-3 py-2 font-medium">{{ column }}</th>
-                    <th class="sticky right-0 whitespace-nowrap bg-surface-hover px-3 py-2 font-medium">{{ $t('common.action') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, index) in dataResult.rows" :key="index" class="border-t border-line align-top">
-                    <td class="px-3 py-2 tabular-nums text-content-secondary">{{ index + 1 }}</td>
-                    <td class="whitespace-nowrap px-3 py-2" :class="TYPE_BG[row.type]">
-                      <span class="inline-flex items-center gap-1.5" :class="TYPE_TEXT[row.type]"><component :is="TYPE_ICON[row.type]" :size="15"/>{{ $t(`compare.type.${row.type}`) }}</span>
-                    </td>
-                    <td v-for="(column, position) in dataResult.columns" :key="column" class="max-w-64 px-3 py-2"
-                        :class="row.changed.includes(column) ? 'bg-danger/10' : TYPE_BG[row.type]">
-                      <template v-if="row.changed.includes(column)">
-                        <p class="m-0 truncate text-content">- {{ cellText(row.source?.[position]) }}</p>
-                        <p class="m-0 truncate text-danger">- {{ cellText(row.target?.[position]) }}</p>
-                      </template>
-                      <span v-else class="block truncate text-content">{{ cellText((row.source || row.target)?.[position]) }}</span>
-                    </td>
-                    <td class="sticky right-0 whitespace-nowrap bg-surface px-3 py-2">
-                      <button type="button" class="text-xs text-primary hover:underline" @click="detail = row">{{ $t('compare.detail') }}</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-mf-md border border-line" :class="dataLoading && 'opacity-60'">
+              <MfTable fill :columns="dataColumns" :data-source="dataRows" row-key="index" density="compact" :bordered="false" :empty-text="$t('compare.noDifference')"
+                       :row-class="(row: DataTableRow) => TYPE_ROW[row.type]">
+                <template #cell-index="{ record }"><span class="tabular-nums text-content-secondary">{{ record.index + 1 }}</span></template>
+                <template #cell-type="{ record }">
+                  <span class="inline-flex items-center gap-1.5" :class="TYPE_TEXT[record.type]"><component :is="TYPE_ICON[record.type]" :size="15"/>{{ $t(`compare.type.${record.type}`) }}</span>
+                </template>
+                <!-- A changed value shows both sides, the cell tinted edge to edge. -->
+                <template v-for="(column, position) in dataResult.columns" :key="column" #[`cell-c${position}`]="{ record }">
+                  <div v-if="record.changed.includes(column)" class="-mx-3 -my-1.5 bg-danger/10 px-3 py-1.5">
+                    <p class="m-0 truncate text-content">- {{ cellText(record.source?.[position]) }}</p>
+                    <p class="m-0 truncate text-danger">- {{ cellText(record.target?.[position]) }}</p>
+                  </div>
+                  <EllipsisCell v-else :text="cellText((record.source || record.target)?.[position])"/>
+                </template>
+                <template #cell-action="{ record }">
+                  <button type="button" class="text-xs text-primary hover:underline" @click="detail = record">{{ $t('compare.detail') }}</button>
+                </template>
+              </MfTable>
             </div>
             <p v-if="dataResult.truncated" class="m-0 shrink-0 text-xs text-warning">{{ $t('compare.truncated', { shown: dataResult.rows.length, total: dataResult.total }) }}</p>
           </template>
@@ -212,7 +195,7 @@ import { ArrowLeftRight, Circle, CircleHelp, CircleMinus, CirclePlus, Database, 
 import SourceService from '@/services/source'
 import { FilterModel } from '@/model/filter'
 import { compareLocation } from '@/model/source-manage'
-import { cellText, type DataType, type StructureSideRow, type StructureStatus } from '@/model/table-compare'
+import { cellText, type DataRow, type DataType, type StructureSideRow, type StructureStatus } from '@/model/table-compare'
 import { useTableCompare } from '@/composables/useTableCompare'
 import ExportMenu from './components/CompareExportMenu.vue'
 import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
@@ -231,14 +214,30 @@ const {
 // The settings card keeps the width the user dragged it to.
 const CONFIG_WIDTH = { initial: 360, min: 300, max: 560 }
 const { width: configWidth, save: saveConfigWidth } = usePanelWidth('MetaForgeCompareConfigWidth', CONFIG_WIDTH)
-const STRUCTURE_COLUMNS = ['name', 'type', 'nullable', 'defaultValue', 'comment'] as const
+const structureColumns = computed(() => [
+  { title: t('compare.column.name'), dataIndex: 'name', width: 180, ellipsis: true },
+  { title: t('compare.column.type'), dataIndex: 'type' },
+  { title: t('compare.column.nullable'), dataIndex: 'nullable' },
+  { title: t('compare.column.defaultValue'), dataIndex: 'defaultValue', width: 160, ellipsis: true },
+  { title: t('compare.column.comment'), dataIndex: 'comment', width: 200, ellipsis: true },
+])
 const SUMMARY: { key: StructureStatus; tone: string }[] = [
   { key: 'changed', tone: 'text-danger' }, { key: 'source_only', tone: 'text-success' }, { key: 'target_only', tone: 'text-warning' }, { key: 'same', tone: 'text-content' },
 ]
 const LEGEND = [{ key: 'changed', tone: 'bg-danger/15' }, { key: 'source_only', tone: 'bg-success/15' }, { key: 'target_only', tone: 'bg-warning/15' }]
-const TYPE_BG: Record<DataType, string> = { same: '', changed: '', source_only: 'bg-success/10', target_only: 'bg-warning/10' }
+// Whole-row tints; written out in full so Tailwind generates them.
+const TYPE_ROW: Record<DataType, string> = { same: '', changed: '', source_only: '[&>td]:bg-success/10', target_only: '[&>td]:bg-warning/10' }
 const TYPE_TEXT: Record<DataType, string> = { same: 'text-content-secondary', changed: 'text-danger', source_only: 'text-success', target_only: 'text-content' }
 const TYPE_ICON: Record<DataType, unknown> = { same: Circle, changed: CircleMinus, source_only: CirclePlus, target_only: CircleMinus }
+// Result rows numbered for display; each compared column is a cell slot named by its position.
+type DataTableRow = DataRow & { index: number }
+const dataRows = computed<DataTableRow[]>(() => (dataResult.value?.rows || []).map((row, index) => ({ ...row, index })))
+const dataColumns = computed(() => [
+  { title: '#', dataIndex: 'index' },
+  { title: t('compare.diffType'), dataIndex: 'type' },
+  ...(dataResult.value?.columns || []).map((column, position) => ({ title: column, dataIndex: `c${position}`, width: 180, ellipsis: true })),
+  { title: t('common.action'), dataIndex: 'action', fixed: 'right' as const },
+])
 // Row details: one line per column, long values truncated with the full text on hover.
 type DetailRow = { column: string; left: string; right: string; changed: boolean }
 const detailColumns = computed(() => [
@@ -263,7 +262,7 @@ const filterOptions = computed(() => [{ label: t('compare.showAll'), value: 'all
 // Source columns only on the left are additions; on the right, changes and target-only columns are marked.
 const onlyHere = (side: 'source' | 'target', status: StructureStatus) => (side === 'source' && status === 'source_only') || (side === 'target' && status === 'target_only')
 const rowTone = (side: 'source' | 'target', status: StructureStatus) =>
-  onlyHere(side, status) ? (side === 'source' ? 'bg-success/10' : 'bg-warning/10') : side === 'target' && status === 'changed' ? 'bg-danger/10' : ''
+  onlyHere(side, status) ? (side === 'source' ? '[&>td]:bg-success/10' : '[&>td]:bg-warning/10') : side === 'target' && status === 'changed' ? '[&>td]:bg-danger/10' : ''
 const markTone = (side: 'source' | 'target', status: StructureStatus) =>
   onlyHere(side, status) ? (side === 'source' ? 'text-success' : 'text-warning') : side === 'target' && status === 'changed' ? 'text-danger' : 'text-content'
 const markIcon = (side: 'source' | 'target', status: StructureStatus) =>
