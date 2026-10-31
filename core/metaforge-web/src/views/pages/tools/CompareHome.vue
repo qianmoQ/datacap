@@ -85,7 +85,7 @@
           <MfSelect class="w-48" :model-value="onlyDifferent ? 'different' : 'all'" :options="filterOptions" @update:model-value="value => (onlyDifferent = value === 'different')">
             <template #prefix><Filter :size="15"/></template>
           </MfSelect>
-          <div class="flex gap-2">
+          <div class="flex shrink-0 gap-2">
             <MfButton @click="back">{{ $t('common.cancel') }}</MfButton>
             <ExportMenu :disabled="!ready" :loading="exporting" :label="$t('compare.exportStructure')" @export="format => exportResult('structure', format)"/>
           </div>
