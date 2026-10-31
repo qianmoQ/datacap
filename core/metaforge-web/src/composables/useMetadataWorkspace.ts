@@ -40,6 +40,8 @@ export function useMetadataWorkspace() {
   provide('metadataWorkspaceLayout', layout)
   // The header's "edit table properties" asks the properties tab to open its editor.
   provide('metadataTablePropertiesEdit', reactive({ request: 0, handled: 0 }))
+  // The header's "edit database properties" asks the database overview to open its editor.
+  provide('metadataDatabasePropertiesEdit', reactive({ request: 0, handled: 0 }))
 
   async function load() {
     const request = ++revision

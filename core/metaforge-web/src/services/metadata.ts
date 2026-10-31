@@ -53,6 +53,18 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/databases`)
     }
 
+    /** Base tables of the database with engine, rows, data and index bytes and times. */
+    getDatabaseTables(code: string, database: string): Promise<ResponseModel>
+    {
+        return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/database-tables`)
+    }
+
+    /** Changes the database's default character set and collation; `preview` returns the statement only. */
+    alterDatabaseOptions(code: string, database: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/alter-database-options`, configure)
+    }
+
     getTablesByDatabase(code: string, database: string): Promise<ResponseModel>
     {
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/tables`)

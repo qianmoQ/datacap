@@ -53,6 +53,9 @@ export function useMetadataContent() {
     onChange('info')
     propertiesEdit.request++
   }
+  const databaseEdit = inject<{ request: number; handled: number }>('metadataDatabasePropertiesEdit', { request: 0, handled: 0 })
+  /** The database overview opens its properties editor. */
+  const onEditDatabase = () => { databaseEdit.request++ }
   const onChange = (tab: string | number) => {
     if (can(sourceTabCapability(String(tab)))) router.push(sourceManageLocation({ source: originalSource.value, database: originalDatabase.value, table: originalTable.value, tab: String(tab) }, route.query))
   }
@@ -87,6 +90,6 @@ export function useMetadataContent() {
     }
   }
   return { can, profile, capabilityLoading, capabilityError, paneComponent, paneKey, databaseLocation, tableInfo, tableName, selectTab, tabs, fieldPanelOpen, fieldPanelHost, metadataError, ...layout,
-    originalSource, originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties,
+    originalSource, originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties, onEditDatabase,
     tableCreateVisible, tableExportVisible, tableTruncateVisible, tableDropVisible }
 }
