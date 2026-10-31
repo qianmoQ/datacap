@@ -7,6 +7,7 @@ import SourceService from '@/services/source'
 import { sourceManageLocation } from '@/model/source-manage'
 import { mapDatabaseOverview, mapDatabaseTables, spaceSegments, type DatabaseOverview, type DatabaseTable } from '@/model/source-database'
 import { defaultCollation, mapCollations, type Collation } from '@/model/source-table-properties'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from './useSourceManageRoute'
 import { usePanelState } from './usePanelState'
 
@@ -156,6 +157,7 @@ export function useSourceDatabase() {
   watch(editor.visible, value => { fieldPanelOpen.value = value }, { immediate: true })
   watch(identity, () => { closeEditor(true); showAllTables.value = false; load() }, { immediate: true })
   if (refreshKey) watch(refreshKey, load)
+  useWorkspaceLoading(loading)
   onScopeDispose(() => { alive = false; revision++; previewRevision++; clearTimeout(previewTimer); fieldPanelOpen.value = false })
 
   return {

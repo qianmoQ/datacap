@@ -4,6 +4,7 @@ import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import { allOptions, changedOptions, defaultCollation, mapCollations, mapTableProperties, propertiesToForm, validatePropertiesForm,
   type Collation, type PropertiesForm, type PropertiesIssue, type TableProperties } from '@/model/source-table-properties'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from './useSourceManageRoute'
 import { usePanelState } from './usePanelState'
 import { useExecutedSql } from './useExecutedSql'
@@ -181,6 +182,10 @@ export function useSourceTableProperties() {
   }, { immediate: true })
   watch(editor.visible, value => { fieldPanelOpen.value = value }, { immediate: true })
   watch(identity, () => { closeEditor(true); load() }, { immediate: true })
+  // The header's refresh reloads this tab's own rows too.
+  const manualRefresh = inject<Ref<number> | null>('metadataManualRefresh', null)
+  if (manualRefresh) watch(manualRefresh, () => { load() })
+  useWorkspaceLoading(loading)
   onScopeDispose(() => { alive = false; revision++; previewRevision++; clearTimeout(previewTimer); fieldPanelOpen.value = false })
 
   return {

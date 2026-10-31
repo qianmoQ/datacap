@@ -1,5 +1,6 @@
 import { computed, inject, onMounted, onScopeDispose, ref, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
@@ -367,6 +368,7 @@ export function useSourceTableStructure() {
   watch(() => [route.params.source, route.params.database, route.params.table], () => { closePanel(true); detailTab.value = 'basic'; selectNames([]); if (!sharedRows) handleInitialize() })
   if (sharedRows) watch(sharedRows, applyRows, { immediate: true })
   else { onMounted(handleInitialize); if (refreshKey) watch(refreshKey, handleInitialize) }
+  useWorkspaceLoading(loading)
   onScopeDispose(() => { alive = false; revision++; typeRevision++; fieldPanelOpen.value = false })
   return { can, loading, columns, primaryNames, detailName, selectedNames, allSelected, partialSelected, toggleAll, toggleSelect,
     panelVisible, panelMode, panelAnchor, saving, moreOptionsOpen, dropVisible, dropChecking, dropNames, dropDependencies, panelForm, panelIssues, indexOnly, fieldPanelHost, fieldPanelWidth,

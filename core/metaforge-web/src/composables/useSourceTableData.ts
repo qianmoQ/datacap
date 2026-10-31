@@ -2,6 +2,7 @@ import { computed, inject, onScopeDispose, ref, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import { mapSourceColumns } from '@/model/source-column'
 import { buildDataFilters, dataFields, dataKind, defaultOperator, emptyValue, formToJson, formToRow, jsonToRow, rowToForm, toCsv, toJson, validateForm,
@@ -381,6 +382,10 @@ export function useSourceTableData() {
     page.value = 1
     load()
   }, { immediate: true })
+  // The header's refresh reloads this tab's own rows too.
+  const manualRefresh = inject<Ref<number> | null>('metadataManualRefresh', null)
+  if (manualRefresh) watch(manualRefresh, () => { load() })
+  useWorkspaceLoading(loading)
   onScopeDispose(() => { alive = false; revision++; fieldPanelOpen.value = false })
 
   return {

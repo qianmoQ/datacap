@@ -1,9 +1,10 @@
-import { computed, onScopeDispose, provide, reactive, ref, watch } from 'vue'
+import { computed, onScopeDispose, provide, reactive, ref, shallowReactive, watch } from 'vue'
 import { useSourceManageRoute as useRoute } from '@/composables/useSourceManageRoute'
 import MetadataService from '@/services/metadata'
 import { useSourceWorkspaceLayout } from './useSourceWorkspaceLayout'
 import { useNativeNamespaces } from './useNativeNamespaces'
 import { useSourceCapabilities } from './useSourceCapabilities'
+import type { WorkspaceLoaders } from './useWorkspaceLoading'
 
 /** Data-source workspace context; route changes invalidate in-flight metadata requests. */
 export function useMetadataWorkspace() {
@@ -32,7 +33,13 @@ export function useMetadataWorkspace() {
   provide('metadataTableStats', { indexes, foreignKeys })
   provide('metadataColumnRows', columnRows)
   provide('metadataRefreshKey', refreshKey)
+  // Bumped only by the header's refresh: panes holding their own data reload on it.
+  provide('metadataManualRefresh', ref(0))
   provide('metadataLoading', loading)
+  // Panes register their own loading flags; the header's refresh shows loading until all are done.
+  const paneLoaders: WorkspaceLoaders = shallowReactive(new Set())
+  provide('metadataPaneLoaders', paneLoaders)
+  provide('metadataRefreshing', computed(() => loading.value || [...paneLoaders].some(flag => flag.value)))
   provide('metadataError', error)
   provide('metadataFieldPanelOpen', fieldPanelOpen)
   provide('metadataFieldPanelHost', fieldPanelHost)

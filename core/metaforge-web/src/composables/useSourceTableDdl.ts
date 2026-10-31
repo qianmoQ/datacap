@@ -8,6 +8,7 @@ import { ObjectUtils } from '@/utils/object'
 import { DDL_CARDS, DEFAULT_DDL_CARDS, ddlFileName, joinDdl, mapDdlHistory,
   type DdlAction, type DdlHistoryEntry, type DdlKind } from '@/model/source-table-ddl'
 import { emptyTableFilters } from '@/model/filter'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from './useSourceManageRoute'
 import { usePagedList } from './usePagedList'
 import { usePanelState } from './usePanelState'
@@ -178,6 +179,7 @@ export function useSourceTableDdl() {
 
   watch(identity, initialize, { immediate: true })
   if (refreshKey) watch(refreshKey, initialize)
+  useWorkspaceLoading(computed(() => recentLoading.value || cards.value.some(card => card.blocks.some(block => block.loading))))
   onScopeDispose(() => {
     alive = false
     revision++

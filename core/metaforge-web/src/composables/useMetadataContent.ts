@@ -81,7 +81,13 @@ export function useMetadataContent() {
       router.replace(sourceManageLocation({ source: originalSource.value, database: originalDatabase.value, table: originalTable.value, tab: tabs.value[0].key }))
     }
   }, { immediate: true })
-  const onRefresh = () => { refreshKey.value++ }
+  const manualRefresh = inject<Ref<number>>('metadataManualRefresh', ref(0))
+  const refreshing = inject<Ref<boolean>>('metadataRefreshing', ref(false))
+  const onRefresh = () => {
+    if (refreshing.value) return
+    refreshKey.value++
+    manualRefresh.value++
+  }
   const onStructureCompare = () => router.push({ path: '/compare', query: { source: originalSource.value, database: originalDatabase.value, table: originalTable.value } })
   const onCopyName = () => {
     if (tableName.value) {
@@ -90,6 +96,6 @@ export function useMetadataContent() {
     }
   }
   return { can, profile, capabilityLoading, capabilityError, paneComponent, paneKey, databaseLocation, tableInfo, tableName, selectTab, tabs, fieldPanelOpen, fieldPanelHost, metadataError, ...layout,
-    originalSource, originalDatabase, originalTable, onChange, onRefresh, onStructureCompare, onCopyName, onEditProperties, onEditDatabase,
+    originalSource, originalDatabase, originalTable, onChange, onRefresh, refreshing, onStructureCompare, onCopyName, onEditProperties, onEditDatabase,
     tableCreateVisible, tableExportVisible, tableTruncateVisible, tableDropVisible }
 }

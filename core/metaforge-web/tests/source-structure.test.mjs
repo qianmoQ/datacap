@@ -20,6 +20,7 @@ const hookUrl = await local('composables/useSourceTableStructure.ts', {
   'vue-router':routerUrl,'@/composables/useSourceManageRoute':routerUrl,'vue-i18n':moduleUrl('export const useI18n=()=>({t:key=>key})'),'metaforge-ui':uiUrl,
   '@/services/metadata':serviceUrl,'@/model/source-column':sourceUrl,'@/model/column-dependency':await local('model/column-dependency.ts'),
   './useRowSelection':await local('composables/useRowSelection.ts'),'./useDragSort':await local('composables/useDragSort.ts'),'./useExecutedSql':await local('composables/useExecutedSql.ts',{'@/model/executed-sql':await local('model/executed-sql.ts')}),'./usePanelState':await local('composables/usePanelState.ts'),
+  './useWorkspaceLoading':await local('composables/useWorkspaceLoading.ts'),
 })
 const {useSourceTableStructure} = await import(hookUrl)
 const {state} = await import(serviceUrl)

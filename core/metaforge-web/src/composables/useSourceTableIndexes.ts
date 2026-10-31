@@ -4,6 +4,7 @@ import { MfMessage } from 'metaforge-ui'
 import MetadataService from '@/services/metadata'
 import { mapSourceColumns } from '@/model/source-column'
 import { emptyIndexForm, formToDefinition, groupIndexDetails, indexToForm, validateIndexForm, type IndexForm, type IndexIssue, type SourceIndex } from '@/model/source-index'
+import { useWorkspaceLoading } from './useWorkspaceLoading'
 import { useSourceManageRoute as useRoute } from './useSourceManageRoute'
 import { useRowSelection } from './useRowSelection'
 import { usePanelState } from './usePanelState'
@@ -210,6 +211,10 @@ export function useSourceTableIndexes() {
     select([])
     load()
   }, { immediate: true })
+  // The header's refresh reloads this tab's own rows too.
+  const manualRefresh = inject<Ref<number> | null>('metadataManualRefresh', null)
+  if (manualRefresh) watch(manualRefresh, () => { load() })
+  useWorkspaceLoading(loading)
   onScopeDispose(() => { alive = false; revision++; previewRevision++; clearTimeout(previewTimer); fieldPanelOpen.value = false })
 
   return {
