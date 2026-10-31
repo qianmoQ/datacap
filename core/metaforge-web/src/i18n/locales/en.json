@@ -219,6 +219,7 @@
   "compare.rangeEnd": "Last row",
   "compare.rangeStart": "First row",
   "compare.reset": "Reset",
+  "compare.resize": "Resize the settings",
   "compare.result": "Result",
   "compare.right": "Right (target)",
   "compare.scope": "Rows",

@@ -219,6 +219,7 @@
   "compare.rangeEnd": "结束行",
   "compare.rangeStart": "起始行",
   "compare.reset": "重置",
+  "compare.resize": "调整对比配置宽度",
   "compare.result": "对比结果",
   "compare.right": "右侧（目标库）",
   "compare.scope": "对比范围",

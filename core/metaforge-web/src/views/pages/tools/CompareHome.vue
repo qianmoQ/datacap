@@ -1,21 +1,21 @@
 <template>
-  <div class="flex min-h-full flex-col p-2">
+  <div class="compare-page flex h-full min-h-0 flex-col gap-2">
     <MfEmpty v-if="!source" class="flex-1" variant="initial" :title="$t('compare.chooseSource')">
       <MfSelect class="mt-3 w-72" :options="sourceOptions" :placeholder="$t('compare.chooseSource')" @update:model-value="value => openSource(String(value))"/>
     </MfEmpty>
 
-    <section v-else class="flex min-h-0 flex-1 flex-col rounded-mf-lg border border-line bg-surface">
-      <header class="shrink-0 border-b border-line px-6 py-4">
-        <h1 class="m-0 text-xl font-semibold text-content">{{ sourceTable ? $t('compare.title', { table: sourceTable }) : $t('navigation.dataCompare') }}</h1>
+    <template v-else>
+      <header class="shrink-0 rounded-mf-lg bg-surface/95 px-6 pt-4">
+        <h1 class="m-0 mb-1 text-xl font-semibold text-content">{{ sourceTable ? $t('compare.title', { table: sourceTable }) : $t('navigation.dataCompare') }}</h1>
+        <MfTabs :active-key="mode" class="compare-tabs" @change="setMode">
+          <MfTabPane item-key="structure" :tab="$t('compare.structure')"/>
+          <MfTabPane item-key="data" :tab="$t('compare.data')"/>
+        </MfTabs>
       </header>
-      <MfTabs :active-key="mode" class="compare-tabs shrink-0 px-6" @change="setMode">
-        <MfTabPane item-key="structure" :tab="$t('compare.structure')"/>
-        <MfTabPane item-key="data" :tab="$t('compare.data')"/>
-      </MfTabs>
 
       <!-- Structure -->
-      <div v-if="mode === 'structure'" class="flex min-h-0 flex-1 flex-col gap-4 p-6">
-        <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+      <div v-if="mode === 'structure'" class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-mf-lg bg-surface/95 p-5">
+        <div class="grid shrink-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <div class="rounded-mf-md border border-line p-4">
             <h3 class="m-0 mb-3 flex items-center gap-2 text-base font-semibold text-content"><Database :size="18" class="text-info"/>{{ $t('compare.sourceTable') }}</h3>
             <div class="flex flex-wrap items-center gap-4">
@@ -50,12 +50,13 @@
         </div>
 
         <div v-if="structureLoading && !structureRows.length" class="flex flex-1 items-center justify-center py-16"><MfSpinner/></div>
-        <MfAlert v-else-if="structureError" variant="danger" :title="structureError"/>
-        <MfEmpty v-else-if="!ready" class="flex-1 py-10" :title="$t('compare.chooseBoth')"/>
-        <div v-else class="grid min-h-0 grid-cols-1 gap-3 lg:grid-cols-2" :class="structureLoading && 'opacity-60'">
-          <div v-for="side in (['source', 'target'] as const)" :key="side" class="min-w-0 overflow-auto rounded-mf-md border border-line">
+        <MfAlert v-else-if="structureError" variant="danger" class="shrink-0" :title="structureError"/>
+        <MfEmpty v-else-if="!ready" class="flex-1" :title="$t('compare.chooseBoth')"/>
+        <!-- Each table scrolls on its own; the page keeps to the viewport. -->
+        <div v-else class="grid min-h-0 flex-1 grid-cols-1 grid-rows-2 gap-3 lg:grid-cols-2 lg:grid-rows-1" :class="structureLoading && 'opacity-60'">
+          <div v-for="side in (['source', 'target'] as const)" :key="side" class="min-h-0 min-w-0 overflow-auto rounded-mf-md border border-line">
             <table class="w-full border-collapse text-sm">
-              <thead class="bg-surface-hover text-left text-content-secondary">
+              <thead class="sticky top-0 z-[1] bg-surface-hover text-left text-content-secondary">
                 <tr><th v-for="column in STRUCTURE_COLUMNS" :key="column" class="whitespace-nowrap px-3 py-2 font-medium">{{ $t(`compare.column.${column}`) }}</th></tr>
               </thead>
               <tbody>
@@ -81,7 +82,7 @@
           </div>
         </div>
 
-        <footer class="mt-auto flex shrink-0 items-center justify-between gap-3">
+        <footer class="flex shrink-0 items-center justify-between gap-3">
           <MfSelect class="w-48" :model-value="onlyDifferent ? 'different' : 'all'" :options="filterOptions" @update:model-value="value => (onlyDifferent = value === 'different')">
             <template #prefix><Filter :size="15"/></template>
           </MfSelect>
@@ -93,8 +94,9 @@
       </div>
 
       <!-- Data -->
-      <div v-else class="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[22rem_minmax(0,1fr)]">
-        <aside class="flex flex-col gap-4 border-line p-6 lg:border-r">
+      <!-- Settings and results are two cards with a draggable divider, like the table workspace. -->
+      <div v-else class="flex min-h-0 flex-1 overflow-hidden">
+        <aside :style="{ width: configWidth + 'px' }" class="flex h-full shrink-0 flex-col gap-4 overflow-y-auto rounded-mf-lg bg-surface/90 p-5">
           <h3 class="m-0 text-base font-semibold text-content">{{ $t('compare.config') }}</h3>
           <div class="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-4 text-sm">
             <span class="text-content-secondary">{{ $t('compare.table') }}</span>
@@ -131,9 +133,9 @@
             <MfButton variant="primary" :loading="dataLoading" :disabled="!ready || (dataForm.mode === 'fields' && !dataForm.keys.length)" @click="compareData">{{ $t('compare.start') }}</MfButton>
           </div>
         </aside>
-
-        <div class="flex min-h-0 min-w-0 flex-col gap-3 p-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
+        <MfResizeHandle v-model="configWidth" :min="CONFIG_WIDTH.min" :max="CONFIG_WIDTH.max" :label="$t('compare.resize')" @change="saveConfigWidth"/>
+        <div class="flex h-full min-w-0 flex-1 flex-col gap-3 overflow-hidden rounded-mf-lg bg-surface/95 p-5">
+          <div class="flex shrink-0 flex-wrap items-center justify-between gap-3">
             <div class="flex items-baseline gap-3">
               <h3 class="m-0 text-base font-semibold text-content">{{ $t('compare.result') }}</h3>
               <span v-if="dataResult" class="text-xs text-content-tertiary">{{ $t('compare.dataSummary', { count: dataResult.total }) }}</span>
@@ -142,9 +144,9 @@
               <span v-for="item in LEGEND" :key="item.key" class="inline-flex items-center gap-1.5"><span class="h-3 w-5 rounded-mf-sm" :class="item.tone"/>{{ $t(`compare.legend.${item.key}`) }}</span>
             </div>
           </div>
-          <div v-if="dataLoading && !dataResult" class="flex flex-1 items-center justify-center py-16"><MfSpinner/></div>
-          <MfAlert v-else-if="dataError" variant="danger" :title="dataError"/>
-          <MfEmpty v-else-if="!dataResult" class="flex-1 py-10" :title="$t(ready ? 'compare.startHint' : 'compare.chooseBoth')"/>
+          <div v-if="dataLoading && !dataResult" class="flex flex-1 items-center justify-center"><MfSpinner/></div>
+          <MfAlert v-else-if="dataError" variant="danger" class="shrink-0" :title="dataError"/>
+          <MfEmpty v-else-if="!dataResult" class="flex-1" :title="$t(ready ? 'compare.startHint' : 'compare.chooseBoth')"/>
           <template v-else>
             <div class="min-h-0 flex-1 overflow-auto rounded-mf-md border border-line" :class="dataLoading && 'opacity-60'">
               <table class="w-full border-collapse text-sm">
@@ -178,16 +180,16 @@
                 </tbody>
               </table>
             </div>
-            <p v-if="dataResult.truncated" class="m-0 text-xs text-warning">{{ $t('compare.truncated', { shown: dataResult.rows.length, total: dataResult.total }) }}</p>
+            <p v-if="dataResult.truncated" class="m-0 shrink-0 text-xs text-warning">{{ $t('compare.truncated', { shown: dataResult.rows.length, total: dataResult.total }) }}</p>
           </template>
-          <footer class="mt-auto flex shrink-0 justify-end gap-2">
+          <footer class="mt-auto flex shrink-0 justify-end gap-2 pt-1">
             <MfButton @click="back">{{ $t('common.cancel') }}</MfButton>
             <ExportMenu :disabled="!ready || (dataForm.mode === 'fields' && !dataForm.keys.length)" :loading="exporting" :label="$t('compare.exportData')"
                         @export="format => exportResult('data', format)"/>
           </footer>
         </div>
       </div>
-    </section>
+    </template>
 
     <MfModal :open="!!detail" width="720px" :title="$t('compare.detailTitle')" @update:open="value => !value && (detail = null)">
       <table v-if="detail && dataResult" class="w-full border-collapse text-sm">
@@ -218,6 +220,7 @@ import { compareLocation } from '@/model/source-manage'
 import { cellText, type DataType, type StructureSideRow, type StructureStatus } from '@/model/table-compare'
 import { useTableCompare } from '@/composables/useTableCompare'
 import ExportMenu from './components/CompareExportMenu.vue'
+import { usePanelWidth } from '@/composables/usePanelWidth'
 
 defineOptions({ name: 'CompareHome' })
 const { t } = useI18n()
@@ -229,6 +232,9 @@ const {
   setMode, setSourceTable, setTargetDatabase, swap, back, compareStructure, compareData, resetData, exportResult,
 } = useTableCompare()
 
+// The settings card keeps the width the user dragged it to.
+const CONFIG_WIDTH = { initial: 360, min: 300, max: 560 }
+const { width: configWidth, save: saveConfigWidth } = usePanelWidth('MetaForgeCompareConfigWidth', CONFIG_WIDTH)
 const STRUCTURE_COLUMNS = ['name', 'type', 'nullable', 'defaultValue', 'comment'] as const
 const SUMMARY: { key: StructureStatus; tone: string }[] = [
   { key: 'changed', tone: 'text-danger' }, { key: 'source_only', tone: 'text-success' }, { key: 'target_only', tone: 'text-warning' }, { key: 'same', tone: 'text-content' },
@@ -262,4 +268,14 @@ const openSource = (code: string) => { if (code) router.replace(compareLocation(
 
 <style scoped>
 .compare-tabs :deep([role='tablist']) { border-bottom: 0; }
+.compare-page :deep(*) {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--mf-color-content-tertiary) 40%, transparent) transparent;
+}
+.compare-page :deep(*::-webkit-scrollbar) { width: 6px; height: 6px; }
+.compare-page :deep(*::-webkit-scrollbar-track) { background: transparent; }
+.compare-page :deep(*::-webkit-scrollbar-thumb) {
+  background: color-mix(in srgb, var(--mf-color-content-tertiary) 40%, transparent);
+  border-radius: var(--mf-radius-full);
+}
 </style>
