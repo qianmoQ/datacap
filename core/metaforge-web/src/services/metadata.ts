@@ -59,6 +59,18 @@ class MetadataService
         return new HttpUtils().get(`${ DEFAULT_PATH }/${ code }/${ database }/database-tables`)
     }
 
+    /** The first rows of an export as the file would hold them, and the table's row count. */
+    previewExport(code: string, database: string, table: string, configure: any): Promise<ResponseModel>
+    {
+        return new HttpUtils().post(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/export-preview`, configure)
+    }
+
+    /** The export file (a ZIP when compressing), or the failure message. */
+    exportFile(code: string, database: string, table: string, configure: any)
+    {
+        return new HttpUtils().download(`${ DEFAULT_PATH }/${ code }/${ database }/${ table }/export-file`, configure)
+    }
+
     /** Changes the database's default character set and collation; `preview` returns the statement only. */
     alterDatabaseOptions(code: string, database: string, configure: any): Promise<ResponseModel>
     {
