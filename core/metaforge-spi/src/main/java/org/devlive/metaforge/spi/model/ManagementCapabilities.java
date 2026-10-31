@@ -62,7 +62,7 @@ public final class ManagementCapabilities
         // The shared DDL/data generators currently target MySQL. Other plugins opt in when they implement a dialect.
         if (type.equals("mysql")) {
             capabilities.addAll(Set.of(
-                    "engine:list", "datatype:list", "database:info", "table:info", "table:read", "table:statement",
+                    "engine:list", "datatype:list", "database:info", "database:alter", "table:info", "table:read", "table:statement",
                     "table:create", "table:drop", "table:truncate", "table:export", "table:auto-increment",
                     "column:create", "column:modify", "column:drop", "column:reorder", "index:create", "index:drop",
                     "foreign-key:create", "foreign-key:drop", "trigger:create", "trigger:drop", "table:alter",

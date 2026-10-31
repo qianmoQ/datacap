@@ -1271,56 +1271,82 @@ public interface PluginService
      */
     default Response getDatabase(RuntimeConfigure configure, String database)
     {
-        String sql = "SELECT \n" +
-                "    s.SCHEMA_NAME as object_name,\n" +
-                "    s.DEFAULT_CHARACTER_SET_NAME as object_charset,\n" +
-                "    s.DEFAULT_COLLATION_NAME as object_collation,\n" +
-                "    db_stats.object_create_time,\n" +
-                "    db_stats.object_update_time,\n" +
-                "    db_stats.object_data_size,\n" +
-                "    db_stats.object_index_size,\n" +
-                "    db_stats.object_total_size,\n" +
-                "    db_stats.object_table_count,\n" +
-                "    db_stats.object_column_count,\n" +
-                "    db_stats.object_index_count,\n" +
-                "    db_stats.object_view_count,\n" +
-                "    db_stats.object_procedure_count,\n" +
-                "    db_stats.object_trigger_count,\n" +
-                "    db_stats.object_foreign_key_count,\n" +
-                "    db_stats.object_total_rows\n" +
-                "FROM\n" +
-                "    information_schema.SCHEMATA s,\n" +
-                "    (\n" +
-                "        SELECT\n" +
-                "            TABLE_SCHEMA,\n" +
-                "            MIN(CREATE_TIME) as object_create_time,\n" +
-                "            MAX(UPDATE_TIME) as object_update_time,\n" +
-                "            ROUND(SUM(DATA_LENGTH)/1024/1024, 2) as object_data_size,\n" +
-                "            ROUND(SUM(INDEX_LENGTH)/1024/1024, 2) as object_index_size,\n" +
-                "            ROUND(SUM(DATA_LENGTH + INDEX_LENGTH)/1024/1024, 2) as object_total_size,\n" +
-                "            COUNT(*) as object_table_count,\n" +
-                "            SUM(TABLE_ROWS) as object_total_rows,\n" +
-                "            (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '{0}') as object_column_count,\n" +
-                "            (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = '{0}') as object_index_count,\n" +
-                "            (SELECT COUNT(*) FROM information_schema.VIEWS WHERE TABLE_SCHEMA = '{0}') as object_view_count,\n" +
-                "            (SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = '{0}' AND ROUTINE_TYPE = 'PROCEDURE') as object_procedure_count,\n" +
-                "            (SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = '{0}') as object_trigger_count,\n" +
-                "            (SELECT COUNT(DISTINCT CONSTRAINT_NAME) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = '{0}') as object_foreign_key_count\n" +
-                "        FROM\n" +
-                "            information_schema.TABLES\n" +
-                "        WHERE\n" +
-                "            TABLE_SCHEMA = '{0}'\n" +
-                "            AND TABLE_TYPE = 'BASE TABLE'\n" +
-                "        GROUP BY\n" +
-                "            TABLE_SCHEMA\n" +
-                "    ) as db_stats\n" +
-                "WHERE\n" +
-                "    s.SCHEMA_NAME = '{0}';";
+        String schema = sqlLiteral(database);
+        // A LEFT JOIN keeps the schema row for a database without tables; counts cover base tables only.
+        String sql = "SELECT\n"
+                + "    s.SCHEMA_NAME AS object_name,\n"
+                + "    s.DEFAULT_CHARACTER_SET_NAME AS object_charset,\n"
+                + "    s.DEFAULT_COLLATION_NAME AS object_collation,\n"
+                + "    t.object_create_time,\n"
+                + "    t.object_update_time,\n"
+                + "    ROUND(IFNULL(t.data_length, 0) / 1024 / 1024, 2) AS object_data_size,\n"
+                + "    ROUND(IFNULL(t.index_length, 0) / 1024 / 1024, 2) AS object_index_size,\n"
+                + "    ROUND(IFNULL(t.data_length + t.index_length, 0) / 1024 / 1024, 2) AS object_total_size,\n"
+                + "    IFNULL(t.data_length, 0) AS object_data_length,\n"
+                + "    IFNULL(t.index_length, 0) AS object_index_length,\n"
+                + "    IFNULL(t.data_free, 0) AS object_data_free,\n"
+                + "    IFNULL(t.table_count, 0) AS object_table_count,\n"
+                + "    IFNULL(t.total_rows, 0) AS object_total_rows,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.COLUMNS c JOIN information_schema.TABLES b\n"
+                + "        ON b.TABLE_SCHEMA = c.TABLE_SCHEMA AND b.TABLE_NAME = c.TABLE_NAME AND b.TABLE_TYPE = 'BASE TABLE'\n"
+                + "        WHERE c.TABLE_SCHEMA = " + schema + ") AS object_column_count,\n"
+                + "    (SELECT COUNT(*) FROM (SELECT DISTINCT TABLE_NAME, INDEX_NAME FROM information_schema.STATISTICS\n"
+                + "        WHERE TABLE_SCHEMA = " + schema + ") i) AS object_index_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.VIEWS WHERE TABLE_SCHEMA = " + schema + ") AS object_view_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = " + schema + " AND ROUTINE_TYPE = 'PROCEDURE') AS object_procedure_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.EVENTS WHERE EVENT_SCHEMA = " + schema + ") AS object_event_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = " + schema + ") AS object_trigger_count,\n"
+                + "    (SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = " + schema + ") AS object_foreign_key_count\n"
+                + "FROM information_schema.SCHEMATA s\n"
+                + "LEFT JOIN (\n"
+                + "    SELECT TABLE_SCHEMA, MIN(CREATE_TIME) AS object_create_time, MAX(UPDATE_TIME) AS object_update_time,\n"
+                + "        SUM(DATA_LENGTH) AS data_length, SUM(INDEX_LENGTH) AS index_length, SUM(DATA_FREE) AS data_free,\n"
+                + "        COUNT(*) AS table_count, SUM(TABLE_ROWS) AS total_rows\n"
+                + "    FROM information_schema.TABLES\n"
+                + "    WHERE TABLE_SCHEMA = " + schema + " AND TABLE_TYPE = 'BASE TABLE'\n"
+                + "    GROUP BY TABLE_SCHEMA\n"
+                + ") t ON t.TABLE_SCHEMA = s.SCHEMA_NAME\n"
+                + "WHERE s.SCHEMA_NAME = " + schema;
+        return this.execute(configure, sql);
+    }
 
-        return this.execute(
-                configure,
-                sql.replace("{0}", database)
-        );
+    /**
+     * 数据库表概览 | Base tables of the database with engine, estimated rows, data and index sizes in
+     * bytes, creation and update times and comment, by name.
+     */
+    default Response getDatabaseTables(RuntimeConfigure configure, String database)
+    {
+        String sql = "SELECT TABLE_NAME AS object_name, ENGINE AS object_engine, TABLE_ROWS AS object_rows,\n"
+                + "    DATA_LENGTH AS object_data_length, INDEX_LENGTH AS object_index_length,\n"
+                + "    CREATE_TIME AS object_create_time, UPDATE_TIME AS object_update_time, TABLE_COMMENT AS object_comment\n"
+                + "FROM information_schema.TABLES\n"
+                + "WHERE TABLE_SCHEMA = " + sqlLiteral(database) + " AND TABLE_TYPE = 'BASE TABLE'\n"
+                + "ORDER BY TABLE_NAME";
+        return this.execute(configure, sql);
+    }
+
+    /**
+     * 修改数据库默认字符集与排序规则 | Changes the database's default character set and collation in
+     * one ALTER DATABASE; tables keep theirs, only new tables follow the new default.
+     */
+    default Response alterDatabaseOptions(RuntimeConfigure configure, TableDefinition definition)
+    {
+        return this.executeStatements(Lists.newArrayList(this.databaseOptionsStatement(definition.getDatabase(), definition.getOptions())), configure, definition);
+    }
+
+    default String databaseOptionsStatement(String database, TableOptionsDefinition options)
+    {
+        List<String> clauses = Lists.newArrayList();
+        if (options != null && options.getCharset() != null) {
+            clauses.add("DEFAULT CHARACTER SET = " + tableOptionWord(options.getCharset(), "character set"));
+        }
+        if (options != null && options.getCollate() != null) {
+            clauses.add("DEFAULT COLLATE = " + tableOptionWord(options.getCollate(), "collation"));
+        }
+        if (clauses.isEmpty()) {
+            throw new IllegalArgumentException("Nothing to change");
+        }
+        return "ALTER DATABASE " + sqlIdentifier(database) + " " + String.join(" ", clauses);
     }
 
     /**

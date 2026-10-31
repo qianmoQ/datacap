@@ -204,6 +204,24 @@ public class MetadataServiceImpl
     }
 
     @Override
+    public CommonResponse<Response> getDatabaseTables(String code, String database)
+    {
+        return withPlugin(code, List.of("database:info"), (service, configure) -> service.getDatabaseTables(configure, database));
+    }
+
+    @Override
+    public CommonResponse<Response> alterDatabaseOptions(String code, String database, TableDefinition configure)
+    {
+        configure.setDatabase(database);
+        try {
+            return withPlugin(code, List.of("database:alter"), (service, runtime) -> service.alterDatabaseOptions(runtime, configure));
+        }
+        catch (IllegalArgumentException error) {
+            return CommonResponse.failure(error.getMessage());
+        }
+    }
+
+    @Override
     public CommonResponse<Response> getTable(String code, String database, String table)
     {
         return repository.findByCode(code)

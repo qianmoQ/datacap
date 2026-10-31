@@ -84,6 +84,20 @@ public class MetadataController
         return this.service.getDatabase(code, database);
     }
 
+    /** Base tables of the database with engine, rows, sizes and times, for the database overview. */
+    @GetMapping(value = "{code}/{database}/database-tables")
+    public CommonResponse<Response> fetchDatabaseTables(@PathVariable String code, @PathVariable String database)
+    {
+        return this.service.getDatabaseTables(code, database);
+    }
+
+    /** Changes the database's default character set and collation; preview returns the statement only. */
+    @PostMapping(value = "{code}/{database}/alter-database-options")
+    public CommonResponse<Response> alterDatabaseOptions(@PathVariable String code, @PathVariable String database, @RequestBody TableDefinition configure)
+    {
+        return this.service.alterDatabaseOptions(code, database, configure);
+    }
+
     @GetMapping(value = "{code}/{database}/{table}")
     public CommonResponse<Response> fetchTable(
             @PathVariable String code,

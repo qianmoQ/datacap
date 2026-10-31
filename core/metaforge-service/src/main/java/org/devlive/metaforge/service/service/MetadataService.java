@@ -37,6 +37,10 @@ public interface MetadataService
 
     CommonResponse<Response> getDatabase(String code, String database);
 
+    CommonResponse<Response> getDatabaseTables(String code, String database);
+
+    CommonResponse<Response> alterDatabaseOptions(String code, String database, TableDefinition configure);
+
     CommonResponse<Response> getTable(String code, String database, String table);
 
     CommonResponse<Response> getTableStatement(String code, String database, String table);
