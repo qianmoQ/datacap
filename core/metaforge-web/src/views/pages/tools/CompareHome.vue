@@ -14,8 +14,9 @@
       </header>
 
       <!-- Structure -->
-      <div v-if="mode === 'structure'" class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-mf-lg bg-surface/95 p-5">
-        <div class="grid shrink-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+      <!-- Tables take the remaining height; on short screens the card itself scrolls rather than the page. -->
+      <div v-if="mode === 'structure'" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-mf-lg bg-surface/95 p-5">
+        <div class="grid shrink-0 grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <div class="rounded-mf-md border border-line p-4">
             <h3 class="m-0 mb-3 flex items-center gap-2 text-base font-semibold text-content"><Database :size="18" class="text-info"/>{{ $t('compare.sourceTable') }}</h3>
             <div class="flex flex-wrap items-center gap-4">
@@ -32,8 +33,8 @@
               </MfSelect>
             </div>
           </div>
-          <div class="flex flex-col gap-3">
-            <div class="flex justify-end gap-2">
+          <div class="flex flex-wrap items-start justify-between gap-3 lg:col-span-2 lg:flex-row-reverse xl:col-span-1 xl:flex-col xl:flex-nowrap xl:items-stretch">
+            <div class="flex shrink-0 justify-end gap-2">
               <MfButton :disabled="!ready" @click="swap"><ArrowLeftRight :size="15"/>{{ $t('compare.swap') }}</MfButton>
               <MfButton :disabled="!ready" :loading="structureLoading" @click="compareStructure"><RefreshCw :size="15"/>{{ $t('compare.again') }}</MfButton>
             </div>
@@ -53,9 +54,10 @@
         <MfAlert v-else-if="structureError" variant="danger" class="shrink-0" :title="structureError"/>
         <MfEmpty v-else-if="!ready" class="flex-1" :title="$t('compare.chooseBoth')"/>
         <!-- Each table scrolls on its own; the page keeps to the viewport. -->
-        <div v-else class="grid min-h-0 flex-1 grid-cols-1 grid-rows-2 gap-3 lg:grid-cols-2 lg:grid-rows-1" :class="structureLoading && 'opacity-60'">
-          <div v-for="side in (['source', 'target'] as const)" :key="side" class="min-h-0 min-w-0 overflow-auto rounded-mf-md border border-line">
-            <table class="w-full border-collapse text-sm">
+        <div v-else class="grid min-h-72 flex-1 grid-cols-1 grid-rows-2 gap-3 lg:grid-cols-2 lg:grid-rows-1" :class="structureLoading && 'opacity-60'">
+          <div v-for="side in (['source', 'target'] as const)" :key="side" class="flex min-h-0 min-w-0 flex-col overflow-auto rounded-mf-md border border-line">
+            <MfEmpty v-if="!sides[side].length" class="flex-1" :title="$t(onlyDifferent ? 'compare.noDifference' : 'compare.noRows')"/>
+            <table v-else class="w-full border-collapse text-sm">
               <thead class="sticky top-0 z-[1] bg-surface-hover text-left text-content-secondary">
                 <tr><th v-for="column in STRUCTURE_COLUMNS" :key="column" class="whitespace-nowrap px-3 py-2 font-medium">{{ $t(`compare.column.${column}`) }}</th></tr>
               </thead>
@@ -76,7 +78,6 @@
                     {{ row.column.comment || '-' }}<span v-if="onlyHere(side, row.status)">（{{ $t(`compare.only.${side}`) }}）</span>
                   </td>
                 </tr>
-                <tr v-if="!sides[side].length"><td :colspan="STRUCTURE_COLUMNS.length" class="px-3 py-6 text-center text-content-tertiary">{{ $t('compare.noRows') }}</td></tr>
               </tbody>
             </table>
           </div>
@@ -108,7 +109,7 @@
                 <MfTooltip :content="$t('compare.byFieldsHint')"><CircleHelp :size="14" class="text-content-tertiary"/></MfTooltip></span></MfRadio>
             </MfRadioGroup>
             <span class="text-content-secondary">{{ $t('compare.keyFields') }}</span>
-            <MfSelect v-if="dataForm.mode === 'primary'" :model-value="primaryKeys.join(', ') || $t('compare.noPrimaryKey')" disabled :options="[]"/>
+            <MfSelect v-if="dataForm.mode === 'primary'" :model-value="primaryLabel" disabled :options="[{ label: primaryLabel, value: primaryLabel }]"/>
             <MfSelect v-else v-model="dataForm.keys" multiple searchable :options="columnNames.map(name => ({ label: name, value: name }))" :placeholder="$t('compare.chooseFields')"/>
             <span class="text-content-secondary">{{ $t('compare.scope') }}</span>
             <div class="flex flex-wrap items-center gap-3">
@@ -147,6 +148,7 @@
           <div v-if="dataLoading && !dataResult" class="flex flex-1 items-center justify-center"><MfSpinner/></div>
           <MfAlert v-else-if="dataError" variant="danger" class="shrink-0" :title="dataError"/>
           <MfEmpty v-else-if="!dataResult" class="flex-1" :title="$t(ready ? 'compare.startHint' : 'compare.chooseBoth')"/>
+          <MfEmpty v-else-if="!dataResult.rows.length" class="flex-1" :title="$t('compare.noDifference')"/>
           <template v-else>
             <div class="min-h-0 flex-1 overflow-auto rounded-mf-md border border-line" :class="dataLoading && 'opacity-60'">
               <table class="w-full border-collapse text-sm">
@@ -176,7 +178,6 @@
                       <button type="button" class="text-xs text-primary hover:underline" @click="detail = row">{{ $t('compare.detail') }}</button>
                     </td>
                   </tr>
-                  <tr v-if="!dataResult.rows.length"><td :colspan="dataResult.columns.length + 3" class="px-3 py-6 text-center text-content-tertiary">{{ $t('compare.noDifference') }}</td></tr>
                 </tbody>
               </table>
             </div>
@@ -192,18 +193,12 @@
     </template>
 
     <MfModal :open="!!detail" width="720px" :title="$t('compare.detailTitle')" @update:open="value => !value && (detail = null)">
-      <table v-if="detail && dataResult" class="w-full border-collapse text-sm">
-        <thead class="bg-surface-hover text-left text-content-secondary">
-          <tr><th class="px-3 py-2 font-medium">{{ $t('compare.column.name') }}</th><th class="px-3 py-2 font-medium">{{ $t('compare.left') }}</th><th class="px-3 py-2 font-medium">{{ $t('compare.right') }}</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="(column, position) in dataResult.columns" :key="column" class="border-t border-line" :class="detail.changed.includes(column) && 'bg-danger/10'">
-            <td class="whitespace-nowrap px-3 py-2 font-medium text-content">{{ column }}</td>
-            <td class="break-all px-3 py-2 text-content">{{ detail.source ? cellText(detail.source[position]) : '—' }}</td>
-            <td class="break-all px-3 py-2" :class="detail.changed.includes(column) ? 'text-danger' : 'text-content'">{{ detail.target ? cellText(detail.target[position]) : '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <MfTable v-if="detail && dataResult" :columns="detailColumns" :data-source="detailRows" row-key="column" density="compact" :bordered="false"
+               :row-class="(row: DetailRow) => row.changed ? 'bg-danger/10 [&>td]:bg-danger/10' : ''">
+        <template #cell-column="{ record }"><span class="font-medium text-content">{{ record.column }}</span></template>
+        <template #cell-left="{ record }"><EllipsisCell :text="record.left"/></template>
+        <template #cell-right="{ record }"><span :class="record.changed && 'text-danger'"><EllipsisCell :text="record.right"/></span></template>
+      </MfTable>
       <template #footer><MfButton variant="primary" @click="detail = null">{{ $t('source.executed.close') }}</MfButton></template>
     </MfModal>
   </div>
@@ -220,6 +215,7 @@ import { compareLocation } from '@/model/source-manage'
 import { cellText, type DataType, type StructureSideRow, type StructureStatus } from '@/model/table-compare'
 import { useTableCompare } from '@/composables/useTableCompare'
 import ExportMenu from './components/CompareExportMenu.vue'
+import EllipsisCell from '@/views/components/table/EllipsisCell.vue'
 import { usePanelWidth } from '@/composables/usePanelWidth'
 
 defineOptions({ name: 'CompareHome' })
@@ -243,6 +239,25 @@ const LEGEND = [{ key: 'changed', tone: 'bg-danger/15' }, { key: 'source_only', 
 const TYPE_BG: Record<DataType, string> = { same: '', changed: '', source_only: 'bg-success/10', target_only: 'bg-warning/10' }
 const TYPE_TEXT: Record<DataType, string> = { same: 'text-content-secondary', changed: 'text-danger', source_only: 'text-success', target_only: 'text-content' }
 const TYPE_ICON: Record<DataType, unknown> = { same: Circle, changed: CircleMinus, source_only: CirclePlus, target_only: CircleMinus }
+// Row details: one line per column, long values truncated with the full text on hover.
+type DetailRow = { column: string; left: string; right: string; changed: boolean }
+const detailColumns = computed(() => [
+  { title: t('compare.column.name'), dataIndex: 'column', width: 160, ellipsis: true },
+  { title: t('compare.left'), dataIndex: 'left', width: 240, ellipsis: true },
+  { title: t('compare.right'), dataIndex: 'right', width: 240, ellipsis: true },
+])
+const detailRows = computed<DetailRow[]>(() => {
+  const row = detail.value
+  if (!row || !dataResult.value) return []
+  return dataResult.value.columns.map((column, position) => ({
+    column,
+    left: row.source ? cellText(row.source[position]) : '—',
+    right: row.target ? cellText(row.target[position]) : '—',
+    changed: row.changed.includes(column),
+  }))
+})
+// The primary key is shown, not chosen: a single option holding the key columns.
+const primaryLabel = computed(() => primaryKeys.value.join(', ') || t('compare.noPrimaryKey'))
 const filterOptions = computed(() => [{ label: t('compare.showAll'), value: 'all' }, { label: t('compare.showDifferent'), value: 'different' }])
 
 // Source columns only on the left are additions; on the right, changes and target-only columns are marked.
